@@ -1,5 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { UserMonthlySnapshotRead } from '../api/types';
+import type { TransparencyDecisionType } from '../api/transparency';
 
 export type OnboardingStackParamList = {
   Welcome: undefined;
@@ -24,7 +25,7 @@ export type InsightsStackParamList = {
   Leaks: undefined;
   Personalization: undefined;
   Transparency: undefined;
-  TransparencyDetail: { moduleSource: string };
+  TransparencyDetail: { moduleSource: TransparencyDecisionType };
 };
 export type VerifyStackParamList = {
   RumourVerification: undefined;

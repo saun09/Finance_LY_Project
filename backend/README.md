@@ -251,7 +251,10 @@ in the same backend process/codebase per the project's stack. Module 2's
 (`regular`/`irregular` — an explicit field the future capacity/ability
 layer needs, not inferred from anything else), `employment_type`
 (`salaried`/`self_employed`/`business_owner`/`freelancer`/`unemployed`/
-`other`), dependents count, and current cash balance (paise).
+`other`), dependents count, and current cash balance (paise). `GET
+/users/{user_id}/profile` reads it back (404 if never set) — added
+alongside the other list/read endpoints below so a frontend can show what
+was already entered, not just create new rows.
 
 `POST /users/{user_id}/emis` — one row per loan: lender, the **monthly EMI
 payment** (paise), remaining tenure (months), and the annual rate (basis
@@ -262,12 +265,17 @@ fully paid off (`closed_at` set, excluded from financial-position
 calculations from then on, but the row stays so Module 10 can still see
 it existed) — added for Module 10's "debt cleared" milestone, which was
 otherwise structurally undetectable: Module 2's EMI/expense CRUD was
-add-only until this.
+add-only until this. `GET /users/{user_id}/emis` lists every EMI ever
+recorded (active and closed alike, oldest first) — `EmiOut` includes
+`closed_at` precisely so a management screen can tell the two apart
+without a second call.
 
 `POST /users/{user_id}/insurance-policies` — policy type (`life`/`health`)
 and sum assured (paise). Doesn't feed net worth/surplus/buffer/EMI-ratio,
 so adding one does **not** trigger a snapshot write (see "material edit"
 below) — it's captured for later modules, not this one's computed outputs.
+`GET /users/{user_id}/insurance-policies` lists them (oldest first); there
+is no close/remove for a policy, so every row returned is still current.
 
 `POST /users/{user_id}/holdings` — freeform `description` + `value_paise`,
 plus an optional `holding_type` (Module 4's classification category — see
@@ -275,11 +283,15 @@ below; nullable here because Module 2 predates that taxonomy, but Module 4
 requires it before a holding can be classified). Emergency-fund coverage
 above uses only the explicit cash balance, not holdings, regardless of
 `holding_type` — a classified holding still isn't necessarily liquid.
+`GET /users/{user_id}/holdings` lists them (oldest first).
 
 ### Expense entry and the manual-vs-parsing decision
 
 `POST /users/{user_id}/expenses` — category, amount (paise), `frequency`
-(`monthly`/`annual`/`one_time`), and `is_essential`. This module builds
+(`monthly`/`annual`/`one_time`), and `is_essential`. `GET
+/users/{user_id}/expenses` lists every expense item ever recorded (active
+and removed alike, oldest first) — `ExpenseItemOut` includes `removed_at`
+for the same reason `EmiOut` includes `closed_at`. This module builds
 **manual entry only** — no statement parser. Per the project brief, that
 omission has to be an explicit, dated decision, not a silent gap, because
 it determines whether leak detection and idle-cash flagging (later

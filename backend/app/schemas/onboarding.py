@@ -41,6 +41,7 @@ class EmiOut(EmiIn):
     model_config = ConfigDict(from_attributes=True)
     id: str
     user_id: str
+    closed_at: datetime | None
 
 
 class InsurancePolicyIn(BaseModel):
@@ -77,6 +78,7 @@ class ExpenseItemOut(ExpenseItemIn):
     model_config = ConfigDict(from_attributes=True)
     id: str
     user_id: str
+    removed_at: datetime | None
 
 
 class ExpenseSourceDecisionIn(BaseModel):

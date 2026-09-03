@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { PlaceholderScreen } from '../screens/PlaceholderScreen';
+import { RiskProfileScreen } from '../screens/plan/RiskProfileScreen';
+import { RiskQuestionnaireScreen } from '../screens/plan/RiskQuestionnaireScreen';
+import { AllocationScreen } from '../screens/plan/AllocationScreen';
 import type { PlanStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<PlanStackParamList>();
@@ -8,15 +10,9 @@ const Stack = createNativeStackNavigator<PlanStackParamList>();
 export function PlanStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="RiskProfile">
-        {() => <PlaceholderScreen title="Risk Profile" phase="Phase 4" />}
-      </Stack.Screen>
-      <Stack.Screen name="RiskQuestionnaire">
-        {() => <PlaceholderScreen title="Risk Questionnaire" phase="Phase 4" />}
-      </Stack.Screen>
-      <Stack.Screen name="Allocation">
-        {() => <PlaceholderScreen title="Allocation" phase="Phase 4" />}
-      </Stack.Screen>
+      <Stack.Screen name="RiskProfile" component={RiskProfileScreen} />
+      <Stack.Screen name="RiskQuestionnaire" component={RiskQuestionnaireScreen} />
+      <Stack.Screen name="Allocation" component={AllocationScreen} />
     </Stack.Navigator>
   );
 }

@@ -3,6 +3,7 @@ import {
   formatPaiseWithDecimals,
   formatPercent,
   paiseToRupeeInput,
+  percentInputToBps,
   rupeeInputToPaise,
 } from '../currency';
 
@@ -101,5 +102,29 @@ describe('formatPercent', () => {
 
   it('returns an em dash placeholder for non-finite input rather than "NaN%"', () => {
     expect(formatPercent('not-a-number')).toBe('—');
+  });
+});
+
+describe('percentInputToBps', () => {
+  it('converts a whole-percent string to basis points', () => {
+    expect(percentInputToBps('12')).toBe(1200);
+  });
+
+  it('converts a decimal-percent string to basis points', () => {
+    expect(percentInputToBps('9.5')).toBe(950);
+  });
+
+  it('rounds two-decimal percentages correctly', () => {
+    expect(percentInputToBps('9.99')).toBe(999);
+  });
+
+  it('rejects negative numbers, letters, and malformed decimals', () => {
+    expect(percentInputToBps('-5')).toBeNull();
+    expect(percentInputToBps('abc')).toBeNull();
+    expect(percentInputToBps('9.999')).toBeNull();
+  });
+
+  it('rejects an empty string', () => {
+    expect(percentInputToBps('')).toBeNull();
   });
 });

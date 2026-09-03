@@ -20,8 +20,12 @@ export const onboardingApi = {
   putProfile: (userId: string, body: ProfileIn) =>
     apiClient.put<ProfileOut>(`/users/${userId}/profile`, body).then((r) => r.data),
 
+  getProfile: (userId: string) => apiClient.get<ProfileOut>(`/users/${userId}/profile`).then((r) => r.data),
+
   postEmi: (userId: string, body: EmiIn) =>
     apiClient.post<EmiOut>(`/users/${userId}/emis`, body).then((r) => r.data),
+
+  getEmis: (userId: string) => apiClient.get<EmiOut[]>(`/users/${userId}/emis`).then((r) => r.data),
 
   closeEmi: (userId: string, emiId: string) =>
     apiClient.post<EmiOut>(`/users/${userId}/emis/${emiId}/close`).then((r) => r.data),
@@ -29,11 +33,19 @@ export const onboardingApi = {
   postInsurancePolicy: (userId: string, body: InsurancePolicyIn) =>
     apiClient.post<InsurancePolicyOut>(`/users/${userId}/insurance-policies`, body).then((r) => r.data),
 
+  getInsurancePolicies: (userId: string) =>
+    apiClient.get<InsurancePolicyOut[]>(`/users/${userId}/insurance-policies`).then((r) => r.data),
+
   postHolding: (userId: string, body: HoldingIn) =>
     apiClient.post<HoldingOut>(`/users/${userId}/holdings`, body).then((r) => r.data),
 
+  getHoldings: (userId: string) => apiClient.get<HoldingOut[]>(`/users/${userId}/holdings`).then((r) => r.data),
+
   postExpenseItem: (userId: string, body: ExpenseItemIn) =>
     apiClient.post<ExpenseItemOut>(`/users/${userId}/expenses`, body).then((r) => r.data),
+
+  getExpenseItems: (userId: string) =>
+    apiClient.get<ExpenseItemOut[]>(`/users/${userId}/expenses`).then((r) => r.data),
 
   removeExpenseItem: (userId: string, itemId: string) =>
     apiClient.post<ExpenseItemOut>(`/users/${userId}/expenses/${itemId}/remove`).then((r) => r.data),

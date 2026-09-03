@@ -78,6 +78,7 @@ export interface EmiIn {
 export interface EmiOut extends EmiIn {
   id: string;
   user_id: string;
+  closed_at: string | null;
 }
 
 export interface InsurancePolicyIn {
@@ -111,6 +112,7 @@ export interface ExpenseItemIn {
 export interface ExpenseItemOut extends ExpenseItemIn {
   id: string;
   user_id: string;
+  removed_at: string | null;
 }
 
 export interface ExpenseSourceModeOut {

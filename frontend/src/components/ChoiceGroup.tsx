@@ -11,6 +11,10 @@ export interface ChoiceOption<T extends string> {
 
 interface Props<T extends string> {
   label: string;
+  /** false for a full-sentence prompt (e.g. a questionnaire question) --
+   * renders as a normal-case heading instead of a shouty all-caps field
+   * label. Defaults to true for the short field-label case (most callers). */
+  uppercaseLabel?: boolean;
   options: ChoiceOption<T>[];
   value: T | null;
   onChange: (value: T) => void;
@@ -20,14 +24,18 @@ interface Props<T extends string> {
  * employment type, insurance type, holding type...) -- deliberately not a
  * native <Picker>/dropdown, since most of these enums have few enough
  * options that seeing them all at once is clearer than hiding them. */
-export function ChoiceGroup<T extends string>({ label, options, value, onChange }: Props<T>) {
+export function ChoiceGroup<T extends string>({ label, uppercaseLabel = true, options, value, onChange }: Props<T>) {
   const { colors } = useAppTheme();
 
   return (
     <View style={styles.container}>
-      <Text variant="label" tone="muted">
-        {label.toUpperCase()}
-      </Text>
+      {uppercaseLabel ? (
+        <Text variant="label" tone="muted">
+          {label.toUpperCase()}
+        </Text>
+      ) : (
+        <Text variant="bodyMedium">{label}</Text>
+      )}
       <View style={styles.wrap}>
         {options.map((opt) => {
           const selected = opt.value === value;

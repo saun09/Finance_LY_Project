@@ -3,13 +3,15 @@ import { StyleSheet, View } from 'react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Text } from '../../components/Text';
 import { MetricCard } from '../../components/MetricCard';
-import { SkeletonCard } from '../../components/Skeleton';
+import { SkeletonCard, Skeleton } from '../../components/Skeleton';
 import { ErrorState } from '../../components/ErrorState';
 import { EmptyState } from '../../components/EmptyState';
 import { Card } from '../../components/Card';
 import { SectionHeader } from '../../components/SectionHeader';
+import { LineChart } from '../../components/LineChart';
 import { useFinancialPosition } from '../../hooks/useFinancialPosition';
 import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
+import { useDebtLeak } from '../../hooks/useDebtLeak';
 import { formatPaise, formatPercent } from '../../utils/currency';
 import { SPACE } from '../../theme/tokens';
 
@@ -26,6 +28,7 @@ import { SPACE } from '../../theme/tokens';
 export function HomeScreen() {
   const position = useFinancialPosition();
   const snapshots = useSnapshotHistory();
+  const debtLeak = useDebtLeak();
 
   if (position.isPending) {
     return (
@@ -51,6 +54,20 @@ export function HomeScreen() {
   const bufferMonths = Number(data.buffer_coverage_months);
   const bufferHealthy = bufferMonths >= 6;
   const emiRatioPct = Number(data.emi_to_income_ratio) * 100;
+
+  // Oldest-first for the chart; the backend returns most-recent-first.
+  const chartPoints = (snapshots.data ?? [])
+    .slice()
+    .reverse()
+    .map((s) => ({
+      label: new Date(s.month).toLocaleDateString('en-IN', { month: 'short' }),
+      value: s.surplus,
+    }));
+
+  const leak = debtLeak.data;
+  const topComponents = leak?.components.slice(0, 2) ?? [];
+  const hasRecoverable = !!leak && leak.total_recoverable_annual_paise > 0;
+  const hasPrepayInsight = !!leak?.prepay_vs_invest;
 
   return (
     <ScreenContainer onRefresh={() => position.refetch()} refreshing={position.isRefetching}>
@@ -80,18 +97,64 @@ export function HomeScreen() {
 
       <Card>
         <SectionHeader title="What matters now" subtitle="Prioritized by the backend, not this screen" />
-        <EmptyState
-          title="Coming in Phase 5"
-          message="This section will surface Module 6's debt and leak-detection results, ranked certain-return-first."
-        />
+        {debtLeak.isPending ? (
+          <View style={styles.leakSkeleton}>
+            <Skeleton width="80%" height={14} />
+            <Skeleton width="60%" height={14} />
+          </View>
+        ) : debtLeak.error ? (
+          <ErrorState message={debtLeak.error.message} onRetry={() => debtLeak.refetch()} />
+        ) : hasRecoverable || hasPrepayInsight ? (
+          <View style={styles.mattersList}>
+            {hasRecoverable ? (
+              <View>
+                <Text variant="bodyMedium">
+                  Up to {formatPaise(leak!.total_recoverable_annual_paise)}/year looks recoverable
+                </Text>
+                {topComponents.map((c) => (
+                  <View key={c.component_id} style={styles.componentRow}>
+                    <Text variant="caption" tone="muted">
+                      {c.label} — {formatPaise(c.annual_amount_paise)}/yr
+                    </Text>
+                    <Text variant="caption" tone="terracotta">
+                      {c.concrete_action}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            {hasPrepayInsight ? (
+              <View style={hasRecoverable ? styles.componentRow : undefined}>
+                <Text variant="caption" tone="muted">
+                  {leak!.prepay_vs_invest!.framing_note}
+                </Text>
+              </View>
+            ) : null}
+            <Text variant="caption" tone="faint" style={styles.moreInInsights}>
+              Full breakdown available in Insights.
+            </Text>
+          </View>
+        ) : (
+          <EmptyState
+            title="Nothing urgent right now"
+            message="No recoverable costs or debt-payoff opportunities were found from what you've entered."
+          />
+        )}
       </Card>
 
       <Card>
         <SectionHeader title="Financial timeline" />
-        {snapshots.data && snapshots.data.length >= 2 ? (
-          <Text variant="caption" tone="muted" style={{ marginTop: SPACE.sm }}>
-            {snapshots.data.length} monthly snapshots recorded — chart coming in Phase 3.
-          </Text>
+        {snapshots.isPending ? (
+          <Skeleton height={140} style={styles.chartSkeleton} />
+        ) : snapshots.error ? (
+          <ErrorState message={snapshots.error.message} onRetry={() => snapshots.refetch()} />
+        ) : chartPoints.length >= 2 ? (
+          <View style={styles.chartWrap}>
+            <Text variant="caption" tone="faint">
+              MONTHLY SURPLUS
+            </Text>
+            <LineChart points={chartPoints} formatValue={formatPaise} />
+          </View>
         ) : (
           <EmptyState
             title="No history yet"
@@ -105,4 +168,10 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
+  leakSkeleton: { gap: SPACE.sm, marginTop: SPACE.sm },
+  mattersList: { gap: SPACE.sm, marginTop: SPACE.sm },
+  componentRow: { marginTop: SPACE.xs, gap: 2 },
+  moreInInsights: { marginTop: SPACE.xs },
+  chartWrap: { marginTop: SPACE.sm, gap: SPACE.xs },
+  chartSkeleton: { marginTop: SPACE.sm },
 });

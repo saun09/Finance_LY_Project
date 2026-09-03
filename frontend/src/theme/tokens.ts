@@ -117,3 +117,16 @@ export const TYPE = {
 } as const;
 
 export type Palette = typeof COLOR;
+
+/** Which palette key represents each AssetClass in charts (allocation
+ * donut, exposure breakdowns). Kept here, not invented per-screen, so
+ * every chart that shows asset classes uses the same five hues. This is a
+ * chart legend, not a semantic "good/bad" claim -- every segment is always
+ * paired with a text label, never color alone. */
+export const ASSET_CLASS_COLOR_KEY = {
+  cash: 'petrol',
+  debt: 'warning',
+  equity: 'terracotta',
+  real_assets: 'positive',
+  alternatives: 'danger',
+} as const satisfies Record<string, keyof Palette>;

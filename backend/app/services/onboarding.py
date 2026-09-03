@@ -103,6 +103,18 @@ def upsert_profile(
     return profile
 
 
+def list_emis(session: Session, user_id: str) -> list[EmiEntry]:
+    """All EMIs ever recorded, oldest first, active and closed alike -- a
+    management screen needs to show what was closed, not just what's
+    still open (see EmiEntry's own docstring on why closed rows persist)."""
+    _require_profile(session, user_id)
+    return list(
+        session.execute(
+            select(EmiEntry).where(EmiEntry.user_id == user_id).order_by(EmiEntry.created_at)
+        ).scalars().all()
+    )
+
+
 def add_emi(
     session: Session,
     *,
@@ -153,6 +165,15 @@ def close_emi(session: Session, *, user_id: str, emi_id: str, closed_at: datetim
     return emi
 
 
+def list_insurance_policies(session: Session, user_id: str) -> list[InsurancePolicy]:
+    _require_profile(session, user_id)
+    return list(
+        session.execute(
+            select(InsurancePolicy).where(InsurancePolicy.user_id == user_id).order_by(InsurancePolicy.created_at)
+        ).scalars().all()
+    )
+
+
 def add_insurance_policy(
     session: Session,
     *,
@@ -169,6 +190,15 @@ def add_insurance_policy(
         session.commit()
         session.refresh(policy)
     return policy  # not a material edit for the four computed metrics — no snapshot write
+
+
+def list_holdings(session: Session, user_id: str) -> list[Holding]:
+    _require_profile(session, user_id)
+    return list(
+        session.execute(
+            select(Holding).where(Holding.user_id == user_id).order_by(Holding.created_at)
+        ).scalars().all()
+    )
 
 
 def add_holding(
@@ -189,6 +219,17 @@ def add_holding(
         session.refresh(holding)
     _recompute_and_log_snapshot(session, user_id, commit=commit)
     return holding
+
+
+def list_expense_items(session: Session, user_id: str) -> list[ExpenseItem]:
+    """All expense items ever recorded, oldest first, active and removed
+    alike (see ExpenseItem's own docstring on why removed rows persist)."""
+    _require_profile(session, user_id)
+    return list(
+        session.execute(
+            select(ExpenseItem).where(ExpenseItem.user_id == user_id).order_by(ExpenseItem.created_at)
+        ).scalars().all()
+    )
 
 
 def add_expense_item(

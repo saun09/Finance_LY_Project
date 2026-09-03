@@ -1,6 +1,10 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { PlaceholderScreen } from '../screens/PlaceholderScreen';
+import { ProfileHomeScreen } from '../screens/profile/ProfileHomeScreen';
+import { ExpensesManageScreen } from '../screens/profile/ExpensesManageScreen';
+import { DebtManageScreen } from '../screens/profile/DebtManageScreen';
+import { InsuranceManageScreen } from '../screens/profile/InsuranceManageScreen';
+import { HoldingsManageScreen } from '../screens/profile/HoldingsManageScreen';
 import { SettingsScreen } from '../screens/profile/SettingsScreen';
 import type { ProfileStackParamList } from './types';
 
@@ -9,17 +13,11 @@ const Stack = createNativeStackNavigator<ProfileStackParamList>();
 export function ProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="ProfileHome">{() => <PlaceholderScreen title="Profile" phase="Phase 9" />}</Stack.Screen>
-      <Stack.Screen name="ExpensesManage">
-        {() => <PlaceholderScreen title="Expenses" phase="Phase 9" />}
-      </Stack.Screen>
-      <Stack.Screen name="DebtManage">{() => <PlaceholderScreen title="Debts" phase="Phase 9" />}</Stack.Screen>
-      <Stack.Screen name="InsuranceManage">
-        {() => <PlaceholderScreen title="Insurance" phase="Phase 9" />}
-      </Stack.Screen>
-      <Stack.Screen name="HoldingsManage">
-        {() => <PlaceholderScreen title="Holdings" phase="Phase 9" />}
-      </Stack.Screen>
+      <Stack.Screen name="ProfileHome" component={ProfileHomeScreen} />
+      <Stack.Screen name="ExpensesManage" component={ExpensesManageScreen} />
+      <Stack.Screen name="DebtManage" component={DebtManageScreen} />
+      <Stack.Screen name="InsuranceManage" component={InsuranceManageScreen} />
+      <Stack.Screen name="HoldingsManage" component={HoldingsManageScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );

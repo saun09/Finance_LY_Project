@@ -17,20 +17,9 @@ import { TextField } from '../../components/TextField';
 import { useDemoUser } from '../../context/DemoUserContext';
 import { SPACE } from '../../theme/tokens';
 import type { OnboardingStackParamList } from '../../navigation/types';
-import { formatPaise, rupeeInputToPaise } from '../../utils/currency';
+import { formatPaise, percentInputToBps, rupeeInputToPaise } from '../../utils/currency';
 
 type Nav = NativeStackNavigationProp<OnboardingStackParamList, 'Debt'>;
-
-/** "12.5" -> 1250 basis points (100 bps = 1%). Same digit/decimal shape as
- * a rupee amount, so it reuses rupeeInputToPaise's validation regex logic
- * at 100x scale instead of a separate parser. */
-function percentInputToBps(input: string): number | null {
-  const trimmed = input.trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) return null;
-  const percent = Number(trimmed);
-  if (!Number.isFinite(percent)) return null;
-  return Math.round(percent * 100);
-}
 
 export function DebtScreen() {
   const navigation = useNavigation<Nav>();

@@ -14,6 +14,7 @@ interface Props {
   helperText?: string;
   prefix?: string;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  multiline?: boolean;
 }
 
 /** The one text-input primitive every onboarding form uses -- labeled,
@@ -29,6 +30,7 @@ export function TextField({
   helperText,
   prefix,
   autoCapitalize = 'sentences',
+  multiline = false,
 }: Props) {
   const { colors } = useAppTheme();
 
@@ -40,6 +42,7 @@ export function TextField({
       <View
         style={[
           styles.inputRow,
+          multiline && styles.inputRowMultiline,
           { backgroundColor: colors.paper, borderColor: error ? colors.danger : colors.border },
         ]}
       >
@@ -55,7 +58,13 @@ export function TextField({
           placeholderTextColor={colors.inkFaint}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
-          style={[styles.input, { color: colors.ink, fontFamily: prefix ? FONT.mono : FONT.body }]}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : 'center'}
+          style={[
+            styles.input,
+            multiline && styles.inputMultiline,
+            { color: colors.ink, fontFamily: prefix ? FONT.mono : FONT.body },
+          ]}
         />
       </View>
       {error ? (
@@ -81,6 +90,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.md,
     minHeight: 50,
   },
+  inputRowMultiline: { alignItems: 'flex-start', paddingVertical: SPACE.sm },
   prefix: { marginRight: SPACE.xs },
   input: { flex: 1, fontSize: 15, paddingVertical: SPACE.sm },
+  inputMultiline: { minHeight: 96, paddingVertical: 0 },
 });

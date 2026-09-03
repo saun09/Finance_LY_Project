@@ -27,6 +27,10 @@ export const qk = {
   snapshots: (userId: string) => ['snapshots', userId] as const,
   events: (userId: string, moduleSource?: string) => ['events', userId, moduleSource] as const,
   profile: (userId: string) => ['profile', userId] as const,
+  emis: (userId: string) => ['emis', userId] as const,
+  insurancePolicies: (userId: string) => ['insurance-policies', userId] as const,
+  holdings: (userId: string) => ['holdings', userId] as const,
+  expenses: (userId: string) => ['expenses', userId] as const,
   expenseSourceMode: (userId: string) => ['expense-source-mode', userId] as const,
   questionnaire: () => ['questionnaire'] as const,
   riskProfileLatest: (userId: string) => ['risk-profile-latest', userId] as const,
@@ -37,3 +41,17 @@ export const qk = {
   transparencyTrace: (userId: string, moduleSource: string) => ['transparency-trace', userId, moduleSource] as const,
   gamificationHistory: (userId: string) => ['gamification-history', userId] as const,
 };
+
+/** Every profile-management mutation (add/close an EMI, add a holding,
+ * add/remove an expense) is a "material edit" server-side -- it
+ * recomputes and re-logs the month's snapshot (see onboarding.py). This
+ * invalidates every cached query whose numbers could have shifted as a
+ * result, so screens across Home/Plan/Insights pick up fresh data instead
+ * of showing stale figures until their own next natural refetch. */
+export function invalidateFinancialData(queryClient: QueryClient, userId: string) {
+  queryClient.invalidateQueries({ queryKey: qk.financialPosition(userId) });
+  queryClient.invalidateQueries({ queryKey: qk.snapshots(userId) });
+  queryClient.invalidateQueries({ queryKey: qk.debtLeak(userId) });
+  queryClient.invalidateQueries({ queryKey: qk.allocation(userId) });
+  queryClient.invalidateQueries({ queryKey: qk.personalization(userId) });
+}

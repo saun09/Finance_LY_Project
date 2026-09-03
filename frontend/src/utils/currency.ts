@@ -72,3 +72,15 @@ export function formatPercent(value: string | number, fractionDigits = 0): strin
   if (!Number.isFinite(n)) return '—';
   return `${n.toFixed(fractionDigits)}%`;
 }
+
+/** "12.5" -> 1250 basis points (100 bps = 1%), for the EMI interest-rate
+ * field -- annual_rate_bps is what the API expects, but nobody types a
+ * loan's rate in basis points. Same digit/decimal-place validation shape
+ * as rupeeInputToPaise, just at 100x scale instead of paise's 100x. */
+export function percentInputToBps(input: string): number | null {
+  const trimmed = input.trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) return null;
+  const percent = Number(trimmed);
+  if (!Number.isFinite(percent)) return null;
+  return Math.round(percent * 100);
+}

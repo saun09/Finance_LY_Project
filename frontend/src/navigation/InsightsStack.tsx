@@ -1,6 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { PlaceholderScreen } from '../screens/PlaceholderScreen';
+import { InsightsScreen } from '../screens/insights/InsightsScreen';
+import { LeaksScreen } from '../screens/insights/LeaksScreen';
+import { DebtScreen } from '../screens/insights/DebtScreen';
+import { PersonalizationScreen } from '../screens/insights/PersonalizationScreen';
+import { TransparencyScreen } from '../screens/insights/TransparencyScreen';
+import { TransparencyDetailScreen } from '../screens/insights/TransparencyDetailScreen';
 import type { InsightsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<InsightsStackParamList>();
@@ -8,18 +13,12 @@ const Stack = createNativeStackNavigator<InsightsStackParamList>();
 export function InsightsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Insights">{() => <PlaceholderScreen title="Insights" phase="Phase 5" />}</Stack.Screen>
-      <Stack.Screen name="Debt">{() => <PlaceholderScreen title="Debt" phase="Phase 5" />}</Stack.Screen>
-      <Stack.Screen name="Leaks">{() => <PlaceholderScreen title="Leaks" phase="Phase 5" />}</Stack.Screen>
-      <Stack.Screen name="Personalization">
-        {() => <PlaceholderScreen title="Personalization" phase="Phase 5" />}
-      </Stack.Screen>
-      <Stack.Screen name="Transparency">
-        {() => <PlaceholderScreen title="Transparency" phase="Phase 6" />}
-      </Stack.Screen>
-      <Stack.Screen name="TransparencyDetail">
-        {() => <PlaceholderScreen title="Transparency Detail" phase="Phase 6" />}
-      </Stack.Screen>
+      <Stack.Screen name="Insights" component={InsightsScreen} />
+      <Stack.Screen name="Debt" component={DebtScreen} />
+      <Stack.Screen name="Leaks" component={LeaksScreen} />
+      <Stack.Screen name="Personalization" component={PersonalizationScreen} />
+      <Stack.Screen name="Transparency" component={TransparencyScreen} />
+      <Stack.Screen name="TransparencyDetail" component={TransparencyDetailScreen} />
     </Stack.Navigator>
   );
 }
