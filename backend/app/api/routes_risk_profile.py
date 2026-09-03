@@ -2,12 +2,39 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db import get_session
-from app.schemas.risk_profile import RiskProfileAnswersIn, RiskTierOut
+from app.schemas.risk_profile import QuestionnaireOut, RiskProfileAnswersIn, RiskTierOut
 from app.services.event_log import get_user_event_history
 from app.services.onboarding import ProfileNotFoundError
+from app.services.risk_profile_config import QUESTIONNAIRE_V1
 from app.services.risk_profile_service import compute_and_log_risk_tier
 
 router = APIRouter(prefix="/users/{user_id}/risk-profile", tags=["risk_profile"])
+
+# Not user-scoped -- the questionnaire is static config, not per-user data.
+# Exists purely so a frontend never has to hardcode a duplicate copy of
+# QUESTIONNAIRE_V1 (which would drift out of sync if the config version
+# ever changes). Deliberately omits each option's point value: the
+# frontend only needs `value` (to submit back) and `label` (to display) --
+# it must never compute the score itself, since Module 3's weighted sum is
+# the sole source of truth for a user's stated tier.
+config_router = APIRouter(prefix="/risk-profile", tags=["risk_profile"])
+
+
+@config_router.get("/questionnaire", response_model=QuestionnaireOut)
+def get_questionnaire():
+    return QuestionnaireOut(
+        version=QUESTIONNAIRE_V1.version,
+        effective_date=QUESTIONNAIRE_V1.effective_date,
+        questions=[
+            {
+                "id": q.id,
+                "text": q.text,
+                "weight": q.weight,
+                "options": [{"value": o.value, "label": o.label} for o in q.options],
+            }
+            for q in QUESTIONNAIRE_V1.questions
+        ],
+    )
 
 
 def _to_risk_tier_out(result) -> RiskTierOut:

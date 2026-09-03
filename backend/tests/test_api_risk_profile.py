@@ -78,3 +78,22 @@ def test_latest_before_any_computation_is_404(client):
     _onboard_core_scenario(client)
     resp = client.get(f"/users/{USER}/risk-profile/latest")
     assert resp.status_code == 404
+
+
+def test_questionnaire_endpoint_is_not_user_scoped_and_omits_points(client):
+    resp = client.get("/risk-profile/questionnaire")
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["version"] == "v1"
+    assert len(body["questions"]) == 4
+    ids = {q["id"] for q in body["questions"]}
+    assert ids == {"horizon", "drawdown_reaction", "experience", "goal"}
+
+    horizon = next(q for q in body["questions"] if q["id"] == "horizon")
+    assert horizon["weight"] == 3
+    assert len(horizon["options"]) == 5
+    assert horizon["options"][0] == {"value": "lt_1y", "label": "Within 1 year"}
+    # deliberately no "points" field anywhere -- the frontend must never
+    # be able to reconstruct/duplicate the scoring formula
+    assert "points" not in horizon["options"][0]

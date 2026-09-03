@@ -259,18 +259,23 @@ rather than asserted in the aggregate.
 
 ## Relationship to Module 1's event log
 
-This module has no runtime dependency on Module 1 (backend/), by design —
-it needed to be buildable and gradeable in parallel, in week 1, before the
-data substrate existed. A rumour-verification result is also not quite a
-"suggestion" in the `suggestion_event` sense: there's no accept/edit/reject
-action for a user to take on a factual confirmed/denied/unaddressed
-finding, so it doesn't map cleanly onto that schema's `action_taken` enum.
-If this module is wired into the rest of the app later, the natural
-integration point is `VerificationResult` -> `log_suggestion_event(...,
-module_source="rumour_verification", suggested_value={...})` purely for
-traceability (so a verification shown to a user is auditable like
-everything else), without forcing it through the accept/edit/reject
-lifecycle that doesn't apply here.
+This module still has no *build-time* dependency on Module 1 (backend/) —
+its pure logic, tests, and data live entirely in this directory, and
+nothing here imports from `backend/`. It is, however, now wired in for
+auditability: `backend/app/services/rumour_verification_bridge.py` adds
+this directory's `src/` to `sys.path` (the same import style this
+module's own files already use internally) and calls `verify_rumour`
+completely unchanged, then logs the result via Module 1's
+`log_suggestion_event` (`module_source="rumour_verification"`) — exactly
+the integration point sketched above, now built as a one-way bridge
+rather than a merge. A rumour-verification result is still not quite a
+"suggestion" in the `suggestion_event` sense (no accept/edit/reject action
+applies to a factual confirmed/denied/unaddressed finding), so the bridge
+never sets `action_taken`/`chosen_value`/`funded` — the event exists only
+so "a verification was shown to a user" is auditable, which matters for a
+transparency-focused project even here. See `backend/README.md`'s Module
+5 integration section, and `POST /users/{user_id}/rumour-verification` in
+`backend/app/api/routes_rumour_verification.py`.
 
 ## 5. Layout
 

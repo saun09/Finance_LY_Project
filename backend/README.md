@@ -140,6 +140,10 @@ app/
                                      streak helpers (no I/O)
     gamification_service.py          Module 10: detects + logs newly earned
                                      milestones from Modules 2/3/6's own data
+    rumour_verification_bridge.py    Module 1 <-> Module 5 bridge: adds
+                                     modules/rumour_verification/src to
+                                     sys.path, calls verify_rumour unchanged,
+                                     logs the result for auditability
   api/
     routes_events.py            Module 1 read endpoints
     routes_onboarding.py        Module 2 endpoints (incl. close_emi, remove_expense_item)
@@ -151,6 +155,7 @@ app/
                                  simulation/evaluation module, not a live feature)
     routes_transparency.py      Module 9 endpoints
     routes_gamification.py      Module 10 endpoints
+    routes_rumour_verification.py   Module 5 bridge endpoint
   db.py, config.py        engine/session setup, DATABASE_URL
 migrations/            Alembic migrations:
                         0001 suggestion_event, 0002 user_monthly_snapshot,
@@ -161,7 +166,7 @@ scripts/
   demo_log_stub.py            Module 1 stub call: logs a fake event + snapshot, reads them back
   personalization_demo.py     Module 7: replays synthetic edits through the EWMA,
                                no database needed -- run with `python -m scripts.personalization_demo`
-tests/                 pytest suite (280 tests)
+tests/                 pytest suite (290 tests)
 ```
 
 ## Running
@@ -421,6 +426,12 @@ read path that table was built for.
 - `POST /users/{user_id}/risk-profile` `{"answers": {...}}` — computes,
   logs, and returns the full tiering result.
 - `GET /users/{user_id}/risk-profile/latest` — the most recent computation.
+- `GET /risk-profile/questionnaire` — not user-scoped (static config, not
+  per-user data): the 4 questions and their options, for a client to
+  render without hardcoding a duplicate copy of `QUESTIONNAIRE_V1`.
+  Deliberately omits each option's point value, so a caller can never
+  reconstruct the scoring formula — only `POST /risk-profile` computes a
+  score, from the full weighted sum.
 
 ---
 
@@ -949,8 +960,8 @@ transparency feature.
 ### Module 5 is out of scope for this file, on purpose
 
 Module 5 (rumour verification) lives in `modules/rumour_verification/`
-with no runtime dependency on this backend, and produces its own trace at
-verification time rather than through `suggestion_event`. Its
+with no *build-time* dependency on this backend, and produces its own
+trace at verification time rather than through `suggestion_event`. Its
 transparency view is built there instead
 (`modules/rumour_verification/src/transparency.py`), reusing
 `VerificationResult.all_candidates` directly. That file is also where
@@ -958,6 +969,22 @@ transparency view is built there instead
 differently from here — see its own module docstring for exactly why a
 multi-stage retrieval-and-elimination pipeline earns that word while a
 weighted sum doesn't.
+
+This backend does, separately, expose Module 5 over HTTP for
+auditability — `POST /users/{user_id}/rumour-verification`, described
+below. That endpoint is glue, not a merge: `rumour_verification_bridge.py`
+adds `modules/rumour_verification`'s own `src/` to `sys.path` and calls
+`verify_rumour` unchanged, then (by default) logs the result via
+`log_suggestion_event` purely so "a verification was shown to a user" is
+auditable — never through the accept/edit/reject lifecycle, since a
+factual confirmed/denied/unaddressed finding isn't a suggestion the way
+Modules 3/4/6/7's outputs are. This is a Module 1 <-> Module 5 integration
+point, independent of Module 9's transparency work above.
+
+- `POST /users/{user_id}/rumour-verification` `{"rumour_text",
+  "rumour_date"?, "company_name"?, "evaluated_at"?}` — runs Module 5's
+  `verify_rumour` and returns the match, status, score, and top-candidate
+  reasons. `?log_event=false` skips logging (defaults to `true`).
 
 ### Endpoints
 

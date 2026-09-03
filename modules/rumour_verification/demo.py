@@ -15,7 +15,7 @@ from src.transparency import format_full_trace
 from src.verification import verify_rumour
 
 EXAMPLE_RUMOUR = (
-    "Adani Enterprises shares rally 4% on $686 million investment in "
+    "Reliance Enterprises shares rally 4% on $686 million investment in "
     "not-for-profit healthcare initiative"
 )
 EXAMPLE_DATE = date(2025, 2, 11)
