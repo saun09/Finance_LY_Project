@@ -25,9 +25,13 @@ from app.services.event_log import get_user_event_history, get_user_snapshot_his
 from app.services.financial_position import MAX_BUFFER_MONTHS, EmiInput, compute_outstanding_principal
 from app.services.gamification import crossed_thresholds, longest_trailing_positive_streak
 from app.services.gamification_config import (
+    BADGES,
     BUFFER_MONTHS_THRESHOLDS,
+    CHECKLIST,
     CONFIG_VERSION,
     CONSISTENCY_MONTH_THRESHOLDS,
+    ROADMAP,
+    QUIZ_QUESTIONS,
     SUBSCRIPTION_CANCELLED_COUNT_THRESHOLDS,
     Category,
 )
@@ -41,6 +45,75 @@ class AwardedMilestone:
     category: str
     headline: str
     details: dict
+
+
+EDUCATION_SOURCE = "gamification_education"
+
+
+def _education_events(session: Session, user_id: str):
+    return get_user_event_history(session, user_id, module_source=EDUCATION_SOURCE, limit=5000)
+
+
+def complete_education_item(session: Session, user_id: str, item_id: str, kind: str, correct: bool | None = None, answer_index: int | None = None) -> dict | None:
+    valid_ids = {topic.topic_id for level in ROADMAP for topic in level.topics} | {item[0] for item in CHECKLIST}
+    if item_id not in valid_ids or kind not in {"lesson", "quiz", "checklist"}:
+        raise ValueError("unknown education item or completion type")
+    question = next((item for item in QUIZ_QUESTIONS if item.topic_id == item_id), None)
+    if kind == "quiz" and (question is None or answer_index is None or answer_index < 0 or answer_index >= len(question.options)):
+        raise ValueError("a valid answer is required for this quiz")
+    if kind == "quiz":
+        is_correct = answer_index == question.answer_index
+        if not is_correct:
+            return {"correct": False, "explanation": question.explanation}
+        correct = True
+    existing = [
+        event for event in _education_events(session, user_id)
+        if event.suggested_value.get("item_id") == item_id and event.suggested_value.get("kind") == kind
+    ]
+    if existing:
+        return {"correct": True, "explanation": question.explanation} if kind == "quiz" and question else None
+    log_suggestion_event(
+        session, user_id=user_id, module_source=EDUCATION_SOURCE,
+        suggested_value={"item_id": item_id, "kind": kind, "correct": correct, "answer_index": answer_index},
+        market_context={"config_version": CONFIG_VERSION},
+    )
+    return {"correct": True, "explanation": question.explanation} if kind == "quiz" and question else None
+
+
+def get_education_progress(session: Session, user_id: str) -> dict:
+    events = _education_events(session, user_id)
+    completed_topics = {e.suggested_value["item_id"] for e in events if e.suggested_value.get("kind") == "lesson"}
+    completed_checklist = {e.suggested_value["item_id"] for e in events if e.suggested_value.get("kind") == "checklist"}
+    passed_quizzes = {e.suggested_value["item_id"] for e in events if e.suggested_value.get("kind") == "quiz" and e.suggested_value.get("correct") is True}
+    quiz_by_topic = {question.topic_id: question for question in QUIZ_QUESTIONS}
+    total_topics = sum(len(level.topics) for level in ROADMAP)
+    earned = {
+        "budget-beginner": "budgeting" in completed_topics,
+        "emergency-ready": "emergency-fund" in completed_topics,
+        "debt-aware": "high-interest-debt" in completed_topics,
+        "investing-101": {"saving-investing", "risk-return", "funds-etfs"}.issubset(completed_topics),
+        "tax-smart": {"income-tax", "tax-saving-capital-gains"}.issubset(completed_topics),
+        "diversification-pro": "diversification-allocation" in passed_quizzes,
+        "foundations-complete": all(topic.topic_id in completed_topics for level in ROADMAP[:2] for topic in level.topics),
+    }
+    dates = sorted({event.timestamp.date() for event in events if event.suggested_value.get("kind") in {"lesson", "quiz"}}, reverse=True)
+    streak = 0
+    if dates:
+        from datetime import timedelta
+        expected = dates[0]
+        for learning_date in dates:
+            if learning_date != expected:
+                break
+            streak += 1
+            expected -= timedelta(days=1)
+    return {
+        "roadmap": [{"level": level.level, "title": level.title, "topics": [{"topic_id": topic.topic_id, "title": topic.title, "description": topic.description, "completed": topic.topic_id in completed_topics, "quiz_question": ({"question_id": quiz.topic_id, "prompt": quiz.prompt, "options": list(quiz.options), "passed": quiz.topic_id in passed_quizzes} if (quiz := quiz_by_topic.get(topic.topic_id)) else None)} for topic in level.topics]} for level in ROADMAP],
+        "checklist": [{"item_id": item_id, "title": title, "section": section, "completed": item_id in completed_checklist} for item_id, title, section in CHECKLIST],
+        "badges": [{"badge_id": badge_id, "title": title, "description": description, "earned": earned[badge_id]} for badge_id, title, description in BADGES],
+        "completed_topics": len(completed_topics), "total_topics": total_topics,
+        "progress_pct": round(len(completed_topics) * 100 / total_topics) if total_topics else 0,
+        "learning_streak_days": streak,
+    }
 
 
 def _awarded_milestone_ids(session: Session, user_id: str) -> set[str]:

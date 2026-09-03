@@ -13,6 +13,8 @@ from app.services.gamification_service import (
     AwardedMilestone,
     check_milestones,
     get_milestone_history,
+    complete_education_item,
+    get_education_progress,
 )
 from app.services.onboarding import (
     ProfileNotFoundError,
@@ -234,3 +236,19 @@ def test_gamification_source_never_reads_module4_outcome_fields():
         source = (backend_dir / "app" / "services" / filename).read_text(encoding="utf-8")
         for term in forbidden:
             assert term not in source, f"{filename} references forbidden outcome-signal term {term!r}"
+
+
+def test_education_progress_is_idempotent_and_awards_knowledge_badges(session):
+    _make_profile(session)
+    complete_education_item(session, USER, "budgeting", "lesson")
+    complete_education_item(session, USER, "budgeting", "lesson")
+    complete_education_item(session, USER, "diversification-allocation", "lesson")
+    complete_education_item(session, USER, "diversification-allocation", "quiz", answer_index=0)
+
+    progress = get_education_progress(session, USER)
+    assert progress["completed_topics"] == 2
+    assert progress["learning_streak_days"] == 1
+    badges = {badge["badge_id"]: badge["earned"] for badge in progress["badges"]}
+    assert badges["budget-beginner"] is True
+    assert badges["diversification-pro"] is True
+    assert session.query(SuggestionEvent).filter_by(user_id=USER, module_source="gamification_education").count() == 3

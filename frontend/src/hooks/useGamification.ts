@@ -25,3 +25,22 @@ export function useCheckMilestones() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.gamificationHistory(userId) }),
   });
 }
+
+export function useEducationProgress() {
+  const { userId } = useDemoUser();
+  const query = useQuery({
+    queryKey: qk.gamificationEducation(userId),
+    queryFn: () => gamificationApi.education(userId),
+  });
+  return { ...query, error: query.error ? toApiError(query.error) : null };
+}
+
+export function useCompleteEducation() {
+  const { userId } = useDemoUser();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, kind, answerIndex }: { itemId: string; kind: 'lesson' | 'quiz' | 'checklist'; answerIndex?: number }) =>
+      gamificationApi.completeEducation(userId, itemId, kind, answerIndex),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.gamificationEducation(userId) }),
+  });
+}

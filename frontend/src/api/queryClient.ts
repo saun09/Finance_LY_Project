@@ -40,6 +40,7 @@ export const qk = {
   transparencyIndex: (userId: string) => ['transparency-index', userId] as const,
   transparencyTrace: (userId: string, moduleSource: string) => ['transparency-trace', userId, moduleSource] as const,
   gamificationHistory: (userId: string) => ['gamification-history', userId] as const,
+  gamificationEducation: (userId: string) => ['gamification-education', userId] as const,
 };
 
 /** Every profile-management mutation (add/close an EMI, add a holding,

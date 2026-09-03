@@ -352,6 +352,56 @@ export interface MilestoneHistoryOut {
   milestones: AwardedMilestoneOut[];
 }
 
+export interface RoadmapTopicOut {
+  topic_id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  quiz_question: QuizQuestionOut | null;
+}
+
+export interface QuizQuestionOut {
+  question_id: string;
+  prompt: string;
+  options: string[];
+  passed: boolean;
+}
+
+export interface RoadmapLevelOut {
+  level: number;
+  title: string;
+  topics: RoadmapTopicOut[];
+}
+
+export interface ChecklistItemOut {
+  item_id: string;
+  title: string;
+  section: string;
+  completed: boolean;
+}
+
+export interface BadgeOut {
+  badge_id: string;
+  title: string;
+  description: string;
+  earned: boolean;
+}
+
+export interface EducationProgressOut {
+  roadmap: RoadmapLevelOut[];
+  checklist: ChecklistItemOut[];
+  badges: BadgeOut[];
+  completed_topics: number;
+  total_topics: number;
+  progress_pct: number;
+  learning_streak_days: number;
+}
+
+export interface QuizResultOut {
+  correct: boolean;
+  explanation: string;
+}
+
 // ---- Module 5 (bridged): rumour verification ----
 
 export interface RumourVerificationIn {
