@@ -1,0 +1,620 @@
+[
+  {
+    "filing_id": "F001",
+    "company_name": "Adani Enterprises Ltd",
+    "ticker_bse": "512599",
+    "ticker_nse": "ADANIENT",
+    "filing_date": "2025-02-12",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. Ref.: Clarification / Confirmation on news item sought by BSE Limited and National Stock Exchange of India Limited each dated February 11, 2025 in respect to certain media report published on February 11, 2025 and increase in the price of the Company's shares on February 11, 2025. A material price movement was observed in Company's stock price yesterday. While the Company was in the process of making relevant clarification under Regulation 30(11), it received a communication from Stock Exchanges seeking clarification with respect to (i) media report which appeared in www.economictimes.indiatimes.com on February 11, 2025, captioned 'Adani Enterprises shares rally 4% on $686 million investment in not-for-profit healthcare initiative' and (ii) increase in the price of the securities of the Company. In this regard, we wish to clarify that the aforementioned media report relates to the proposed Adani Health City (AHC) integrated health campuses, to be implemented through the Group's not-for-profit healthcare entities. This initiative is not being undertaken by the Company hence the Company is unable to comment on this. The increase or movement in the price of the scrip of any company are purely due to market conditions and absolutely market driven. The management of the Company neither has any control nor has any knowledge of the reasons for the increase in the price of its equity shares.",
+    "source_url": "https://www.adanienterprises.com/-/media/Project/Enterprises/Investors/Corporate-Announcement/Reg-3011-and-Rumour-verificationBSE--NSEFinal.pdf",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "F002",
+    "company_name": "Coforge Ltd",
+    "ticker_bse": "532541",
+    "ticker_nse": "COFORGE",
+    "filing_date": "2025-12-27",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. Ref.: Clarification/Confirmation on news item appearing on www.moneycontrol.com. The Company wishes to clarify that the news item is speculative and premature, and is not based on any official communication from the Company. Any material event or information requiring disclosure under Regulation 30 of the SEBI LODR Regulations will be intimated to the Stock Exchanges through the proper board-approved process, as and when applicable.",
+    "source_url": "https://trendlyne.com/posts/5459123/coforge-ltd-532541-rumour-verification-regulation-30-11",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "notes": "Exact rumour publication date not independently confirmed; filing content paraphrased from secondary reporting (Trendlyne filing index) plus contemporaneous business-news coverage of Coforge's Encora acquisition process, since the primary BSE/NSE PDF text was not retrievable in this research pass.",
+    "source_authority": "official_exchange_filing",
+    "determination": "non_committal"
+  },
+  {
+    "filing_id": "F003",
+    "company_name": "Gensol Engineering Ltd",
+    "ticker_bse": "532960",
+    "ticker_nse": "GENSOL",
+    "filing_date": "2026-07-14",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Clarification on media reports regarding classification of the Company's loan accounts as fraud by Indian Renewable Energy Development Agency (IREDA). The Company confirms that IREDA has declared the loan accounts of Gensol Engineering Limited and Gensol EV Lease Pvt. Ltd., aggregating to approximately Rs. 672.74 crore, as 'fraud' and has reported the same to the Reserve Bank of India. The contents of the said reports are factually correct and are based on the aforesaid order issued by IREDA.",
+    "source_url": "https://www.business-standard.com/industry/news/gensol-engineering-says-its-loan-accounts-declared-as-fraud-by-ireda-126071400964_1.html",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "confirms"
+  },
+  {
+    "filing_id": "F004",
+    "company_name": "IDBI Bank Ltd",
+    "ticker_bse": "500116",
+    "ticker_nse": "IDBI",
+    "filing_date": "2025-01-27",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE"
+    ],
+    "filing_text": "In response to the query raised by BSE Limited with respect to a media report on a revised bid from Fairfax Financial Holdings for the Government of India's and LIC's stake in the Bank, we would like to clarify that the Bank has not received any official communication in this regard. The Bank is not directly involved in the strategic disinvestment process being run by the Government of India and is not in a position to either confirm or deny the said media report.",
+    "source_url": "https://www.whalesbook.com/news/English/bankingfinance/IDBI-Bank-Denies-Comment-on-Fairfax-Financial-Stake-Sale-Report/6a5653bd1210e3dc99a95e46",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "notes": "Exact filing date not independently confirmed from a primary BSE/NSE PDF; date is an approximate placeholder pending direct exchange-archive verification. Treat rumour_date/filing_date ordering as indicative, not authoritative, until corroborated.",
+    "source_authority": "official_exchange_filing",
+    "determination": "non_committal"
+  },
+  {
+    "filing_id": "F005",
+    "company_name": "Vedanta Aluminium Metal Ltd",
+    "ticker_bse": null,
+    "ticker_nse": null,
+    "filing_date": "2026-08-06",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "NSE"
+    ],
+    "filing_text": "The Company continuously evaluates various financing and fundraising opportunities in the ordinary course of business to support its operational and strategic objectives. Any material event or information requiring disclosure under Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015 is duly intimated to the Stock Exchanges in accordance with the prescribed norms.",
+    "source_url": "https://www.business-standard.com/companies/news/vedanta-aluminium-raises-13-500-crore-loan-after-group-s-demerger-126080600226_1.html",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "non_committal"
+  },
+  {
+    "filing_id": "F006",
+    "company_name": "Ola Electric Mobility Ltd",
+    "ticker_bse": "544225",
+    "ticker_nse": "OLAELEC",
+    "filing_date": "2025-05-02",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "We refer to the news article titled 'Ola Electric Likely In SEBI Crosshairs Over Alleged Insider Trading'. The Company wishes to clarify that the contents of the said article are factually inaccurate. The transactions referred to in the article were routine transactions carried out pursuant to the Company's Employee Stock Ownership Plan (ESOP) and were not open market purchases. The Company categorically denies the allegation of insider trading contained in the article.",
+    "source_url": "https://www.businesstoday.in/markets/stocks/story/ola-electric-denies-insider-trading-allegations-calls-report-factually-inaccurate-474539-2025-05-02",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "F007",
+    "company_name": "One97 Communications Ltd",
+    "ticker_bse": "543396",
+    "ticker_nse": "PAYTM",
+    "filing_date": "2024-02-04",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "In light of recent speculative and misleading media reports, One97 Communications Limited (OCL) wishes to categorically deny any investigation by the Enforcement Directorate on OCL, its associates, and/or its Founder and CEO for anti-money laundering activities. The Reserve Bank of India's recent action on Paytm Payments Bank Limited was part of ongoing supervisory engagement and is unrelated to the allegations contained in the said media reports.",
+    "source_url": "https://theprint.in/economy/in-filing-with-bse-nse-paytm-categorically-denies-reports-of-ed-investigation-for-money-laundering/1953440/",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "F008",
+    "company_name": "One97 Communications Ltd",
+    "ticker_bse": "543396",
+    "ticker_nse": "PAYTM",
+    "filing_date": "2024-05-29",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "We refer to media reports speculating that the Adani Group is in talks to acquire a stake in One97 Communications Limited (Paytm). The Company wishes to clarify that this report is speculative and untrue. The Company is not engaged in any discussions with the Adani Group in this regard.",
+    "source_url": "https://www.business-standard.com/companies/news/speculative-untrue-paytm-adani-group-deny-stake-sale-in-fintech-major-124052900750_1.html",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "F009",
+    "company_name": "Mphasis Ltd",
+    "ticker_bse": "526299",
+    "ticker_nse": "MPHASIS",
+    "filing_date": "2025-11-18",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "We refer to media reports regarding Blackstone trimming its stake in the Company. In this regard, the Company wishes to clarify that its promoter, BCP Topco IX Pte Ltd (part of the Blackstone Group), has indicated that, subject to prevailing market conditions, it may sell up to 1,80,00,000 equity shares of the Company through open market transactions. The Company itself is not a party to this potential share sale, which pertains solely to its promoter entity.",
+    "source_url": "https://www.businesstoday.in/markets/stocks/story/mphasis-issues-clarification-on-blackstone-trimming-stake-report-502552-2025-11-18",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "confirms"
+  },
+  {
+    "filing_id": "F010",
+    "company_name": "Jio Financial Services Ltd",
+    "ticker_bse": "544386",
+    "ticker_nse": "JIOFIN",
+    "filing_date": "2024-02-06",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "We refer to media reports suggesting that Jio Financial Services Limited is in talks to acquire Paytm's wallet business. The Company wishes to clarify that the news item is speculative, and the Company has not been in any negotiations in this regard.",
+    "source_url": "https://www.business-standard.com/companies/news/jio-financial-services-denies-being-in-talks-to-acquire-paytm-s-wallet-biz-124020600114_1.html",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "F011",
+    "company_name": "IndusInd Bank Ltd",
+    "ticker_bse": "532187",
+    "ticker_nse": "INDUSINDBK",
+    "filing_date": "2025-12-04",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "We refer to media reports suggesting that the Hinduja Group is seeking a strategic partner to hold a minority stake in the Bank. The Bank wishes to clarify that there is no discussion of this nature underway with anyone in the Bank.",
+    "source_url": "https://www.business-standard.com/companies/news/indusind-bank-denies-report-of-talks-to-bring-in-strategic-partner-125120400397_1.html",
+    "is_real": true,
+    "is_synthetic_distractor": false,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "S001",
+    "company_name": "Meridian Textiles Ltd",
+    "ticker_bse": "SYN0001",
+    "ticker_nse": "SYNMTL",
+    "filing_date": "2025-03-10",
+    "filing_type": "board_meeting_intimation",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Pursuant to Regulation 29 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, notice is hereby given that a meeting of the Board of Directors of the Company will be held on March 18, 2025, to consider and approve the unaudited financial results for the quarter ended December 31, 2024.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S002",
+    "company_name": "Northfield Pharma Ltd",
+    "ticker_bse": "SYN0002",
+    "ticker_nse": "SYNNFP",
+    "filing_date": "2025-04-22",
+    "filing_type": "financial_results",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Company announces its audited financial results for the financial year ended March 31, 2025. Total revenue from operations stood at Rs. 1,240 crore, an increase of 9.2% over the previous financial year. The Board has recommended a final dividend of Rs. 2.50 per equity share of face value Rs. 10 each.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S003",
+    "company_name": "Coastal Logistics Ltd",
+    "ticker_bse": "SYN0003",
+    "ticker_nse": "SYNCLL",
+    "filing_date": "2025-06-05",
+    "filing_type": "esop_allotment",
+    "exchanges": [
+      "BSE"
+    ],
+    "filing_text": "The Nomination and Remuneration Committee of the Company, at its meeting held on June 5, 2025, approved the allotment of 42,500 equity shares of face value Rs. 2 each pursuant to the exercise of stock options under the Employee Stock Option Scheme 2019.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S004",
+    "company_name": "Silverline Cements Ltd",
+    "ticker_bse": "SYN0004",
+    "ticker_nse": "SYNSLC",
+    "filing_date": "2025-07-18",
+    "filing_type": "credit_rating_update",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Company informs the Exchange that CRISIL Ratings has reaffirmed the long-term credit rating of the Company's bank facilities at CRISIL AA-/Stable and the short-term rating at CRISIL A1+.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S005",
+    "company_name": "Bluepeak Industries Ltd",
+    "ticker_bse": "SYN0005",
+    "ticker_nse": "SYNBPI",
+    "filing_date": "2025-08-01",
+    "filing_type": "key_managerial_personnel_change",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Board of Directors has approved the appointment of Ms. Anjali Rao as Chief Financial Officer of the Company with effect from August 1, 2025, in place of Mr. Suresh Nair, who has resigned to pursue other opportunities.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S006",
+    "company_name": "Harborview Shipping Ltd",
+    "ticker_bse": "SYN0006",
+    "ticker_nse": "SYNHVS",
+    "filing_date": "2025-09-12",
+    "filing_type": "subsidiary_incorporation",
+    "exchanges": [
+      "BSE"
+    ],
+    "filing_text": "Pursuant to Regulation 30 of the SEBI LODR Regulations, the Company informs the Exchange that it has incorporated a wholly-owned subsidiary, Harborview Logistics Pte Ltd, in Singapore, for the purpose of expanding the Company's freight-forwarding operations in Southeast Asia.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S007",
+    "company_name": "Crimson Realty Ltd",
+    "ticker_bse": "SYN0007",
+    "ticker_nse": "SYNCRL",
+    "filing_date": "2025-10-03",
+    "filing_type": "litigation_update",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Company informs the Exchange of an order received from the National Company Law Tribunal, Mumbai Bench, admitting an application filed by an operational creditor. The Company intends to challenge the said order before the National Company Law Appellate Tribunal.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S008",
+    "company_name": "Alpine Consumer Products Ltd",
+    "ticker_bse": "SYN0008",
+    "ticker_nse": "SYNACP",
+    "filing_date": "2025-11-14",
+    "filing_type": "buyback_announcement",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Board of Directors has approved a proposal to buy back up to 15,00,000 fully paid-up equity shares of the Company at a price not exceeding Rs. 850 per share, for an aggregate amount not exceeding Rs. 127.5 crore, through the open market route.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S009",
+    "company_name": "Meridian Textiles Ltd",
+    "ticker_bse": "SYN0001",
+    "ticker_nse": "SYNMTL",
+    "filing_date": "2025-12-01",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports speculating that a private equity investor is in talks to acquire a controlling stake in the Company. The Company wishes to clarify that it is not in a position to confirm or deny the said report at this time, as internal discussions, if any, have not reached a stage requiring disclosure.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "notes": "Same fictional company as S001, different date/topic — a temporal-constraint distractor.",
+    "source_authority": "official_exchange_filing",
+    "determination": "non_committal"
+  },
+  {
+    "filing_id": "S010",
+    "company_name": "Northfield Pharma Ltd",
+    "ticker_bse": "SYN0002",
+    "ticker_nse": "SYNNFP",
+    "filing_date": "2026-01-15",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports alleging irregularities in the Company's clinical trial data. The Company categorically denies these allegations. All clinical trial data submitted by the Company has been reviewed and approved by the Central Drugs Standard Control Organisation in accordance with applicable regulations.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "S011",
+    "company_name": "Coastal Logistics Ltd",
+    "ticker_bse": "SYN0003",
+    "ticker_nse": "SYNCLL",
+    "filing_date": "2026-02-20",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports that the Company has secured a Rs. 2,000 crore port-handling contract from a state maritime board. The Company confirms that it has received a letter of award for the said contract, subject to execution of definitive agreements.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": "confirms"
+  },
+  {
+    "filing_id": "S012",
+    "company_name": "Silverline Cements Ltd",
+    "ticker_bse": "SYN0004",
+    "ticker_nse": "SYNSLC",
+    "filing_date": "2026-03-05",
+    "filing_type": "dividend_declaration",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Board of Directors has declared an interim dividend of Rs. 1.00 per equity share of face value Rs. 5 each for the financial year 2025-26. The record date for the purpose of dividend payment is fixed as March 15, 2026.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S013",
+    "company_name": "Bluepeak Industries Ltd",
+    "ticker_bse": "SYN0005",
+    "ticker_nse": "SYNBPI",
+    "filing_date": "2026-04-09",
+    "filing_type": "scheme_of_arrangement",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Company informs the Exchange that the National Company Law Tribunal has passed an order allowing the second motion petition filed in relation to the Scheme of Amalgamation between the Company and its wholly-owned subsidiary, Bluepeak Components Ltd.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S014",
+    "company_name": "Harborview Shipping Ltd",
+    "ticker_bse": "SYN0006",
+    "ticker_nse": "SYNHVS",
+    "filing_date": "2026-05-11",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports that the promoter group is exploring a partial stake sale in the Company. The Company wishes to clarify that it has no knowledge of any such discussions and is not in a position to confirm or deny the report.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": "non_committal"
+  },
+  {
+    "filing_id": "S015",
+    "company_name": "Crimson Realty Ltd",
+    "ticker_bse": "SYN0007",
+    "ticker_nse": "SYNCRL",
+    "filing_date": "2026-06-19",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports that a large institutional investor plans to acquire a stake in one of the Company's commercial real estate projects. The Company confirms that it is in advanced discussions with an institutional investor for a stake sale in the said project, though definitive agreements have not yet been executed.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": "confirms"
+  },
+  {
+    "filing_id": "S016",
+    "company_name": "Alpine Consumer Products Ltd",
+    "ticker_bse": "SYN0008",
+    "ticker_nse": "SYNACP",
+    "filing_date": "2026-07-22",
+    "filing_type": "related_party_transaction",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Audit Committee and the Board of Directors have approved a related party transaction with a wholly-owned subsidiary for the sale of finished goods in the ordinary course of business, not exceeding Rs. 45 crore in the current financial year.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S017",
+    "company_name": "Redstone Infra Ltd",
+    "ticker_bse": "SYN0009",
+    "ticker_nse": "SYNRSI",
+    "filing_date": "2025-05-16",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports of an alleged Enforcement Directorate investigation into the Company's promoters concerning fund diversion. The Company categorically denies the allegations. The Company has not received any communication from the Enforcement Directorate in this regard.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": "denies"
+  },
+  {
+    "filing_id": "S018",
+    "company_name": "Oakridge Financial Services Ltd",
+    "ticker_bse": "SYN0010",
+    "ticker_nse": "SYNOFS",
+    "filing_date": "2025-09-29",
+    "filing_type": "rumour_verification_30_11",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "Sub: Rumour Verification: Regulation 30(11) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. We refer to media reports that a global private equity fund is in talks to acquire a minority stake in the Company. The Company confirms that its board has received and is evaluating a non-binding expression of interest from a global private equity fund for a minority stake investment.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": "confirms"
+  },
+  {
+    "filing_id": "S019",
+    "company_name": "Redstone Infra Ltd",
+    "ticker_bse": "SYN0009",
+    "ticker_nse": "SYNRSI",
+    "filing_date": "2026-01-08",
+    "filing_type": "financial_results",
+    "exchanges": [
+      "BSE",
+      "NSE"
+    ],
+    "filing_text": "The Company announces its unaudited financial results for the quarter ended December 31, 2025. Revenue from operations grew 14% year-on-year to Rs. 620 crore, driven by higher order execution in the transmission and roads segments.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "S020",
+    "company_name": "Oakridge Financial Services Ltd",
+    "ticker_bse": "SYN0010",
+    "ticker_nse": "SYNOFS",
+    "filing_date": "2026-02-14",
+    "filing_type": "key_managerial_personnel_change",
+    "exchanges": [
+      "BSE"
+    ],
+    "filing_text": "The Board has approved the appointment of Mr. Rohan Deshpande as Company Secretary and Compliance Officer with effect from February 14, 2026, in place of Ms. Kavita Iyer, who has taken up a role at another organisation.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "official_exchange_filing",
+    "determination": null
+  },
+  {
+    "filing_id": "N001",
+    "company_name": "Meridian Textiles Ltd",
+    "ticker_bse": "SYN0001",
+    "ticker_nse": "SYNMTL",
+    "filing_date": "2025-12-02",
+    "filing_type": "news_article",
+    "exchanges": [],
+    "filing_text": "MoneyDesk News reports: Meridian Textiles on Monday denied media speculation about a private equity investor acquiring a controlling stake in the company, telling exchanges it could not confirm or deny the report at this stage. Shares of the textile maker were volatile in early trade following the report.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "news_article",
+    "notes": "A news article reporting on filing S009, not the filing itself — used to test the source-authority constraint.",
+    "determination": null
+  },
+  {
+    "filing_id": "N002",
+    "company_name": "Northfield Pharma Ltd",
+    "ticker_bse": "SYN0002",
+    "ticker_nse": "SYNNFP",
+    "filing_date": "2026-01-16",
+    "filing_type": "news_article",
+    "exchanges": [],
+    "filing_text": "BizWire Daily reports: Northfield Pharma has categorically denied allegations of irregularities in its clinical trial data, according to a stock exchange filing released Thursday. The company said all trial data had been reviewed by the drug regulator.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "news_article",
+    "notes": "A news article reporting on filing S010, not the filing itself — used to test the source-authority constraint.",
+    "determination": null
+  },
+  {
+    "filing_id": "N003",
+    "company_name": "Adani Enterprises Ltd",
+    "ticker_bse": "512599",
+    "ticker_nse": "ADANIENT",
+    "filing_date": "2025-02-12",
+    "filing_type": "news_article",
+    "exchanges": [],
+    "filing_text": "MarketPulse reports: Adani Enterprises clarified on Wednesday that a widely circulated report about a $686 million healthcare investment does not relate to the listed company, after exchanges sought an explanation for a sharp rally in the stock a day earlier.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "news_article",
+    "notes": "A synthetic news paraphrase of the real filing F001 — used to test the source-authority constraint (must rank the primary filing over a news article describing it).",
+    "determination": null
+  },
+  {
+    "filing_id": "N004",
+    "company_name": "Harborview Shipping Ltd",
+    "ticker_bse": "SYN0006",
+    "ticker_nse": "SYNHVS",
+    "filing_date": "2026-05-12",
+    "filing_type": "news_article",
+    "exchanges": [],
+    "filing_text": "TradeLine News reports: Harborview Shipping said it had no knowledge of reported talks around a partial promoter stake sale, and was not in a position to confirm or deny the speculation, in a filing to exchanges on Monday.",
+    "source_url": null,
+    "is_real": false,
+    "is_synthetic_distractor": true,
+    "source_authority": "news_article",
+    "notes": "A news article reporting on filing S014, not the filing itself — used to test the source-authority constraint.",
+    "determination": null
+  }
+]

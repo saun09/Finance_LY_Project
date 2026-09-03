@@ -1,0 +1,169 @@
+[
+  {
+    "rumour_id": "R001",
+    "company_name": "Adani Enterprises Ltd",
+    "ticker_bse": "512599",
+    "ticker_nse": "ADANIENT",
+    "rumour_text": "Adani Enterprises shares rally 4% on $686 million investment in not-for-profit healthcare initiative",
+    "rumour_source_publication": "The Economic Times (economictimes.indiatimes.com)",
+    "rumour_date": "2025-02-11",
+    "matching_filing_id": "F001",
+    "label": "denied",
+    "label_rationale": "The company's Reg 30(11) filing states the reported Adani Health City initiative is being carried out by the Group's not-for-profit healthcare entities, not by Adani Enterprises Ltd itself, and that AEL is 'unable to comment' on an initiative that is not its own — i.e. it denies that the reported activity belongs to the listed entity.",
+    "source_urls": [
+      "https://www.adanienterprises.com/-/media/Project/Enterprises/Investors/Corporate-Announcement/Reg-3011-and-Rumour-verificationBSE--NSEFinal.pdf"
+    ]
+  },
+  {
+    "rumour_id": "R002",
+    "company_name": "Coforge Ltd",
+    "ticker_bse": "532541",
+    "ticker_nse": "COFORGE",
+    "rumour_text": "Speculative Moneycontrol report on a major Coforge acquisition/deal ahead of the company's own board-approved disclosure",
+    "rumour_source_publication": "Moneycontrol",
+    "rumour_date": "2025-12-24",
+    "matching_filing_id": "F002",
+    "label": "unaddressed",
+    "label_rationale": "The company's filing calls the report 'speculative and premature' without confirming or denying the substance of the deal, and points to a future board-approved disclosure process instead. Under the labeling framework this is a non-committal response, not a confirm or deny.",
+    "source_urls": [
+      "https://trendlyne.com/posts/5459123/coforge-ltd-532541-rumour-verification-regulation-30-11"
+    ],
+    "notes": "Exact rumour date approximate — see filing F002 notes on sourcing confidence."
+  },
+  {
+    "rumour_id": "R003",
+    "company_name": "Gensol Engineering Ltd",
+    "ticker_bse": "532960",
+    "ticker_nse": "GENSOL",
+    "rumour_text": "IREDA has declared Gensol Engineering's ~Rs 673 crore loan accounts as fraud and reported the matter to the RBI",
+    "rumour_source_publication": "NSE clarification letter referencing media coverage",
+    "rumour_date": "2026-07-13",
+    "matching_filing_id": "F003",
+    "label": "confirmed",
+    "label_rationale": "The company's filing explicitly states 'the contents of the said reports are factually correct and are based on the aforesaid order issued by IREDA' — a direct confirmation.",
+    "source_urls": [
+      "https://www.business-standard.com/industry/news/gensol-engineering-says-its-loan-accounts-declared-as-fraud-by-ireda-126071400964_1.html"
+    ]
+  },
+  {
+    "rumour_id": "R004",
+    "company_name": "IDBI Bank Ltd",
+    "ticker_bse": "500116",
+    "ticker_nse": "IDBI",
+    "rumour_text": "Government of India has finalised a revised bid of Rs 81/share from Fairfax Financial Holdings for the IDBI Bank stake sale",
+    "rumour_source_publication": "Business news reports on the Fairfax bid revision",
+    "rumour_date": "2025-01-25",
+    "matching_filing_id": "F004",
+    "label": "unaddressed",
+    "label_rationale": "IDBI Bank's filing explicitly states it is 'not in a position to either confirm or deny' the report — a textbook non-committal response under Reg 30(11), since the disinvestment process is run by the Government/LIC rather than the bank itself.",
+    "source_urls": [
+      "https://www.whalesbook.com/news/English/bankingfinance/IDBI-Bank-Denies-Comment-on-Fairfax-Financial-Stake-Sale-Report/6a5653bd1210e3dc99a95e46"
+    ],
+    "notes": "Rumour and filing dates are approximate — see filing F004 notes on sourcing confidence."
+  },
+  {
+    "rumour_id": "R005",
+    "company_name": "Vedanta Aluminium Metal Ltd",
+    "ticker_bse": null,
+    "ticker_nse": null,
+    "rumour_text": "Vedanta Aluminium has raised close to Rs 13,500 crore in loans from Axis Bank, HDFC Bank and ICICI Bank to refinance debt after the group demerger",
+    "rumour_source_publication": "Business Standard / Outlook Business coverage",
+    "rumour_date": "2026-08-06",
+    "matching_filing_id": "F005",
+    "label": "unaddressed",
+    "label_rationale": "The company's own clarification is generic boilerplate ('continuously evaluates various financing opportunities... will disclose under Regulation 30 as required') and does not confirm or deny the specific loan amount or lenders reported in the media, even though subsequent media coverage treated the transaction as having occurred.",
+    "source_urls": [
+      "https://www.business-standard.com/companies/news/vedanta-aluminium-raises-13-500-crore-loan-after-group-s-demerger-126080600226_1.html"
+    ]
+  },
+  {
+    "rumour_id": "R006",
+    "company_name": "Ola Electric Mobility Ltd",
+    "ticker_bse": "544225",
+    "ticker_nse": "OLAELEC",
+    "rumour_text": "Ola Electric Likely In SEBI Crosshairs Over Alleged Insider Trading",
+    "rumour_source_publication": "Business news report on an alleged SEBI insider-trading probe",
+    "rumour_date": "2025-05-02",
+    "matching_filing_id": "F006",
+    "label": "denied",
+    "label_rationale": "The company's filing states the article's contents are 'factually inaccurate', explains the trades were routine ESOP-related transactions, and 'categorically denies the allegation of insider trading'.",
+    "source_urls": [
+      "https://www.businesstoday.in/markets/stocks/story/ola-electric-denies-insider-trading-allegations-calls-report-factually-inaccurate-474539-2025-05-02"
+    ]
+  },
+  {
+    "rumour_id": "R007",
+    "company_name": "One97 Communications Ltd",
+    "ticker_bse": "543396",
+    "ticker_nse": "PAYTM",
+    "rumour_text": "Enforcement Directorate is investigating One97 Communications (Paytm), its associates and Founder/CEO for anti-money-laundering violations",
+    "rumour_source_publication": "Speculative media reports circulating around early February 2024",
+    "rumour_date": "2024-02-03",
+    "matching_filing_id": "F007",
+    "label": "denied",
+    "label_rationale": "The company's BSE/NSE filing 'categorically denies any investigation by the Enforcement Directorate' and separates the unrelated RBI supervisory action on Paytm Payments Bank from the alleged ED probe.",
+    "source_urls": [
+      "https://theprint.in/economy/in-filing-with-bse-nse-paytm-categorically-denies-reports-of-ed-investigation-for-money-laundering/1953440/"
+    ]
+  },
+  {
+    "rumour_id": "R008",
+    "company_name": "One97 Communications Ltd",
+    "ticker_bse": "543396",
+    "ticker_nse": "PAYTM",
+    "rumour_text": "Adani Group is in talks to acquire a stake in One97 Communications (Paytm)",
+    "rumour_source_publication": "Business news reports of a purported Adani-Paytm stake talks",
+    "rumour_date": "2024-05-28",
+    "matching_filing_id": "F008",
+    "label": "denied",
+    "label_rationale": "Paytm's filing calls the report 'speculative and untrue' and states the company is 'not engaged in any discussions with the Adani Group in this regard'.",
+    "source_urls": [
+      "https://www.business-standard.com/companies/news/speculative-untrue-paytm-adani-group-deny-stake-sale-in-fintech-major-124052900750_1.html"
+    ]
+  },
+  {
+    "rumour_id": "R009",
+    "company_name": "Mphasis Ltd",
+    "ticker_bse": "526299",
+    "ticker_nse": "MPHASIS",
+    "rumour_text": "Blackstone is trimming its stake in Mphasis",
+    "rumour_source_publication": "Business news reports on a purported Blackstone stake sale",
+    "rumour_date": "2025-11-17",
+    "matching_filing_id": "F009",
+    "label": "confirmed",
+    "label_rationale": "Mphasis confirms the underlying fact — its promoter BCP Topco IX (part of Blackstone) has indicated it may sell up to 1.8 crore shares — while clarifying that the listed entity itself is not a transacting party. The substantive claim (an intended stake sale) is confirmed.",
+    "source_urls": [
+      "https://www.businesstoday.in/markets/stocks/story/mphasis-issues-clarification-on-blackstone-trimming-stake-report-502552-2025-11-18"
+    ]
+  },
+  {
+    "rumour_id": "R010",
+    "company_name": "Jio Financial Services Ltd",
+    "ticker_bse": "544386",
+    "ticker_nse": "JIOFIN",
+    "rumour_text": "Jio Financial Services is in talks to acquire Paytm's wallet business",
+    "rumour_source_publication": "Business news reports on a purported Jio Financial-Paytm wallet deal",
+    "rumour_date": "2024-02-05",
+    "matching_filing_id": "F010",
+    "label": "denied",
+    "label_rationale": "Jio Financial Services' filing states the report is 'speculative' and that the company 'has not been in any negotiations in this regard'.",
+    "source_urls": [
+      "https://www.business-standard.com/companies/news/jio-financial-services-denies-being-in-talks-to-acquire-paytm-s-wallet-biz-124020600114_1.html"
+    ]
+  },
+  {
+    "rumour_id": "R011",
+    "company_name": "IndusInd Bank Ltd",
+    "ticker_bse": "532187",
+    "ticker_nse": "INDUSINDBK",
+    "rumour_text": "Hinduja Group is seeking a strategic partner to hold a minority stake in IndusInd Bank",
+    "rumour_source_publication": "The Economic Times",
+    "rumour_date": "2025-12-03",
+    "matching_filing_id": "F011",
+    "label": "denied",
+    "label_rationale": "IndusInd Bank's filing states 'there is no discussion of this nature underway with anyone in the bank', directly denying the reported strategic-partner talks.",
+    "source_urls": [
+      "https://www.business-standard.com/companies/news/indusind-bank-denies-report-of-talks-to-bring-in-strategic-partner-125120400397_1.html"
+    ]
+  }
+]
