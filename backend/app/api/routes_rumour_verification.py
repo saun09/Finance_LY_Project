@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -19,14 +19,18 @@ def post_verify_rumour(
     log_event: bool = Query(True, description="Log this verification as an auditable suggestion_event"),
     session: Session = Depends(get_session),
 ):
-    """Calls Module 5's own verify_rumour unchanged (see
-    rumour_verification_bridge.py) and, by default, logs the result as a
-    suggestion_event purely for auditability -- never touching
-    action_taken/chosen_value/funded, since a verification result isn't
-    something a user accepts/edits/rejects the way a suggestion is."""
-    result = run_verification(
-        body.rumour_text, rumour_date=body.rumour_date, company_name=body.company_name, evaluated_at=body.evaluated_at,
-    )
+    """Calls the n8n Module 5 workflow (see rumour_verification_bridge.py)
+    and, by default, logs the result as a suggestion_event purely for
+    auditability -- never touching action_taken/chosen_value/funded, since
+    a verification result isn't something a user accepts/edits/rejects the
+    way a suggestion is."""
+    try:
+        result = run_verification(
+            body.rumour_text, rumour_date=body.rumour_date, company_name=body.company_name, evaluated_at=body.evaluated_at,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     suggested_value = verification_result_to_suggested_value(result)
 
     logged_event_id = None
@@ -37,8 +41,8 @@ def post_verify_rumour(
     return RumourVerificationOut(
         query_text=result.query_text,
         rumour_date=result.rumour_date,
-        status=result.status,
-        matched_score=result.matched_score,
+        status=suggested_value["status"],
+        matched_score=suggested_value["matched_score"],
         matched_filing=suggested_value["matched_filing"],
         candidates_considered=suggested_value["candidates_considered"],
         candidates_passing=suggested_value["candidates_passing"],

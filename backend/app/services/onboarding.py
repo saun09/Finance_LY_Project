@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.models.onboarding import (
     EmiEntry,
+    EmiPurpose,
     EmploymentType,
     ExpenseItem,
     ExpenseSourceDecisionRecord,
@@ -123,6 +124,7 @@ def add_emi(
     amount_paise: int,
     remaining_tenure_months: int,
     annual_rate_bps: int,
+    purpose: EmiPurpose | None = None,
     commit: bool = True,
 ) -> EmiEntry:
     _require_profile(session, user_id)
@@ -132,6 +134,7 @@ def add_emi(
         amount_paise=amount_paise,
         remaining_tenure_months=remaining_tenure_months,
         annual_rate_bps=annual_rate_bps,
+        purpose=purpose,
     )
     session.add(emi)
     session.flush()

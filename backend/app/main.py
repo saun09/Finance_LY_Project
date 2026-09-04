@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes_allocation import router as allocation_router
+from app.api.routes_auth import router as auth_router
 from app.api.routes_debt_leak import router as debt_leak_router
 from app.api.routes_events import router as events_router
 from app.api.routes_gamification import router as gamification_router
@@ -26,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(events_router)
 app.include_router(onboarding_router)
 app.include_router(risk_profile_router)

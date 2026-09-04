@@ -122,6 +122,61 @@ QUESTIONNAIRE_V1 = Questionnaire(
 )
 
 
+QUESTIONNAIRE_V2 = Questionnaire(
+    version="v2",
+    effective_date="2026-09-04",
+    questions=QUESTIONNAIRE_V1.questions
+    + (
+        Question(
+            id="windfall_allocation",
+            text="You unexpectedly receive Rs 20,000. What would you do with it?",
+            weight=4,
+            options=(
+                QuestionOption("fd_or_savings", "Put it in a bank FD or savings account", 1),
+                QuestionOption("debt_funds", "Invest it in high-quality debt/bond funds", 2),
+                QuestionOption("split_debt_equity", "Split it between debt and equity funds", 3),
+                QuestionOption("equity_funds", "Invest it in equity mutual funds", 4),
+                QuestionOption("equity_plus_borrow", "Invest it in equities, and consider borrowing more to invest further", 5),
+            ),
+        ),
+        # Grable & Lytton (1999)-inspired forced-choice risk item: a
+        # guaranteed amount vs. escalating (lower-probability, higher-payout)
+        # gambles of roughly similar expected value.
+        Question(
+            id="sure_gain_tradeoff",
+            text="Which would you choose: a guaranteed amount, or a chance at more?",
+            weight=4,
+            options=(
+                QuestionOption("guaranteed_5000", "A guaranteed Rs 5,000", 1),
+                QuestionOption("chance_70pct_7000", "A 70% chance at Rs 7,000, otherwise nothing", 2),
+                QuestionOption("chance_50pct_10000", "A 50% chance at Rs 10,000, otherwise nothing", 3),
+                QuestionOption("chance_30pct_17000", "A 30% chance at Rs 17,000, otherwise nothing", 4),
+                QuestionOption("chance_10pct_50000", "A 10% chance at Rs 50,000, otherwise nothing", 5),
+            ),
+        ),
+        Question(
+            id="friend_description",
+            text="In general, how would your closest friend describe you as a risk-taker with money?",
+            weight=2,
+            options=(
+                QuestionOption("real_risk_avoider", "A real risk avoider", 1),
+                QuestionOption("cautious", "Cautious", 2),
+                QuestionOption("calculated_after_research", "Willing to take calculated risks after some research", 3),
+                QuestionOption("comfortable_for_bigger_rewards", "Comfortable taking risks for a shot at bigger rewards", 4),
+                QuestionOption("real_gambler", "A real gambler", 5),
+            ),
+        ),
+    ),
+    # total weight = 20 (10 existing + 4 + 4 + 2), score range [20, 100];
+    # 4 breakpoints split it into 5 equal-width tiers of 16 points each:
+    # [20,36) [36,52) [52,68) [68,84) [84,100]
+    tier_breakpoints=(36, 52, 68, 84),
+)
+
+assert QUESTIONNAIRE_V2.min_score == 20
+assert QUESTIONNAIRE_V2.max_score == 100
+
+
 @dataclass(frozen=True)
 class Band:
     """A half-open [min_value, max_value) band mapping to a ceiling tier.

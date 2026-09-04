@@ -5,7 +5,7 @@ from app.db import get_session
 from app.schemas.risk_profile import QuestionnaireOut, RiskProfileAnswersIn, RiskTierOut
 from app.services.event_log import get_user_event_history
 from app.services.onboarding import ProfileNotFoundError
-from app.services.risk_profile_config import QUESTIONNAIRE_V1
+from app.services.risk_profile_config import QUESTIONNAIRE_V2
 from app.services.risk_profile_service import compute_and_log_risk_tier
 
 router = APIRouter(prefix="/users/{user_id}/risk-profile", tags=["risk_profile"])
@@ -23,8 +23,8 @@ config_router = APIRouter(prefix="/risk-profile", tags=["risk_profile"])
 @config_router.get("/questionnaire", response_model=QuestionnaireOut)
 def get_questionnaire():
     return QuestionnaireOut(
-        version=QUESTIONNAIRE_V1.version,
-        effective_date=QUESTIONNAIRE_V1.effective_date,
+        version=QUESTIONNAIRE_V2.version,
+        effective_date=QUESTIONNAIRE_V2.effective_date,
         questions=[
             {
                 "id": q.id,
@@ -32,7 +32,7 @@ def get_questionnaire():
                 "weight": q.weight,
                 "options": [{"value": o.value, "label": o.label} for o in q.options],
             }
-            for q in QUESTIONNAIRE_V1.questions
+            for q in QUESTIONNAIRE_V2.questions
         ],
     )
 

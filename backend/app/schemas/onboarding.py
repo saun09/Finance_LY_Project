@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
+from app.models.onboarding import EmiPurpose, EmploymentType, IncomeStability, InsuranceType
 from app.services.asset_classification_config import HoldingType
 from app.services.expense_source_decision import ExpenseSourceMode
 from app.services.financial_position import ExpenseFrequency
@@ -35,6 +35,7 @@ class EmiIn(BaseModel):
     amount_paise: int
     remaining_tenure_months: int
     annual_rate_bps: int
+    purpose: EmiPurpose | None = None
 
 
 class EmiOut(EmiIn):

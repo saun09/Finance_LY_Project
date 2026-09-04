@@ -39,6 +39,16 @@ class InsuranceType(str, enum.Enum):
     HEALTH = "health"
 
 
+class EmiPurpose(str, enum.Enum):
+    HOME = "home"
+    VEHICLE = "vehicle"
+    PERSONAL = "personal"
+    EDUCATION = "education"
+    CREDIT_CARD = "credit_card"
+    ELECTRONICS = "electronics"
+    OTHER = "other"
+
+
 class UserProfile(Base):
     """One row per user: the core onboarding profile. `cash_balance_paise`
     is the user's declared liquid cash+equivalents, used directly (and only
@@ -86,6 +96,9 @@ class EmiEntry(Base):
     amount_paise: Mapped[int] = mapped_column(BigInteger, nullable=False)
     remaining_tenure_months: Mapped[int] = mapped_column(Integer, nullable=False)
     annual_rate_bps: Mapped[int] = mapped_column(Integer, nullable=False)
+    # what the loan is for (home/vehicle/personal/...); nullable so existing
+    # rows from before this field existed don't need a backfill value
+    purpose: Mapped[EmiPurpose | None] = mapped_column(Enum(EmiPurpose, name="emi_purpose_enum"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

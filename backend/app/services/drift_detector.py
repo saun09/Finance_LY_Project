@@ -33,7 +33,7 @@ accumulation entirely (pausing, not resetting, any streak already built).
 from dataclasses import dataclass
 from decimal import Decimal
 
-from app.services.allocation_config import TARGET_ALLOCATION_TABLE_V1
+from app.services.allocation import compute_target_allocation
 from app.services.asset_classification_config import AssetClass
 from app.services.drift_detection_config import (
     BEHAVIORAL_SIGNAL_DEADBAND_PCT,
@@ -50,7 +50,7 @@ from app.services.risk_profile import CapacityInputs, IncomeStabilityValue, comp
 
 
 def _equity_target(tier: int) -> Decimal:
-    return TARGET_ALLOCATION_TABLE_V1[tier][AssetClass.EQUITY]
+    return compute_target_allocation(tier).target_pct[AssetClass.EQUITY]
 
 
 @dataclass(frozen=True)

@@ -22,7 +22,7 @@ from app.services.risk_profile import (
     compute_final_tier,
     compute_stated_tier,
 )
-from app.services.risk_profile_config import CAPACITY_RULE_TABLE_V1, QUESTIONNAIRE_V1, CapacityRuleTable, Questionnaire
+from app.services.risk_profile_config import CAPACITY_RULE_TABLE_V1, QUESTIONNAIRE_V2, CapacityRuleTable, Questionnaire
 
 
 def gather_capacity_inputs(session: Session, user_id: str) -> CapacityInputs:
@@ -54,7 +54,7 @@ def compute_and_log_risk_tier(
     session: Session,
     user_id: str,
     answers: dict[str, str],
-    questionnaire: Questionnaire = QUESTIONNAIRE_V1,
+    questionnaire: Questionnaire = QUESTIONNAIRE_V2,
     rule_table: CapacityRuleTable = CAPACITY_RULE_TABLE_V1,
     commit: bool = True,
 ) -> FinalTierResult:
