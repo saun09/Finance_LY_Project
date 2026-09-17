@@ -33,6 +33,16 @@ class VerificationResult:
     all_candidates: list[ConstrainedResult]  # every candidate considered, pass or fail -- what a
     # transparency view needs to show which constraint eliminated which filing, not just the winner
 
+    # The similarity floor applied below, carried on the result so the
+    # transparency view can report it. Without this the floor is an
+    # invisible fourth filter: a candidate could pass all three structured
+    # constraints, be dropped for scoring under it, and the trace would
+    # still show it as passing -- an explanation that cannot account for
+    # the answer it accompanies. Kept separate from ConstraintCheck
+    # because it is a confidence guard on the retrieval score, not a
+    # structured rule about the filing.
+    min_score: float = 0.08
+
     def explain(self) -> str:
         lines = [f"Rumour: {self.query_text!r}"]
         if self.matched_filing is None:
@@ -81,6 +91,7 @@ def verify_rumour(
             status=None,
             candidates=candidates[:top_k],
             all_candidates=candidates,
+            min_score=min_score,
         )
 
     best = passing[0]
@@ -103,4 +114,5 @@ def verify_rumour(
         status=status,
         candidates=passing,
         all_candidates=candidates,
+        min_score=min_score,
     )

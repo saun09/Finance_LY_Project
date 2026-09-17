@@ -6,6 +6,8 @@ import { DebtScreen } from '../screens/insights/DebtScreen';
 import { PersonalizationScreen } from '../screens/insights/PersonalizationScreen';
 import { TransparencyScreen } from '../screens/insights/TransparencyScreen';
 import { TransparencyDetailScreen } from '../screens/insights/TransparencyDetailScreen';
+import { TransparencyHistoryScreen } from '../screens/insights/TransparencyHistoryScreen';
+import { TransparencyCompareScreen } from '../screens/insights/TransparencyCompareScreen';
 import type { InsightsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<InsightsStackParamList>();
@@ -19,6 +21,8 @@ export function InsightsStack() {
       <Stack.Screen name="Personalization" component={PersonalizationScreen} />
       <Stack.Screen name="Transparency" component={TransparencyScreen} />
       <Stack.Screen name="TransparencyDetail" component={TransparencyDetailScreen} />
+      <Stack.Screen name="TransparencyHistory" component={TransparencyHistoryScreen} />
+      <Stack.Screen name="TransparencyCompare" component={TransparencyCompareScreen} />
     </Stack.Navigator>
   );
 }

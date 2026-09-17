@@ -348,20 +348,149 @@ export interface PersonalizationOut {
 
 // ---- Module 9: transparency ----
 
+/** The unit the server declares for a reasoning leaf. The client never
+ * infers these from key names -- guessing whether an integer is paise, a
+ * percentage or a count is exactly how an "audit trace" starts lying. */
+export type ValueHint =
+  | 'paise'
+  | 'percent'
+  | 'percent_points'
+  | 'basis_points'
+  | 'months'
+  | 'count'
+  | 'ratio'
+  | 'score'
+  | 'tier'
+  | 'version'
+  | 'date';
+
+/** One readable line of a trace. `value` is what the user reads; `raw` is
+ * the stored value, present only where the two differ — so the plain-English
+ * translation can always be checked against the record. */
+export interface FactOut {
+  label: string;
+  value: string;
+  raw: string | null;
+  note: string | null;
+}
+
+export interface SectionResultOut {
+  key: string;
+  title: string;
+  available: boolean;
+  missing_fields: string[];
+  /** The same fields, named the way a person would say them. */
+  missing_field_labels: string[];
+  /** One plain-English sentence for this block. */
+  summary: string | null;
+  /** The rows the user actually reads. Empty when the section could not be
+   * honestly rendered — readable prose is never written over gaps. */
+  facts: FactOut[];
+}
+
 export interface TraceResultOut {
   module_source: string;
   display_name: string;
-  framing_label: string; // always "transparent reasoning" for backend decision types
+  /** "transparent reasoning" for every rule-table/weighted-sum decision,
+   * "retrieval explanation" only for Module 5's local constrained-retrieval
+   * engine, "third-party workflow output" for the n8n path. Rendered
+   * verbatim -- the client must never substitute a stronger word. */
+  framing_label: string;
   event_id: string;
   timestamp: string;
   headline: string;
   reasoning: Record<string, unknown>;
   gap_detected: boolean;
   missing_fields: string[];
+  missing_field_labels: string[];
+  sections: SectionResultOut[];
+  value_hints: Record<string, ValueHint>;
+  value_hint_rules_version: string;
+  claim_note: string | null;
+  contested: boolean;
+  contest_reason_code: string | null;
 }
 
 export interface AvailableDecisionTypesOut {
   counts_by_module_source: Record<string, number>;
+}
+
+export interface DecisionEventSummaryOut {
+  event_id: string;
+  timestamp: string;
+  module_source: string;
+  display_name: string;
+  headline: string;
+  gap_detected: boolean;
+  contested: boolean;
+}
+
+export interface FieldChangeOut {
+  path: string;
+  before: unknown;
+  after: unknown;
+  hint: ValueHint | null;
+}
+
+export interface TraceComparisonOut {
+  module_source: string;
+  display_name: string;
+  framing_label: string;
+  before_event_id: string;
+  after_event_id: string;
+  before_timestamp: string;
+  after_timestamp: string;
+  before_headline: string;
+  after_headline: string;
+  changes: FieldChangeOut[];
+  unchanged_field_count: number;
+  value_hints: Record<string, ValueHint>;
+}
+
+export interface ContestDecisionIn {
+  event_id: string;
+  reason_code: string;
+  note?: string;
+}
+
+// ---- Module 5: the local engine's explanation ----
+
+export interface CandidateExplanationOut {
+  filing_id: string;
+  company_name: string;
+  filing_date: string;
+  score: number;
+  passed: boolean;
+  is_winner: boolean;
+  failed_constraints: string[];
+  reasons: string[];
+}
+
+export interface LocalRumourVerificationOut {
+  query_text: string;
+  rumour_date: string | null;
+  status: string | null;
+  matched_score: number | null;
+  matched_filing: MatchedFilingOut | null;
+  candidates_considered: number;
+  candidates_passing: number;
+  candidates_eliminated: number;
+  eliminated_by_constraint: Record<string, number>;
+  why_ranked_first: string;
+  candidate_explanations: CandidateExplanationOut[];
+  full_trace_text: string;
+  logged_event_id: string | null;
+  engine: string;
+  framing_label: string;
+  claim_note: string;
+}
+
+export interface VerificationEngineOut {
+  engine: string;
+  available: boolean;
+  framing_label: string;
+  explains_eliminated_candidates: boolean;
+  description: string;
 }
 
 // ---- Module 10: gamification ----
@@ -456,6 +585,11 @@ export interface RumourVerificationOut {
   candidates_passing: number;
   top_candidate_reasons: string[];
   logged_event_id: string | null;
+  /** Always "n8n_llm_workflow" here. The reasons above are that workflow's
+   * own prose, not a constraint-elimination trace -- see
+   * LocalRumourVerificationOut for the path that can explain eliminations. */
+  engine: string;
+  framing_label: string;
 }
 
 // ---- Module 1: event log ----

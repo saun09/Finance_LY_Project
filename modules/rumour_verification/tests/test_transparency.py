@@ -81,7 +81,51 @@ def test_format_full_trace_names_the_winner_and_every_elimination_reason(corpus)
 def test_format_full_trace_handles_no_match_case(corpus):
     result = verify_rumour("Some completely unrelated company launched a new snack brand", corpus, rumour_date=date(2026, 1, 1))
     text = format_full_trace(result)
-    assert "No candidate passed all three constraints" in text
+    assert "No match returned" in text
+
+
+def test_no_match_trace_names_the_similarity_floor_when_that_is_what_stopped_it(corpus):
+    """For this query three candidates DO pass all three structured
+    constraints and are stopped only by the score floor. The trace used to
+    report "no candidate passed all three constraints" here, which was
+    simply false, and left the reader unable to account for the verdict --
+    see this module's docstring and eval/evaluate_explanations.py."""
+    result = verify_rumour("Some completely unrelated company launched a new snack brand", corpus, rumour_date=date(2026, 1, 1))
+    explanations = explain_all_candidates(result)
+
+    near_misses = [e for e in explanations if e.passed and not e.met_score_floor]
+    assert near_misses, "fixture assumes at least one constraint-passing, floor-failing candidate"
+    assert all("score_floor" in e.failed_constraints for e in near_misses)
+    assert all(not e.eligible for e in near_misses)
+
+    text = format_full_trace(result)
+    assert "similarity floor" in text
+    assert "No candidate passed all three constraints" not in text
+
+
+def test_every_candidate_reports_the_score_floor_check(corpus):
+    """The floor applies to every candidate, so every explanation must
+    account for it -- a check that is silent for some candidates is a check
+    a reader cannot reason with."""
+    result = verify_rumour(
+        "Adani Enterprises shares rally 4% on $686 million investment in not-for-profit healthcare initiative",
+        corpus,
+        rumour_date=date(2025, 2, 11),
+    )
+    for e in explain_all_candidates(result):
+        assert any("score floor" in r for r in e.reasons)
+        assert e.eligible == (e.passed and e.met_score_floor)
+
+
+def test_the_winner_is_always_eligible_not_merely_constraint_passing(corpus):
+    result = verify_rumour(
+        "Adani Enterprises shares rally 4% on $686 million investment in not-for-profit healthcare initiative",
+        corpus,
+        rumour_date=date(2025, 2, 11),
+    )
+    winner = next(e for e in explain_all_candidates(result) if e.is_winner)
+    assert winner.eligible is True
+    assert winner.failed_constraints == ()
 
 
 def test_format_full_trace_never_claims_ai(corpus):

@@ -11,7 +11,7 @@ suggestion has gone stale/ignored). Snapshot-producing jobs call
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
@@ -165,6 +165,31 @@ def get_user_event_history(
         stmt = stmt.where(SuggestionEvent.timestamp <= until)
     stmt = stmt.order_by(SuggestionEvent.timestamp.desc()).limit(limit).offset(offset)
     return list(session.execute(stmt).scalars().all())
+
+
+def count_events_by_module_source(
+    session: Session,
+    user_id: str,
+    *,
+    module_sources: tuple[str, ...] | None = None,
+) -> dict[str, int]:
+    """Exact event counts per module_source for one user, in one query.
+
+    Counting by fetching rows and calling `len()` is both N queries and
+    silently wrong past whatever fetch limit was used, which matters here
+    because callers (Module 9's index) present the number to the user as
+    "how many decisions of this kind you have". A grouped COUNT has
+    neither problem. Sources with no events are simply absent from the
+    result -- callers decide whether that means zero or "not applicable".
+    """
+    stmt = (
+        select(SuggestionEvent.module_source, func.count())
+        .where(SuggestionEvent.user_id == user_id)
+        .group_by(SuggestionEvent.module_source)
+    )
+    if module_sources is not None:
+        stmt = stmt.where(SuggestionEvent.module_source.in_(module_sources))
+    return {source: count for source, count in session.execute(stmt).all()}
 
 
 def get_user_snapshot_history(

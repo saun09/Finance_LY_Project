@@ -216,11 +216,21 @@ much on an arbitrary, much larger real-world filing corpus.
 
 ```
 pip install -r requirements.txt
-pytest                    # 32 tests: labels, retrieval, verification, eval, transparency
-python -m eval.evaluate    # writes eval/results.md
+pytest                    # 46 tests: labels, retrieval, verification, eval,
+                          # transparency, explanation-quality evaluation
+python -m eval.evaluate                 # retrieval accuracy -> eval/results.md
+python -m eval.evaluate_explanations    # explanation quality -> eval/explanation_results.md
 python demo.py "<rumour text>" --date YYYY-MM-DD
 python demo.py "<rumour text>" --date YYYY-MM-DD --full-trace   # Module 9's view
 ```
+
+The explainable path is also reachable from the running app, not only
+from `demo.py`: the backend imports this module through
+`backend/app/services/rumour_local_engine.py` and serves it at
+`POST /users/{id}/rumour-verification/explain`. That matters more than it
+sounds — while `format_full_trace` was CLI-only, the project's
+explainability claim was true of this research module and false of the
+shipped product.
 
 ## Module 9 — Transparency view (`src/transparency.py`)
 
@@ -228,34 +238,90 @@ python demo.py "<rumour text>" --date YYYY-MM-DD --full-trace   # Module 9's vie
 `VerificationResult.all_candidates` (every candidate the retrieval and
 constraint pipeline considered, computed once at verification time — this
 never re-runs retrieval or re-checks constraints) into a full account of
-which constraint(s) eliminated each candidate that didn't win, and why the
-winner ranked first among the ones that passed. Nothing here is
-recomputed after the fact; it's a pure formatting pass over the trace
-`verify_rumour` already produced.
+which check(s) eliminated each candidate that didn't win, and why the
+winner ranked first among those that survived. Nothing here is recomputed
+after the fact; it's a pure formatting pass over the trace `verify_rumour`
+already produced.
 
 This is the one place in the whole project where genuine "explanation" /
 "explainable" language is appropriate, and it's used deliberately here,
 in contrast to the backend's Module 9 transparency layer (see
 `backend/README.md`), which is labeled "transparent reasoning" and
-explicitly avoids "explainable AI" framing for Modules 3/4/6/7's
+explicitly avoids "explainable AI" framing for Modules 3/4/6/7/10's
 weighted-sum and rule-table decisions. The distinction: those decisions
 *are* just printed weights and a table lookup, so calling that
 "explainable AI" would overclaim what a few `if` statements are. This
 module runs an actual multi-stage retrieval-then-elimination pipeline
 (TF-IDF ranking, then three independent constraint checks, any one of
-which can eliminate a candidate) — "why did this filing win and these
-others lose" is a genuine, non-trivial question with a real multi-step
-answer, so "explanation" is an honest word for it here. It still never
-claims "AI": TF-IDF cosine similarity and three rule-based filters aren't
-a model, just a retrieval pipeline worth walking through step by step.
+which can eliminate a candidate, then a similarity floor) — "why did this
+filing win and these others lose" is a genuine, non-trivial question with
+a real multi-step answer, so "explanation" is an honest word for it here.
+It still never claims "AI": TF-IDF cosine similarity and rule-based
+filters aren't a model, just a retrieval pipeline worth walking through
+step by step.
 
-Concretely, running the demo's built-in example with `--full-trace` shows
-the definition-of-done case directly: `N003` (a synthetic news-article
-paraphrase of the real Adani filing, same company, same timing) is
-eliminated specifically by `source_authority` and nothing else, distinct
-from the other 33 candidates eliminated by `entity` (wrong company) — the
-exact distinction the constrained system exists to draw, shown per-candidate
-rather than asserted in the aggregate.
+### The score floor is part of the explanation
+
+`verify_rumour` applies a similarity floor (`min_score`, default 0.08)
+*after* the three structured constraints. The trace originally omitted
+it, which meant a candidate could pass every check the explanation
+mentioned and still not be returned — leaving the trace unable to account
+for the answer it accompanied. On one dataset query the trace even
+printed "No candidate passed all three constraints" when three had.
+
+The floor is now reported as its own named elimination reason
+(`score_floor`) rather than folded into the three constraints, because it
+is a different kind of check: a confidence guard on the retrieval score,
+not a structured rule about the filing. `CandidateExplanation` carries
+`met_score_floor` and `eligible` (passed the constraints *and* cleared
+the floor) alongside `passed`.
+
+## Evaluating the explanations (`eval/evaluate_explanations.py`)
+
+`eval/evaluate.py` measures whether retrieval finds the right filing.
+That says nothing about whether the trace shown to a user is any good,
+and "our explanations are good" was the one claim here that was asserted
+rather than measured — the same overclaim the rest of the module is
+careful to avoid. This harness scores the trace itself on four properties
+that can be checked mechanically:
+
+| Property | Current | What a failure would mean |
+|---|---|---|
+| Candidate coverage | 1.000 | The trace silently omits candidates the retriever considered |
+| Reason coverage | 1.000 | A candidate is shown with no per-check reason line |
+| Non-vacuity | 1.000 | Nothing was eliminated, so the trace says nothing interesting |
+| Winner-justification soundness | 1.000 | The trace claims the winner ranked first when it didn't |
+| Verdict sufficiency | 1.000 | The verdict can't be predicted from the trace alone |
+
+Per-check elimination correctness is measured as precision and recall
+against ground truth recomputed independently from the dataset labels and
+the corpus — never read back from the trace. Precision is 1.000 for all
+four checks: the trace never claims an elimination that didn't happen.
+
+**Verdict sufficiency is the metric that earns the claim.** It asks
+whether a reader who saw only the trace could have predicted the answer,
+by re-deriving the outcome from nothing but the per-candidate scores and
+eligibility flags. It is what caught the missing score floor described
+above: sufficiency was 0.909, not 1.000, because one query's verdict was
+unreachable from the trace.
+
+**Known finding: entity recall is 0.811, not 1.000.** `mentioned_companies`
+scans the rumour text for a corpus company by name or ticker; when it
+recognizes none, the entity constraint is treated as satisfied for every
+candidate and eliminates nobody. On this dataset that happens for rumours
+naming a company in a form the corpus doesn't match exactly ("Vedanta
+Aluminium" vs. the corpus's "Vedanta Aluminium Metal Ltd"). This is
+documented behaviour, deliberately compensated for by the similarity
+floor — but it means the trace's entity line reads as "the entity
+constraint did not eliminate this candidate", which on those queries is
+weaker than "this is the right company". Reported rather than smoothed
+over: an explanation's honest failure mode is part of what a reader needs
+in order to trust the rest of it.
+
+Read all of this as a property check on 11 labeled rumours over a
+35-document corpus, not as a generalization claim — and note that it
+measures whether the trace is *faithful*, not whether it is *useful to a
+non-expert*, which is a human-subjects question this harness can't answer.
 
 ## Relationship to Module 1's event log
 
@@ -292,8 +358,11 @@ src/
   transparency.py           Module 9: full per-candidate explanation over
                              VerificationResult.all_candidates (no recomputation)
 eval/
-  evaluate.py               baseline vs constrained comparison harness
-  results.md                generated report (precision@k, MRR)
-tests/                      32 pytest tests across all of the above
+  evaluate.py                 retrieval accuracy: baseline vs constrained
+  results.md                  generated report (precision@k, MRR)
+  evaluate_explanations.py    explanation quality: coverage, elimination
+                               correctness, winner soundness, verdict sufficiency
+  explanation_results.md      generated report
+tests/                      46 pytest tests across all of the above
 demo.py                     CLI entry point (--full-trace for Module 9's view)
 ```
