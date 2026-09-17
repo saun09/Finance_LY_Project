@@ -40,6 +40,20 @@ export const MILESTONE_CATEGORY_LABEL: Record<string, string> = {
 export const TRANSPARENCY_DISPLAY_NAME: Record<TransparencyDecisionType, string> = {
   risk_profile: 'Risk tier',
   allocation: 'Target allocation',
-  debt_leak_engine: 'Recoverable Rs/year',
+  debt_leak_engine: 'Recoverable ₹/year',
   personalization: 'Personalization offset',
+  gamification: 'Milestone awarded',
+  rumour_verification_local: 'Rumour verification (explainable retrieval)',
+  rumour_verification: 'Rumour verification',
+};
+
+/** Why a user might dispute a trace. Labels only -- the codes themselves
+ * come from the server (GET /transparency/contest-reasons), so this map is
+ * for display and never decides what may be submitted. */
+export const CONTEST_REASON_LABEL: Record<string, string> = {
+  input_wrong: 'An input here is wrong',
+  rule_wrong: "The rule doesn't make sense for me",
+  outcome_unfair: 'The outcome feels unfair',
+  dont_understand: "I don't understand this",
+  other: 'Something else',
 };
