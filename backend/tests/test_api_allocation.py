@@ -79,9 +79,9 @@ def test_full_allocation_flow_via_api_shows_look_through(client):
     body = resp.json()
 
     assert body["final_tier"] == 5
-    # equity = 100,000_00 (pure fund) + 100,000_00 (ULIP 50% of 200,000_00) = 200,000_00
-    assert body["current_exposure_paise"]["equity"] == 200_000_00
-    assert body["current_exposure_paise"]["debt"] == 100_000_00
+    # equity = 100,000_00 (pure fund) + 120,000_00 (ULIP 60% of 200,000_00) = 220,000_00
+    assert body["current_exposure_paise"]["equity"] == 220_000_00
+    assert body["current_exposure_paise"]["debt"] == 80_000_00
     assert len(body["holdings"]) == 2
     for h in body["holdings"]:
         assert "description" not in h

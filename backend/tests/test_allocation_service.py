@@ -88,8 +88,8 @@ def test_compute_and_log_allocation_shows_look_through_exposure(session):
     from app.services.asset_classification_config import AssetClass
 
     # same hand-checked look-through totals as test_asset_classification.py
-    assert report.portfolio.exposure_by_asset_class_paise[AssetClass.EQUITY] == 215_000_00
-    assert report.portfolio.exposure_by_asset_class_paise[AssetClass.DEBT] == 185_000_00
+    assert report.portfolio.exposure_by_asset_class_paise[AssetClass.EQUITY] == 235_000_00
+    assert report.portfolio.exposure_by_asset_class_paise[AssetClass.DEBT] == 165_000_00
     assert report.portfolio.exposure_by_asset_class_paise[AssetClass.CASH] == 50_000_00
 
     assert report.target.final_tier == 5  # aggressive answers, no capacity constraints set up
@@ -106,7 +106,7 @@ def test_allocation_logs_a_suggestion_event_and_never_leaks_holding_description(
 
     assert event.tier == "5"
     assert event.suggested_value["final_tier"] == 5
-    assert event.suggested_value["current_exposure_paise"]["equity"] == 215_000_00
+    assert event.suggested_value["current_exposure_paise"]["equity"] == 235_000_00
     assert len(event.suggested_value["holdings"]) == 4
 
     for holding_entry in event.suggested_value["holdings"]:

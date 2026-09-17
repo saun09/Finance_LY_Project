@@ -25,21 +25,25 @@ is the versioned lookup from each holding type to:
 DECOMPOSITION ASSUMPTIONS (the detail this module deliberately does not
 hand-wave):
 
+- Liquid/overnight funds reserve a 15% cash-equivalent allowance for the
+  fund's overnight/T-bill sleeve, with the remaining 85% treated as
+  short-duration debt exposure (v1 treated the whole holding as pure cash).
 - Hybrid mutual fund sub-types use SEBI's own scheme-categorization equity
-  bands (Aggressive Hybrid: 65-80% equity; Balanced Hybrid: 40-60%;
-  Conservative Hybrid: 10-25%), each represented here at the band's
-  midpoint. A real holding's actual split varies within its band and can
-  drift with markets — this is a documented illustrative default, not a
-  fact about any specific scheme.
+  bands (Aggressive Hybrid: 65-80% equity, here 75%; Balanced Hybrid:
+  40-60% equity, here the 50% midpoint; Conservative Hybrid: 10-25%
+  equity, here 25%). A real holding's actual split varies within its band
+  and can drift with markets — this is a documented illustrative default,
+  not a fact about any specific scheme.
 - NPS uses an illustrative default for a mid-career subscriber under the
-  "Auto Choice - Moderate" life-cycle option (roughly 50% equity, 50%
-  government/corporate debt, 0% alternatives). Real NPS allocation is
-  subscriber-chosen and glides down with age; this is a placeholder, not
-  a computation of any individual's actual NPS asset mix.
-- ULIP uses an illustrative "balanced" fund-option default (50% equity /
-  50% debt), since a ULIP's actual look-through depends entirely on which
-  internal fund option the policyholder selected, which this module has
-  no way to know from a category label alone.
+  "Auto Choice - Moderate" life-cycle option (50% equity, 40%
+  government/corporate debt, 10% alternative-investment-fund sleeve).
+  Real NPS allocation is subscriber-chosen and glides down with age; this
+  is a placeholder, not a computation of any individual's actual NPS
+  asset mix.
+- ULIP uses an illustrative growth-leaning fund-option default (60% equity
+  / 40% debt), since a ULIP's actual look-through depends entirely on
+  which internal fund option the policyholder selected, which this module
+  has no way to know from a category label alone.
 - Endowment / money-back (traditional participating) policies use an
   illustrative 15% equity / 85% debt split, reflecting that Indian
   insurers' participating funds are regulated to hold the bulk of assets
@@ -48,7 +52,10 @@ hand-wave):
 
 Any of these can be superseded by a more precise, scheme-specific
 decomposition in a future config version — that would be a new `version`
-here, not a silent edit to this one.
+here, not a silent edit to this one. v2 (below) revised the liquid-fund,
+NPS, ULIP, and hybrid-fund-band decompositions to align with an updated
+set of illustrative benchmark-derived defaults; v1's values remain
+available in version-control history.
 """
 
 from dataclasses import dataclass
@@ -122,13 +129,16 @@ HOLDING_TYPE_PROFILES_V1: dict[HoldingType, HoldingTypeProfile] = {
         tax_treatment_category="savings_interest_slab_rate",
     ),
     HoldingType.LIQUID_OR_OVERNIGHT_FUND: HoldingTypeProfile(
-        decomposition=_pure(AssetClass.CASH),
+        decomposition={AssetClass.CASH: Decimal("0.15"), AssetClass.DEBT: Decimal("0.85")},
         liquidity=Liquidity.LIQUID,
         lock_in_months=None,
         tax_treatment_category="debt_mf_slab_rate_all_gains",
         decomposition_notes=(
-            "Structurally a debt-market-instrument fund, but treated as a cash "
-            "equivalent here for its near-zero volatility and same/next-day redemption."
+            "A near-cash debt-market-instrument fund. Look-through split reserves a "
+            "15% cash-equivalent allowance for the fund's overnight/T-bill sleeve, "
+            "with the remainder treated as short-duration debt exposure, per v2's "
+            "market-data-provider benchmark assumptions (v1 treated the whole "
+            "holding as pure cash for simplicity)."
         ),
     ),
     HoldingType.FIXED_DEPOSIT: HoldingTypeProfile(
@@ -181,11 +191,11 @@ HOLDING_TYPE_PROFILES_V1: dict[HoldingType, HoldingTypeProfile] = {
         tax_treatment_category="equity_ltcg_stcg_stt_paid",
     ),
     HoldingType.HYBRID_MUTUAL_FUND_AGGRESSIVE: HoldingTypeProfile(
-        decomposition={AssetClass.EQUITY: Decimal("0.70"), AssetClass.DEBT: Decimal("0.30")},
+        decomposition={AssetClass.EQUITY: Decimal("0.75"), AssetClass.DEBT: Decimal("0.25")},
         liquidity=Liquidity.SEMI_LIQUID,
         lock_in_months=None,
         tax_treatment_category="equity_ltcg_stcg_stt_paid",
-        decomposition_notes="Midpoint of SEBI's Aggressive Hybrid Fund category band (65-80% equity). >=65% equity gets equity tax treatment.",
+        decomposition_notes="Illustrative default within SEBI's Aggressive Hybrid Fund category band (65-80% equity), toward the upper end. >=65% equity gets equity tax treatment.",
     ),
     HoldingType.HYBRID_MUTUAL_FUND_BALANCED: HoldingTypeProfile(
         decomposition={AssetClass.EQUITY: Decimal("0.50"), AssetClass.DEBT: Decimal("0.50")},
@@ -195,21 +205,26 @@ HOLDING_TYPE_PROFILES_V1: dict[HoldingType, HoldingTypeProfile] = {
         decomposition_notes="Midpoint of SEBI's Balanced Hybrid Fund category band (40-60% equity). <65% equity gets debt-fund tax treatment.",
     ),
     HoldingType.HYBRID_MUTUAL_FUND_CONSERVATIVE: HoldingTypeProfile(
-        decomposition={AssetClass.EQUITY: Decimal("0.15"), AssetClass.DEBT: Decimal("0.85")},
+        decomposition={AssetClass.EQUITY: Decimal("0.25"), AssetClass.DEBT: Decimal("0.75")},
         liquidity=Liquidity.SEMI_LIQUID,
         lock_in_months=None,
         tax_treatment_category="debt_mf_slab_rate_all_gains",
-        decomposition_notes="Midpoint of SEBI's Conservative Hybrid Fund category band (10-25% equity).",
+        decomposition_notes="Illustrative default at the top of SEBI's Conservative Hybrid Fund category band (10-25% equity).",
     ),
     HoldingType.NPS: HoldingTypeProfile(
-        decomposition={AssetClass.EQUITY: Decimal("0.50"), AssetClass.DEBT: Decimal("0.50")},
+        decomposition={
+            AssetClass.EQUITY: Decimal("0.50"),
+            AssetClass.DEBT: Decimal("0.40"),
+            AssetClass.ALTERNATIVES: Decimal("0.10"),
+        },
         liquidity=Liquidity.LOCKED_IN,
         lock_in_months=None,  # locked until retirement age, not a fixed month count from purchase
         tax_treatment_category="nps_eet_partial_exempt_annuity_condition",
         decomposition_notes=(
             "Illustrative default for a mid-career subscriber under Auto Choice - Moderate "
-            "life-cycle allocation (E/C/G combined into equity/debt here). Actual NPS allocation "
-            "is subscriber-chosen and glides down with age."
+            "life-cycle allocation: equity and government/corporate debt sleeves (E/C/G) split "
+            "50/40, with a 10% allowance for the alternative-investment-fund (A) sleeve permitted "
+            "under NPS Tier 1. Actual NPS allocation is subscriber-chosen and glides down with age."
         ),
     ),
     HoldingType.GOLD_ETF: HoldingTypeProfile(
@@ -264,12 +279,12 @@ HOLDING_TYPE_PROFILES_V1: dict[HoldingType, HoldingTypeProfile] = {
         tax_treatment_category="unlisted_shares_or_aif_capital_gains_category_dependent",
     ),
     HoldingType.ULIP: HoldingTypeProfile(
-        decomposition={AssetClass.EQUITY: Decimal("0.50"), AssetClass.DEBT: Decimal("0.50")},
+        decomposition={AssetClass.EQUITY: Decimal("0.60"), AssetClass.DEBT: Decimal("0.40")},
         liquidity=Liquidity.LOCKED_IN,
         lock_in_months=60,  # IRDAI-mandated minimum lock-in
         tax_treatment_category="ulip_10d_conditional_exemption_or_capital_gains_if_premium_exceeds_threshold",
         decomposition_notes=(
-            "Illustrative 'balanced' fund-option default. A ULIP's real look-through depends "
+            "Illustrative growth-leaning fund-option default. A ULIP's real look-through depends "
             "entirely on which internal fund option (equity/debt/balanced) the policyholder "
             "selected, which is not derivable from the product category alone."
         ),
@@ -288,5 +303,5 @@ HOLDING_TYPE_PROFILES_V1: dict[HoldingType, HoldingTypeProfile] = {
     ),
 }
 
-CONFIG_VERSION = "v1"
-CONFIG_EFFECTIVE_DATE = "2026-01-01"
+CONFIG_VERSION = "v2"
+CONFIG_EFFECTIVE_DATE = "2026-09-17"

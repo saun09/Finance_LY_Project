@@ -42,10 +42,10 @@ def test_unknown_holding_type_raises():
 # --- look-through decomposition of hybrid / insurance-linked products ---
 
 
-def test_ulip_look_through_splits_50_50():
+def test_ulip_look_through_splits_60_40():
     result = classify_holding("h1", HoldingType.ULIP, 200_000_00)
     assert result.is_look_through is True
-    assert result.decomposition_paise == {AssetClass.EQUITY: 100_000_00, AssetClass.DEBT: 100_000_00}
+    assert result.decomposition_paise == {AssetClass.EQUITY: 120_000_00, AssetClass.DEBT: 80_000_00}
     assert result.liquidity == Liquidity.LOCKED_IN
     assert result.lock_in_months == 60
     assert result.decomposition_notes is not None  # the assumption must be documented, not silent
@@ -57,9 +57,9 @@ def test_endowment_policy_look_through_splits_15_85():
     assert result.decomposition_notes is not None
 
 
-def test_aggressive_hybrid_fund_look_through_splits_70_30():
+def test_aggressive_hybrid_fund_look_through_splits_75_25():
     result = classify_holding("h1", HoldingType.HYBRID_MUTUAL_FUND_AGGRESSIVE, 100_000_00)
-    assert result.decomposition_paise == {AssetClass.EQUITY: 70_000_00, AssetClass.DEBT: 30_000_00}
+    assert result.decomposition_paise == {AssetClass.EQUITY: 75_000_00, AssetClass.DEBT: 25_000_00}
     # >=65% equity -> equity tax treatment, a real Indian tax-law nuance
     assert result.tax_treatment_category == "equity_ltcg_stcg_stt_paid"
 
@@ -74,7 +74,11 @@ def test_balanced_hybrid_fund_gets_debt_tax_treatment_not_equity():
 
 def test_nps_look_through_splits_and_is_not_lock_in_month_counted():
     result = classify_holding("h1", HoldingType.NPS, 500_000_00)
-    assert result.decomposition_paise == {AssetClass.EQUITY: 250_000_00, AssetClass.DEBT: 250_000_00}
+    assert result.decomposition_paise == {
+        AssetClass.EQUITY: 250_000_00,
+        AssetClass.DEBT: 200_000_00,
+        AssetClass.ALTERNATIVES: 50_000_00,
+    }
     assert result.liquidity == Liquidity.LOCKED_IN
     assert result.lock_in_months is None  # locked to retirement age, not a fixed month count
 
@@ -108,21 +112,21 @@ def test_aggregate_look_through_exposure_is_not_the_label_exposure():
     assert result.total_value_paise == 450_000_00
 
     # hand-checked look-through totals:
-    # equity = 100,000_00 (pure fund) + 100,000_00 (ULIP 50%) + 15,000_00 (endowment 15%) = 215,000_00
-    # debt   = 100,000_00 (ULIP 50%) + 85,000_00 (endowment 85%) = 185,000_00
+    # equity = 100,000_00 (pure fund) + 120,000_00 (ULIP 60%) + 15,000_00 (endowment 15%) = 235,000_00
+    # debt   = 80,000_00 (ULIP 40%) + 85,000_00 (endowment 85%) = 165,000_00
     # cash   = 50,000_00
-    assert result.exposure_by_asset_class_paise[AssetClass.EQUITY] == 215_000_00
-    assert result.exposure_by_asset_class_paise[AssetClass.DEBT] == 185_000_00
+    assert result.exposure_by_asset_class_paise[AssetClass.EQUITY] == 235_000_00
+    assert result.exposure_by_asset_class_paise[AssetClass.DEBT] == 165_000_00
     assert result.exposure_by_asset_class_paise[AssetClass.CASH] == 50_000_00
     assert result.exposure_by_asset_class_paise[AssetClass.REAL_ASSETS] == 0
     assert result.exposure_by_asset_class_paise[AssetClass.ALTERNATIVES] == 0
 
     # the whole point: look-through equity is NOT the same as naively
-    # summing only holdings labeled "equity" -- it's 115,000_00 more,
+    # summing only holdings labeled "equity" -- it's 135,000_00 more,
     # hidden inside the ULIP and endowment wrappers
     label_only_equity = 100_000_00  # what you'd get ignoring ULIP/endowment entirely
     assert result.exposure_by_asset_class_paise[AssetClass.EQUITY] != label_only_equity
-    assert result.exposure_by_asset_class_paise[AssetClass.EQUITY] - label_only_equity == 115_000_00
+    assert result.exposure_by_asset_class_paise[AssetClass.EQUITY] - label_only_equity == 135_000_00
 
     # exposures still sum back to the total portfolio value
     assert sum(result.exposure_by_asset_class_paise.values()) == result.total_value_paise
@@ -169,9 +173,9 @@ def test_concentration_largest_holding_and_hhi_hand_checked():
     assert result.concentration.largest_holding_id == "ulip"
     assert result.concentration.largest_holding_pct == Decimal("44.44")
 
-    # asset-class weights: equity 215/450=47.78%, debt 185/450=41.11%,
+    # asset-class weights: equity 235/450=52.22%, debt 165/450=36.67%,
     # cash 50/450=11.11%, real_assets 0%, alternatives 0%
-    # HHI = 47.78^2 + 41.11^2 + 11.11^2 (+0+0) ~= 2283+1690+123 ~= 4096
+    # HHI = 52.22^2 + 36.67^2 + 11.11^2 (+0+0) ~= 2727+1344+123 ~= 4194
     assert 4000 <= result.concentration.asset_class_hhi_bps <= 4200
 
 

@@ -78,7 +78,7 @@ def test_allocation_trace_names_which_tier_and_which_rule(session):
 
     assert trace.gap_detected is False
     assert trace.reasoning["which_tier"] == 5
-    assert trace.reasoning["which_rule"] == "v2-hybrid"
+    assert trace.reasoning["which_rule"] == "v3-hybrid"
     assert "target_pct" in trace.reasoning
     assert trace.reasoning["per_holding_classification"]  # holdings present, not description text
     for h in trace.reasoning["per_holding_classification"]:

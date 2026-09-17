@@ -70,7 +70,7 @@ def test_allocation_trace_via_api_has_no_holding_descriptions(client):
     resp = client.get(f"/users/{USER}/transparency/allocation")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["reasoning"]["which_rule"] == "v2-hybrid"
+    assert body["reasoning"]["which_rule"] == "v3-hybrid"
     raw = resp.text
     assert "Equity fund" not in raw  # Module 4's hard constraint holds through the transparency view too
 

@@ -25,10 +25,9 @@ def test_tier_1_is_conservative_low_equity_high_cash_debt():
     result = compute_target_allocation(1)
     assert result.target_pct[AssetClass.EQUITY] <= Decimal("15")
     assert result.target_pct[AssetClass.CASH] + result.target_pct[AssetClass.DEBT] >= Decimal("70")
-    # tier 1's Layer 1 bounds pin alternatives to exactly [0, 0] -- no
-    # optimizer freedom there, so this stays a hard zero regardless of
-    # capital market assumptions.
-    assert result.target_pct[AssetClass.ALTERNATIVES] == Decimal("0")
+    # tier 1's Layer 1 bounds cap alternatives at 5% (not a hard zero) --
+    # the optimizer has room to use some, but never past this ceiling.
+    assert result.target_pct[AssetClass.ALTERNATIVES] <= Decimal("5")
 
 
 def test_tier_5_is_aggressive_high_equity_low_cash():
@@ -46,9 +45,9 @@ def test_equity_allocation_increases_monotonically_with_tier():
 def test_reasoning_trace_names_the_tier_and_rule_table_version():
     result = compute_target_allocation(3)
     assert result.final_tier == 3
-    assert result.rule_table_version == "v2-hybrid"
+    assert result.rule_table_version == "v3-hybrid"
     assert "tier 3" in result.reasoning
-    assert "v2-hybrid" in result.reasoning
+    assert "v3-hybrid" in result.reasoning
 
 
 def test_unknown_tier_raises_value_error():
