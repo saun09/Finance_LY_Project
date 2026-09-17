@@ -13,12 +13,18 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 CONSERVATIVE_ANSWERS = {
     "horizon": "lt_1y",
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 

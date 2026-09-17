@@ -21,6 +21,42 @@ function tierLabel(tier: number) {
   return `Tier ${tier} of 5`;
 }
 
+const TIER_LEGEND: { tier: number; name: string; description: string }[] = [
+  { tier: 1, name: 'Capital preservation', description: 'Mostly cash & debt. Minimal equity exposure.' },
+  { tier: 2, name: 'Cautious', description: 'Still cash/debt-heavy, with a small equity slice.' },
+  { tier: 3, name: 'Balanced', description: 'A moderate mix across cash, debt, and equity.' },
+  { tier: 4, name: 'Growth-oriented', description: 'Equity-tilted, with some real assets and alternatives.' },
+  { tier: 5, name: 'Aggressive', description: 'Highest equity exposure, minimal cash held back.' },
+];
+
+function TierLegend() {
+  const { colors } = useAppTheme();
+  return (
+    <Card>
+      <Text variant="label" tone="muted">
+        TIER LEGEND
+      </Text>
+      <View style={styles.legendList}>
+        {TIER_LEGEND.map((t) => (
+          <View key={t.tier} style={styles.legendRow}>
+            <View style={[styles.legendBadge, { backgroundColor: colors.petrolSoft }]}>
+              <Text variant="bodyMedium" tone="petrol">
+                {t.tier}
+              </Text>
+            </View>
+            <View style={styles.legendCopy}>
+              <Text variant="bodyMedium">{t.name}</Text>
+              <Text variant="caption" tone="muted">
+                {t.description}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    </Card>
+  );
+}
+
 export function RiskProfileScreen() {
   const navigation = useNavigation<Nav>();
   const { colors } = useAppTheme();
@@ -34,6 +70,8 @@ export function RiskProfileScreen() {
         </Text>
         <Text variant="display">Your risk tier</Text>
       </View>
+
+      <TierLegend />
 
       {isPending ? (
         <>
@@ -118,4 +156,8 @@ const styles = StyleSheet.create({
   unlockSection: { gap: SPACE.md },
   unlockValues: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACE.xs },
   footer: { gap: SPACE.sm, marginTop: SPACE.md },
+  legendList: { gap: SPACE.sm, marginTop: SPACE.sm },
+  legendRow: { flexDirection: 'row', gap: SPACE.sm, alignItems: 'flex-start' },
+  legendBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  legendCopy: { flex: 1 },
 });

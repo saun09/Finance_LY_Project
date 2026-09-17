@@ -5,9 +5,10 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
-import type { EmiOut } from '../../api/types';
+import type { EmiOut, EmiPurpose } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
+import { EmiPurposePicker, EMI_PURPOSE_LABEL } from '../../components/EmiPurposePicker';
 import { InlineError } from '../../components/InlineError';
 import { ListRow } from '../../components/ListRow';
 import { OnboardingProgress } from '../../components/OnboardingProgress';
@@ -30,6 +31,7 @@ export function DebtScreen() {
   const [amountInput, setAmountInput] = useState('');
   const [tenureInput, setTenureInput] = useState('');
   const [rateInput, setRateInput] = useState('');
+  const [purpose, setPurpose] = useState<EmiPurpose | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
@@ -46,6 +48,7 @@ export function DebtScreen() {
         amount_paise,
         remaining_tenure_months,
         annual_rate_bps,
+        purpose,
       });
     },
     onSuccess: (created) => {
@@ -54,6 +57,7 @@ export function DebtScreen() {
       setAmountInput('');
       setTenureInput('');
       setRateInput('');
+      setPurpose(null);
     },
     onError: (err) => {
       setFormError(
@@ -80,6 +84,11 @@ export function DebtScreen() {
         total={7}
         title="Any loans or EMIs?"
         subtitle="Home loans, car loans, personal loans, credit-card EMIs — skip this step if you have none."
+        info={{
+          title: 'Why we ask this',
+          description:
+            "Each loan's monthly payment and remaining tenure directly affects your EMI-to-income ratio — one of the checks that can cap how aggressive a plan you're eligible for, regardless of how much risk you say you're comfortable with.",
+        }}
       />
 
       {items.length > 0 ? (
@@ -88,7 +97,7 @@ export function DebtScreen() {
             <ListRow
               key={item.id}
               title={item.lender}
-              subtitle={`${item.remaining_tenure_months} months left · ${(item.annual_rate_bps / 100).toFixed(2)}% p.a.`}
+              subtitle={`${item.purpose ? `${EMI_PURPOSE_LABEL[item.purpose]} · ` : ''}${item.remaining_tenure_months} months left · ${(item.annual_rate_bps / 100).toFixed(2)}% p.a.`}
               trailing={`${formatPaise(item.amount_paise)}/mo`}
               onRemove={() => removeMutation.mutate(item.id)}
               removing={removingId === item.id}
@@ -124,6 +133,7 @@ export function DebtScreen() {
           placeholder="9.5"
           keyboardType="decimal-pad"
         />
+        <EmiPurposePicker value={purpose} onChange={setPurpose} />
         {formError ? <InlineError message={formError} /> : null}
         <Button label="Add loan" variant="secondary" loading={addMutation.isPending} onPress={() => {
           setFormError(null);

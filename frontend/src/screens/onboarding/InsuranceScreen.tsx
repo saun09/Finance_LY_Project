@@ -63,6 +63,11 @@ export function InsuranceScreen() {
         total={7}
         title="Life & health insurance"
         subtitle="Sum assured only, not premiums — this checks whether you're adequately covered, not what you pay."
+        info={{
+          title: 'Why we ask this',
+          description:
+            "We only ask for the sum assured, not the premium. If you have dependents, this checks whether your cover is enough relative to your income — inadequate cover can cap your risk capacity even if your investments are doing well.",
+        }}
       />
 
       {items.length > 0 ? (

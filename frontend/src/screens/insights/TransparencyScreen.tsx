@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { TRANSPARENCY_DECISION_TYPES } from '../../api/transparency';
+import { BackHeader } from '../../components/BackHeader';
 import { ErrorState } from '../../components/ErrorState';
 import { MenuList } from '../../components/MenuList';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -22,10 +23,8 @@ export function TransparencyScreen() {
   return (
     <ScreenContainer>
       <View>
-        <Text variant="caption" tone="muted">
-          Insights
-        </Text>
-        <Text variant="display">Transparency</Text>
+        <BackHeader label="Insights" />
+        <Text variant="display" style={styles.title}>Transparency</Text>
         <Text variant="body" tone="muted" style={styles.subtitle}>
           Every figure below is a rule-table lookup or a weighted sum — never a model call. This shows exactly
           which one produced each decision.
@@ -58,5 +57,6 @@ export function TransparencyScreen() {
 }
 
 const styles = StyleSheet.create({
+  title: { marginTop: SPACE.xs },
   subtitle: { marginTop: SPACE.xs },
 });

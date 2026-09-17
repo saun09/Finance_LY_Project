@@ -104,6 +104,9 @@ export const RADIUS = {
 } as const;
 
 export const TYPE = {
+  // Large brand lockup for one-off hero moments (splash) -- not used in
+  // regular screen headings, which top out at `display`.
+  hero: { fontFamily: FONT.display, fontSize: 46, lineHeight: 52 },
   display: { fontFamily: FONT.display, fontSize: 30, lineHeight: 36 },
   displayItalic: { fontFamily: FONT.displayItalic, fontSize: 30, lineHeight: 36 },
   h1: { fontFamily: FONT.display, fontSize: 24, lineHeight: 30 },

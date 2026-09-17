@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
+from app.models.onboarding import EmiPurpose, EmploymentType, IncomeStability, InsuranceType
 from app.models.user_monthly_snapshot import UserMonthlySnapshot
 from app.services.expense_source_decision import ExpenseSourceMode
 from app.services.financial_position import ExpenseFrequency
@@ -64,6 +64,18 @@ def test_add_emi_expense_holding_require_existing_profile(session):
         add_expense_item(session, user_id="nobody", category="rent", amount_paise=1000, frequency=ExpenseFrequency.MONTHLY, is_essential=True)
     with pytest.raises(ProfileNotFoundError):
         add_holding(session, user_id="nobody", description="Mutual fund", value_paise=1000)
+
+
+def test_emi_purpose_is_optional_but_settable(session):
+    _make_profile(session)
+    no_purpose = add_emi(session, user_id=USER, lender="X Bank", amount_paise=1000, remaining_tenure_months=12, annual_rate_bps=1000)
+    assert no_purpose.purpose is None
+
+    with_purpose = add_emi(
+        session, user_id=USER, lender="Y Bank", amount_paise=2000, remaining_tenure_months=24, annual_rate_bps=900,
+        purpose=EmiPurpose.VEHICLE,
+    )
+    assert with_purpose.purpose == EmiPurpose.VEHICLE
 
 
 def test_full_onboarding_end_to_end_and_hand_checked_metrics(session):

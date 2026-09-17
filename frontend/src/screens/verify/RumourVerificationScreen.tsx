@@ -15,28 +15,26 @@ import { useDemoUser } from '../../context/DemoUserContext';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { SPACE } from '../../theme/tokens';
 
-const STATUS_LABEL: Record<RumourStatus, string> = {
-  confirmed: 'Confirmed',
-  denied: 'Denied',
-  unaddressed: 'Unaddressed',
-  not_yet_due: 'Not yet due',
-};
-
-const STATUS_TONE: Record<RumourStatus, 'petrol' | 'warning' | 'muted'> = {
-  confirmed: 'petrol',
-  denied: 'petrol',
-  unaddressed: 'warning',
-  not_yet_due: 'muted',
-};
+/** The n8n workflow's verdict is an arbitrary string (observed: "denied",
+ * "UNVERIFIED", ...), not a closed enum this app defines -- so the label
+ * and tone are both derived from the raw string rather than looked up by
+ * exact value, and any unrecognized verdict still renders (as a neutral
+ * badge) instead of crashing. */
+function statusTone(status: string): 'petrol' | 'warning' | 'muted' {
+  const s = status.toLowerCase();
+  if (s.includes('confirm') || s.includes('deny') || s.includes('denied')) return 'petrol';
+  if (s.includes('unverif') || s.includes('unaddress') || s.includes('pending')) return 'warning';
+  return 'muted';
+}
 
 function StatusBadge({ status }: { status: RumourStatus }) {
   const { colors } = useAppTheme();
-  const tone = STATUS_TONE[status];
+  const tone = statusTone(status);
   const bg = tone === 'petrol' ? colors.petrolSoft : tone === 'warning' ? colors.warningSoft : colors.paperSunken;
   return (
     <View style={[styles.badge, { backgroundColor: bg }]}>
       <Text variant="label" tone={tone}>
-        {STATUS_LABEL[status].toUpperCase()}
+        {status.replace(/_/g, ' ').toUpperCase()}
       </Text>
     </View>
   );

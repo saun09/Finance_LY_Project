@@ -1,9 +1,10 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
 from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
+from app.services.allocation import compute_target_allocation
 from app.services.allocation_service import compute_and_log_allocation
 from app.services.asset_classification_config import AssetClass, HoldingType
 from app.services.onboarding import add_holding, upsert_profile
@@ -24,6 +25,9 @@ CONSERVATIVE_ANSWERS = {
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 
@@ -73,18 +77,22 @@ def test_no_risk_tier_raises(session):
 def test_no_edits_yet_gives_zero_offset_and_unchanged_display(session):
     _onboard_strong_capacity_conservative_stated(session)
 
+    tier1_equity = compute_target_allocation(1).target_pct[AssetClass.EQUITY]
+
     result = compute_and_log_personalization(session, USER)
 
     assert result.offset_pct_points == Decimal("0")
     assert result.edits_considered == 0
     assert result.final_tier == 1
     assert result.capacity_ceiling == 5
-    assert result.base_target_pct[AssetClass.EQUITY] == Decimal("10")
-    assert result.displayed_target_pct[AssetClass.EQUITY] == Decimal("10.00")
+    assert result.base_target_pct[AssetClass.EQUITY] == tier1_equity
+    assert result.displayed_target_pct[AssetClass.EQUITY] == tier1_equity.quantize(Decimal("0.01"))
 
 
 def test_recorded_funded_edit_moves_the_displayed_allocation(session):
     _onboard_strong_capacity_conservative_stated(session)
+
+    tier1_equity = compute_target_allocation(1).target_pct[AssetClass.EQUITY]
 
     allocation_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="allocation").one()
     record_allocation_outcome(
@@ -98,10 +106,13 @@ def test_recorded_funded_edit_moves_the_displayed_allocation(session):
 
     result = compute_and_log_personalization(session, USER)
 
-    # delta = 25 - 10 = 15, alpha=0.3, weight=1 -> offset = 0.3*15 = 4.5
-    assert result.offset_pct_points == Decimal("4.500")
+    # delta = 25 - tier1_equity, alpha=0.3, weight=1 -> offset = 0.3*delta
+    expected_offset = Decimal("0.3") * (Decimal("25") - tier1_equity)
+    assert result.offset_pct_points == expected_offset
     assert result.edits_considered == 1
-    assert result.displayed_target_pct[AssetClass.EQUITY] == Decimal("14.50")  # 10 + 4.5
+    assert result.displayed_target_pct[AssetClass.EQUITY] == (tier1_equity + expected_offset).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
     assert sum(result.displayed_target_pct.values()) == Decimal("100.00")
 
 

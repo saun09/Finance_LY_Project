@@ -29,6 +29,11 @@ export function SnapshotScreen() {
         total={7}
         title="You're set up"
         subtitle={`Your first monthly snapshot for ${monthLabel} has been recorded.`}
+        info={{
+          title: 'Why we ask this',
+          description:
+            'This is your first monthly snapshot — a permanent record of your financial position on this date, used later to measure real progress (like buffer growth or debt payoff) instead of relying on memory.',
+        }}
       />
 
       <View style={styles.grid}>

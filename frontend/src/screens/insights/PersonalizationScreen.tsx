@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ASSET_CLASSES } from '../../api/types';
+import { BackHeader } from '../../components/BackHeader';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -19,10 +20,8 @@ export function PersonalizationScreen() {
   return (
     <ScreenContainer>
       <View>
-        <Text variant="caption" tone="muted">
-          Insights
-        </Text>
-        <Text variant="display">Personalization</Text>
+        <BackHeader label="Insights" />
+        <Text variant="display" style={styles.title}>Personalization</Text>
       </View>
 
       {isPending ? (
@@ -101,6 +100,7 @@ export function PersonalizationScreen() {
 }
 
 const styles = StyleSheet.create({
+  title: { marginTop: SPACE.xs },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, paddingVertical: SPACE.xs },
   rowLabel: { flex: 1 },

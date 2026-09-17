@@ -13,6 +13,9 @@ CONSERVATIVE_ANSWERS = {
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 
@@ -49,13 +52,14 @@ def test_personalization_without_allocation_is_409(client):
 
 
 def test_full_personalization_flow_via_api(client):
-    _onboard(client)
+    allocation = _onboard(client)
+    tier1_equity = Decimal(allocation["target_pct"]["equity"])
 
     resp = client.get(f"/users/{USER}/personalization")
     assert resp.status_code == 200
     body = resp.json()
     assert body["offset_pct_points"] == "0"
-    assert body["displayed_target_pct"]["equity"] == "10.00"
+    assert Decimal(body["displayed_target_pct"]["equity"]) == tier1_equity
 
     events_resp = client.get(f"/users/{USER}/events?module_source=allocation")
     event_id = events_resp.json()[0]["event_id"]
@@ -72,8 +76,10 @@ def test_full_personalization_flow_via_api(client):
 
     resp2 = client.get(f"/users/{USER}/personalization")
     body2 = resp2.json()
-    assert Decimal(body2["offset_pct_points"]) == Decimal("4.5")
-    assert Decimal(body2["displayed_target_pct"]["equity"]) == Decimal("14.50")
+    # delta = 25 - tier1_equity, alpha=0.3, weight=1 -> offset = 0.3*delta
+    expected_offset = Decimal("0.3") * (Decimal("25") - tier1_equity)
+    assert Decimal(body2["offset_pct_points"]) == expected_offset
+    assert Decimal(body2["displayed_target_pct"]["equity"]) == tier1_equity + expected_offset
     assert body2["edits_considered"] == 1
     assert len(body2["trace"]) == 1
 

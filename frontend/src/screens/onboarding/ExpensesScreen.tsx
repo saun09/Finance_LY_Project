@@ -89,6 +89,11 @@ export function ExpensesScreen() {
         total={7}
         title="What do you spend monthly?"
         subtitle="Add each recurring expense one at a time — rent, groceries, subscriptions, EMIs are tracked separately."
+        info={{
+          title: 'Why we ask this',
+          description:
+            'Every recurring cost you add here, essential or not, is used to work out your true monthly surplus and how many months your cash buffer would actually cover. Loan EMIs are tracked separately in the next step, not here.',
+        }}
       />
 
       <Card style={{ backgroundColor: colors.petrolSoft, borderColor: colors.petrolSoft }}>

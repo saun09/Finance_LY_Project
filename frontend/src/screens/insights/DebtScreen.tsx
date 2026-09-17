@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { BackHeader } from '../../components/BackHeader';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -19,10 +20,8 @@ export function DebtScreen() {
   return (
     <ScreenContainer>
       <View>
-        <Text variant="caption" tone="muted">
-          Insights
-        </Text>
-        <Text variant="display">Debt payoff</Text>
+        <BackHeader label="Insights" />
+        <Text variant="display" style={styles.title}>Debt payoff</Text>
       </View>
 
       {isPending ? (
@@ -119,6 +118,7 @@ export function DebtScreen() {
 }
 
 const styles = StyleSheet.create({
+  title: { marginTop: SPACE.xs },
   compareRow: { flexDirection: 'row', gap: SPACE.lg, marginTop: SPACE.sm },
   compareCol: { flex: 1, gap: 2 },
   spaced: { marginTop: SPACE.sm },

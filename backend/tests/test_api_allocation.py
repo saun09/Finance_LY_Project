@@ -11,6 +11,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 

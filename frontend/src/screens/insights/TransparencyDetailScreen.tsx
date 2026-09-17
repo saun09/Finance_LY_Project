@@ -2,6 +2,7 @@ import { useRoute } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { BackHeader } from '../../components/BackHeader';
 import { Card } from '../../components/Card';
 import { ErrorState } from '../../components/ErrorState';
 import { ReasoningTree } from '../../components/ReasoningTree';
@@ -23,6 +24,7 @@ export function TransparencyDetailScreen() {
 
   return (
     <ScreenContainer>
+      <BackHeader label="Transparency" />
       {isPending ? (
         <>
           <Text variant="display">Transparency</Text>

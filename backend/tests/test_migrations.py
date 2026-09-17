@@ -32,6 +32,7 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "holding",
         "expense_item",
         "expense_source_decision",
+        "auth_user",
     } <= tables
 
     event_columns = {c["name"] for c in inspector.get_columns("suggestion_event")}
@@ -89,7 +90,11 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "annual_rate_bps",
         "created_at",
         "closed_at",
+        "purpose",
     }
+
+    auth_user_columns = {c["name"] for c in inspector.get_columns("auth_user")}
+    assert auth_user_columns == {"user_id", "username", "password_hash", "created_at"}
 
     decision_columns = {c["name"] for c in inspector.get_columns("expense_source_decision")}
     assert decision_columns == {"user_id", "onboarding_started_at", "decision", "decided_at"}
@@ -120,4 +125,5 @@ def test_alembic_downgrade_removes_tables(tmp_path):
     assert "user_monthly_snapshot" not in tables
     assert "user_profile" not in tables
     assert "expense_source_decision" not in tables
+    assert "auth_user" not in tables
     engine.dispose()

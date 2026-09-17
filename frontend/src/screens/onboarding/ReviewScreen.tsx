@@ -40,6 +40,11 @@ export function ReviewScreen() {
         total={7}
         title="Here's what we calculated"
         subtitle="Everything below comes straight from what you entered — nothing here is a guess."
+        info={{
+          title: 'Why we ask this',
+          description:
+            "This is a plain readout of the numbers you already entered — net worth, surplus, buffer months, EMI ratio. Nothing is estimated or rounded up to look better; if a number looks off, it traces back to something entered in an earlier step.",
+        }}
       />
 
       {isLoading ? (
