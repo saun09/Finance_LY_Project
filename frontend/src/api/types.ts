@@ -6,6 +6,23 @@
  * and must be parsed with Number(), never assumed to already be numbers.
  */
 
+// ---- auth ----
+
+export interface SignupIn {
+  username: string;
+  password: string;
+}
+
+export interface LoginIn {
+  username: string;
+  password: string;
+}
+
+export interface AuthUserOut {
+  user_id: string;
+  username: string;
+}
+
 // ---- shared enums (values must match the backend's str Enums exactly) ----
 
 export type IncomeStability = 'regular' | 'irregular';
@@ -22,7 +39,12 @@ export type ExpenseSourceMode = 'manual_only' | 'statement_parsing_enabled';
 export type AssetClass = 'cash' | 'debt' | 'equity' | 'real_assets' | 'alternatives';
 export type Liquidity = 'liquid' | 'semi_liquid' | 'locked_in';
 export type EditActionTaken = 'accepted' | 'edited' | 'rejected' | 'ignored';
-export type RumourStatus = 'confirmed' | 'denied' | 'unaddressed' | 'not_yet_due';
+/** Whatever verdict string the n8n workflow returns (e.g. "UNVERIFIED",
+ * "denied") -- not a fixed enum this app controls, so never assume a
+ * closed set of values here (see RumourVerificationScreen's StatusBadge,
+ * which derives its label/tone from the raw string rather than a lookup
+ * table keyed by exact value). */
+export type RumourStatus = string;
 
 export type HoldingType =
   | 'savings_account'
@@ -68,11 +90,14 @@ export interface ProfileOut extends ProfileIn {
   onboarding_completed_at: string | null;
 }
 
+export type EmiPurpose = 'home' | 'vehicle' | 'personal' | 'education' | 'credit_card' | 'electronics' | 'other';
+
 export interface EmiIn {
   lender: string;
   amount_paise: number;
   remaining_tenure_months: number;
   annual_rate_bps: number;
+  purpose: EmiPurpose | null;
 }
 
 export interface EmiOut extends EmiIn {

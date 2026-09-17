@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from app.services.allocation import compute_target_allocation
+from app.services.asset_classification_config import AssetClass
 from app.services.drift_detection_config import HYSTERESIS_CYCLES_TO_LOWER_TIER, HYSTERESIS_CYCLES_TO_RAISE_TIER
 from app.services.drift_detector import run_drift_detection
 from app.services.drift_personas import (
@@ -57,12 +59,15 @@ def test_no_deviation_anywhere_never_drifts():
 
 def test_capacity_alone_deviating_never_drifts_without_behavioral_agreement():
     # capacity says tier 5 every month; behavior stays exactly at the
-    # tier-3 suggestion. Only one family ever deviates -- must never drift.
+    # tier-3 suggestion (its actual computed equity target, not a
+    # hardcoded guess, so the behavioral family reads zero deviation).
+    # Only one family ever deviates -- must never drift.
+    tier3_equity = compute_target_allocation(3).target_pct[AssetClass.EQUITY]
     persona = _persona("capacity_only", 3)
     trace = PersonaTrace(
         persona,
         snapshots=_flat_snapshots(10, TIER5_BUFFER, TIER5_EMI),
-        allocation_edits=_flat_edits(10, Decimal("35"), Decimal("35")),
+        allocation_edits=_flat_edits(10, tier3_equity, tier3_equity),
         drawdown_month_index=None,
     )
     result = run_drift_detection(trace)

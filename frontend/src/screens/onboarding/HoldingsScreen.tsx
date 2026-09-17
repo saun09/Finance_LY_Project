@@ -56,6 +56,11 @@ export function HoldingsScreen() {
         total={7}
         title="What do you hold?"
         subtitle="Savings, investments, retirement accounts, gold, property — anything with value."
+        info={{
+          title: 'Why we ask this',
+          description:
+            'Each holding you add is classified behind the scenes into cash, debt, equity, real assets, or alternatives — including look-through for hybrid funds and insurance-linked products — so your actual exposure is accurate, not just what the wrapper is labeled.',
+        }}
       />
 
       {items.length > 0 ? (

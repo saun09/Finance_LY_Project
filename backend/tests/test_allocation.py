@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 
 from app.services.allocation import compute_target_allocation
+from app.services.allocation_config import RISK_LADDER_BOUNDS_V1
 from app.services.asset_classification_config import AssetClass
 
 
@@ -12,17 +13,28 @@ def test_every_tier_sums_to_100_percent(tier):
     assert sum(result.target_pct.values()) == Decimal("100")
 
 
+@pytest.mark.parametrize("tier", [1, 2, 3, 4, 5])
+def test_every_tier_respects_its_layer_1_bounds(tier):
+    result = compute_target_allocation(tier)
+    for asset_class, pct in result.target_pct.items():
+        lo, hi = RISK_LADDER_BOUNDS_V1[tier][asset_class]
+        assert Decimal(str(lo)) <= pct <= Decimal(str(hi)), f"tier {tier} {asset_class}: {pct} outside [{lo}, {hi}]"
+
+
 def test_tier_1_is_conservative_low_equity_high_cash_debt():
     result = compute_target_allocation(1)
-    assert result.target_pct[AssetClass.EQUITY] == Decimal("10")
-    assert result.target_pct[AssetClass.CASH] + result.target_pct[AssetClass.DEBT] == Decimal("90")
+    assert result.target_pct[AssetClass.EQUITY] <= Decimal("15")
+    assert result.target_pct[AssetClass.CASH] + result.target_pct[AssetClass.DEBT] >= Decimal("70")
+    # tier 1's Layer 1 bounds pin alternatives to exactly [0, 0] -- no
+    # optimizer freedom there, so this stays a hard zero regardless of
+    # capital market assumptions.
     assert result.target_pct[AssetClass.ALTERNATIVES] == Decimal("0")
 
 
 def test_tier_5_is_aggressive_high_equity_low_cash():
     result = compute_target_allocation(5)
-    assert result.target_pct[AssetClass.EQUITY] == Decimal("65")
-    assert result.target_pct[AssetClass.CASH] == Decimal("5")
+    assert result.target_pct[AssetClass.EQUITY] >= Decimal("55")
+    assert result.target_pct[AssetClass.CASH] <= Decimal("8")
 
 
 def test_equity_allocation_increases_monotonically_with_tier():
@@ -34,9 +46,9 @@ def test_equity_allocation_increases_monotonically_with_tier():
 def test_reasoning_trace_names_the_tier_and_rule_table_version():
     result = compute_target_allocation(3)
     assert result.final_tier == 3
-    assert result.rule_table_version == "v1"
+    assert result.rule_table_version == "v2-hybrid"
     assert "tier 3" in result.reasoning
-    assert "v1" in result.reasoning
+    assert "v2-hybrid" in result.reasoning
 
 
 def test_unknown_tier_raises_value_error():

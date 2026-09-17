@@ -81,6 +81,11 @@ export function ProfileScreen() {
         total={7}
         title="Tell us about your income"
         subtitle="This sets the baseline everything else is measured against."
+        info={{
+          title: 'Why we ask this',
+          description:
+            'Your income, employment type, dependents, and cash balance set the baseline every later calculation — buffer months, EMI capacity, risk tier — is measured against. Nothing here is shared or sold; it only feeds your own plan.',
+        }}
       />
 
       <TextField

@@ -11,6 +11,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -85,10 +88,13 @@ def test_questionnaire_endpoint_is_not_user_scoped_and_omits_points(client):
     assert resp.status_code == 200
     body = resp.json()
 
-    assert body["version"] == "v1"
-    assert len(body["questions"]) == 4
+    assert body["version"] == "v2"
+    assert len(body["questions"]) == 7
     ids = {q["id"] for q in body["questions"]}
-    assert ids == {"horizon", "drawdown_reaction", "experience", "goal"}
+    assert ids == {
+        "horizon", "drawdown_reaction", "experience", "goal",
+        "windfall_allocation", "sure_gain_tradeoff", "friend_description",
+    }
 
     horizon = next(q for q in body["questions"] if q["id"] == "horizon")
     assert horizon["weight"] == 3
@@ -97,3 +103,7 @@ def test_questionnaire_endpoint_is_not_user_scoped_and_omits_points(client):
     # deliberately no "points" field anywhere -- the frontend must never
     # be able to reconstruct/duplicate the scoring formula
     assert "points" not in horizon["options"][0]
+
+    sure_gain = next(q for q in body["questions"] if q["id"] == "sure_gain_tradeoff")
+    assert sure_gain["weight"] == 4
+    assert len(sure_gain["options"]) == 5

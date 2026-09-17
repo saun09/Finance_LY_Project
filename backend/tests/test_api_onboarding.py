@@ -31,9 +31,13 @@ def test_full_onboarding_flow_via_api(client):
 
     emi_resp = client.post(
         f"/users/{USER}/emis",
-        json={"lender": "HDFC Home Loan", "amount_paise": 25_000_00, "remaining_tenure_months": 240, "annual_rate_bps": 850},
+        json={
+            "lender": "HDFC Home Loan", "amount_paise": 25_000_00, "remaining_tenure_months": 240,
+            "annual_rate_bps": 850, "purpose": "home",
+        },
     )
     assert emi_resp.status_code == 200
+    assert emi_resp.json()["purpose"] == "home"
 
     holding_resp = client.post(f"/users/{USER}/holdings", json={"description": "Mutual funds", "value_paise": 150_000_00})
     assert holding_resp.status_code == 200

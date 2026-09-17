@@ -4,20 +4,18 @@ import { onboardingApi } from '../api/onboarding';
 import { useDemoUser } from './DemoUserContext';
 
 /**
- * There's no session/auth to ask "who is this and are they onboarded" --
- * rather than inventing a fake auth flow, this is a local, per-demo-user-id
- * flag: set once POST /complete-onboarding actually succeeds against the
- * real backend, so it always reflects a real completed call, never a
- * guess. Switching the demo user id (Settings) naturally re-triggers
- * onboarding for a different/fresh id -- UNLESS that id already has a
- * completed profile server-side (e.g. a teammate testing against the same
- * backend, or the same phone after a reinstall wiped local storage): in
- * that case GET /profile's own onboarding_completed_at is checked as a
- * fallback and the local flag self-heals from it, so the backend stays
- * the actual source of truth rather than the local flag silently
- * diverging from it. An explicit "restart onboarding" from Settings
- * (resetOnboarding) still always wins -- it sets local state directly and
- * never re-triggers this fallback check.
+ * This is a local, per-account (per-user_id) flag: set once
+ * POST /complete-onboarding actually succeeds against the real backend, so
+ * it always reflects a real completed call, never a guess. Logging in as a
+ * different account naturally re-triggers onboarding for that account --
+ * UNLESS it already has a completed profile server-side (e.g. a teammate
+ * testing against the same backend, or the same phone after a reinstall
+ * wiped local storage): in that case GET /profile's own
+ * onboarding_completed_at is checked as a fallback and the local flag
+ * self-heals from it, so the backend stays the actual source of truth
+ * rather than the local flag silently diverging from it. An explicit
+ * "restart onboarding" from Settings (resetOnboarding) still always wins --
+ * it sets local state directly and never re-triggers this fallback check.
  *
  * This lives in context, not a plain hook, because RootNavigator (which
  * decides Onboarding vs Main) and the screen that calls markCompleted()
@@ -43,7 +41,8 @@ export function OnboardingStatusProvider({ children }: { children: React.ReactNo
   const [completed, setCompleted] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!userReady) return;
+    // userId is '' until a real login/signup succeeds -- nothing to check yet.
+    if (!userReady || !userId) return;
     let cancelled = false;
     setCompleted(null);
 

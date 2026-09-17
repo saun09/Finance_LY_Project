@@ -101,10 +101,12 @@ app/
                                  logs the suggestion_event
     asset_classification_config.py  Module 4: versioned HoldingType taxonomy +
                                      look-through decomposition assumptions
-    allocation_config.py            Module 4: versioned target allocation by tier
+    allocation_config.py            Module 4: versioned Layer 1 risk-ladder bounds +
+                                     Layer 2 capital market assumptions by tier
     asset_classification.py         Module 4: pure classify_holding +
                                      aggregate_classifications (no I/O)
-    allocation.py                   Module 4: pure compute_target_allocation (no I/O)
+    allocation.py                   Module 4: pure compute_target_allocation --
+                                     Layer 1 bounds + Layer 2 Sharpe optimizer (no I/O)
     allocation_service.py           Module 4: gathers Module 2 holdings + Module 3's
                                      tier, calls the pure functions, logs the
                                      suggestion_event
@@ -535,16 +537,34 @@ just checking the final number in isolation.
 `tests/test_allocation_service.py` repeats the same numbers through the
 real Module 2 holdings + Module 4 service path.
 
-### Target allocation (`app/services/allocation.py` + `allocation_config.py`, version `v1`)
+### Target allocation (`app/services/allocation.py` + `allocation_config.py`, version `v2-hybrid`)
 
-A simple, auditable lookup from Module 3's final tier (1-5) to a
-percentage split across the five classes — equity rises from 10% at tier 1
-to 65% at tier 5, cash falls from 40% to 5%, alternatives stay at or near
-0% until tier 3+ given their illiquidity. The "reasoning trace" the brief
-asks for is exactly what this lookup is: `TargetAllocationResult` carries
-`final_tier`, `rule_table_version`, and a `reasoning` string naming both —
-there's no hidden formula to explain because there isn't one, just an
-explicit table.
+A two-layer hybrid from Module 3's final tier (1-5) to a percentage split
+across the five classes, replacing the original static per-tier lookup
+table:
+
+- **Layer 1 (deterministic, auditable)**: `RISK_LADDER_BOUNDS_V1` maps the
+  tier to a `[min, max]` weight range per asset class — equity's range
+  rises from tier 1 to tier 5, cash's falls, and alternatives are pinned
+  to exactly `[0%, 0%]` at tier 1. Debt/emergency-fund safety enforcement
+  already happened upstream, in Module 3's capacity-ceiling capping of
+  `final_tier` itself, so this layer does not re-derive a separate safety
+  override from raw profile fields.
+- **Layer 2 (mean-variance)**: within Layer 1's bounds, an SLSQP optimizer
+  (`scipy.optimize.minimize`) picks the Sharpe-ratio-maximizing point
+  against `CAPITAL_MARKET_ASSUMPTIONS_V1` — a small, explicitly
+  illustrative set of long-run annualized return/volatility/correlation
+  assumptions per asset class (not a market forecast, not fund-specific,
+  not updated live; a revision is a new config version, not a silent
+  edit). If the optimizer fails to converge, Layer 2 falls back to the
+  midpoint of Layer 1's bounds, renormalized to sum to 100 — Layer 1's
+  bounds are authoritative either way.
+
+The "reasoning trace" the brief asks for is still exactly what
+`TargetAllocationResult` carries: `final_tier`, `rule_table_version`, and a
+`reasoning` string naming the tier, the Layer 1 bounds used, and whether
+Layer 2 converged or fell back — auditable in two explicit steps rather
+than one flat table, but still no hidden formula.
 
 ### Logging
 

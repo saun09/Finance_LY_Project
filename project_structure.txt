@@ -2,6 +2,13 @@
 PROJECT STRUCTURE
 ================================================================================
 
+├── .pytest_cache
+│   ├── v
+│   │   └── cache
+│   │       └── nodeids
+│   ├── .gitignore
+│   ├── CACHEDIR.TAG
+│   └── README.md
 ├── backend
 │   ├── .pytest_cache
 │   │   ├── v
@@ -15,6 +22,7 @@ PROJECT STRUCTURE
 │   │   ├── api
 │   │   │   ├── __init__.py
 │   │   │   ├── routes_allocation.py
+│   │   │   ├── routes_auth.py
 │   │   │   ├── routes_debt_leak.py
 │   │   │   ├── routes_events.py
 │   │   │   ├── routes_gamification.py
@@ -25,12 +33,14 @@ PROJECT STRUCTURE
 │   │   │   └── routes_transparency.py
 │   │   ├── models
 │   │   │   ├── __init__.py
+│   │   │   ├── auth.py
 │   │   │   ├── onboarding.py
 │   │   │   ├── suggestion_event.py
 │   │   │   └── user_monthly_snapshot.py
 │   │   ├── schemas
 │   │   │   ├── __init__.py
 │   │   │   ├── allocation.py
+│   │   │   ├── auth.py
 │   │   │   ├── debt_leak.py
 │   │   │   ├── gamification.py
 │   │   │   ├── onboarding.py
@@ -47,6 +57,7 @@ PROJECT STRUCTURE
 │   │   │   ├── allocation_service.py
 │   │   │   ├── asset_classification.py
 │   │   │   ├── asset_classification_config.py
+│   │   │   ├── auth_service.py
 │   │   │   ├── debt_amortization.py
 │   │   │   ├── debt_engine.py
 │   │   │   ├── debt_leak_config.py
@@ -70,29 +81,36 @@ PROJECT STRUCTURE
 │   │   │   ├── risk_profile_service.py
 │   │   │   ├── rumour_verification_bridge.py
 │   │   │   └── transparency.py
+│   │   ├── .env
 │   │   ├── __init__.py
 │   │   ├── config.py
 │   │   ├── db.py
-│   │   └── main.py
+│   │   ├── main.py
+│   │   ├── test_env.py
+│   │   └── test_n8n.py
 │   ├── migrations
 │   │   ├── versions
 │   │   │   ├── 0001_create_suggestion_event.py
 │   │   │   ├── 0002_create_user_monthly_snapshot.py
 │   │   │   ├── 0003_create_onboarding_tables.py
 │   │   │   ├── 0004_add_holding_type.py
-│   │   │   └── 0005_add_close_remove_flags.py
+│   │   │   ├── 0005_add_close_remove_flags.py
+│   │   │   ├── 0006_create_auth_user.py
+│   │   │   └── 0007_add_emi_purpose.py
 │   │   ├── env.py
 │   │   └── script.py.mako
 │   ├── scripts
 │   │   ├── __init__.py
 │   │   ├── demo_log_stub.py
-│   │   └── personalization_demo.py
+│   │   ├── personalization_demo.py
+│   │   └── seed_dummy_user.py
 │   ├── tests
 │   │   ├── __init__.py
 │   │   ├── conftest.py
 │   │   ├── test_allocation.py
 │   │   ├── test_allocation_service.py
 │   │   ├── test_api_allocation.py
+│   │   ├── test_api_auth.py
 │   │   ├── test_api_debt_leak.py
 │   │   ├── test_api_events.py
 │   │   ├── test_api_gamification.py
@@ -102,6 +120,7 @@ PROJECT STRUCTURE
 │   │   ├── test_api_rumour_verification.py
 │   │   ├── test_api_transparency.py
 │   │   ├── test_asset_classification.py
+│   │   ├── test_auth_service.py
 │   │   ├── test_debt_amortization.py
 │   │   ├── test_debt_engine.py
 │   │   ├── test_debt_leak_service.py
@@ -146,6 +165,13 @@ PROJECT STRUCTURE
 │   │   │                       └── favicon-48.png
 │   │   ├── devices.json
 │   │   └── README.md
+│   ├── .pytest_cache
+│   │   ├── v
+│   │   │   └── cache
+│   │   │       └── nodeids
+│   │   ├── .gitignore
+│   │   ├── CACHEDIR.TAG
+│   │   └── README.md
 │   ├── assets
 │   │   ├── android-icon-background.png
 │   │   ├── android-icon-foreground.png
@@ -158,6 +184,7 @@ PROJECT STRUCTURE
 │   │   │   ├── __tests__
 │   │   │   │   └── client.test.ts
 │   │   │   ├── allocation.ts
+│   │   │   ├── auth.ts
 │   │   │   ├── client.ts
 │   │   │   ├── debtLeak.ts
 │   │   │   ├── events.ts
@@ -175,13 +202,16 @@ PROJECT STRUCTURE
 │   │   │   │   ├── EmptyState.test.tsx
 │   │   │   │   ├── ErrorState.test.tsx
 │   │   │   │   └── MetricCard.test.tsx
+│   │   │   ├── BackHeader.tsx
 │   │   │   ├── Button.tsx
 │   │   │   ├── Card.tsx
 │   │   │   ├── ChoiceGroup.tsx
 │   │   │   ├── DonutChart.tsx
+│   │   │   ├── EmiPurposePicker.tsx
 │   │   │   ├── EmptyState.tsx
 │   │   │   ├── ErrorState.tsx
 │   │   │   ├── HoldingTypePicker.tsx
+│   │   │   ├── InfoTooltip.tsx
 │   │   │   ├── InlineError.tsx
 │   │   │   ├── LineChart.tsx
 │   │   │   ├── ListRow.tsx
@@ -192,6 +222,7 @@ PROJECT STRUCTURE
 │   │   │   ├── ScreenContainer.tsx
 │   │   │   ├── SectionHeader.tsx
 │   │   │   ├── Skeleton.tsx
+│   │   │   ├── SplashScreen.tsx
 │   │   │   ├── Text.tsx
 │   │   │   ├── TextField.tsx
 │   │   │   └── Toggle.tsx
@@ -210,6 +241,7 @@ PROJECT STRUCTURE
 │   │   │   ├── useSnapshotHistory.ts
 │   │   │   └── useTransparency.ts
 │   │   ├── navigation
+│   │   │   ├── AuthStack.tsx
 │   │   │   ├── HomeStack.tsx
 │   │   │   ├── InsightsStack.tsx
 │   │   │   ├── MainTabs.tsx
@@ -221,6 +253,9 @@ PROJECT STRUCTURE
 │   │   │   ├── types.ts
 │   │   │   └── VerifyStack.tsx
 │   │   ├── screens
+│   │   │   ├── auth
+│   │   │   │   ├── LoginScreen.tsx
+│   │   │   │   └── SignupScreen.tsx
 │   │   │   ├── home
 │   │   │   │   └── HomeScreen.tsx
 │   │   │   ├── insights
@@ -295,13 +330,6 @@ PROJECT STRUCTURE
 │       │   ├── evaluate.py
 │       │   └── results.md
 │       ├── src
-│       │   ├── tests
-│       │   │   ├── __init__.py
-│       │   │   ├── test_evaluate.py
-│       │   │   ├── test_labels.py
-│       │   │   ├── test_retrieval.py
-│       │   │   ├── test_transparency.py
-│       │   │   └── test_verification.py
 │       │   ├── __init__.py
 │       │   ├── corpus.py
 │       │   ├── labels.py
@@ -309,13 +337,23 @@ PROJECT STRUCTURE
 │       │   ├── retrieval_constrained.py
 │       │   ├── transparency.py
 │       │   └── verification.py
+│       ├── tests
+│       │   ├── __init__.py
+│       │   ├── test_evaluate.py
+│       │   ├── test_labels.py
+│       │   ├── test_retrieval.py
+│       │   ├── test_transparency.py
+│       │   └── test_verification.py
 │       ├── demo.py
 │       ├── pytest.ini
 │       ├── README.md
 │       └── requirements.txt
 ├── .gitignore
 ├── project_structure.txt
+├── questions i have.md
 ├── README.md
+├── risk_questionnaire_content_validation_survey.md
+├── risk_questionnaire_item_table.md
 └── structure.py
 
 
@@ -324,53 +362,885 @@ FILE CONTENTS
 ================================================================================
 
 ================================================================================FILE: README.md================================================================================
-# Personal Finance Planning App (India) — Final Year Project
+# Personal Finance Planning App for India
 
-A modular personal finance planning system for Indian users. See each module's
-own README for details. Product philosophy and hard constraints (no named
-product/fund/stock recommendations, ability-before-willingness risk capping,
-certain-returns-first suggestions, INR-in-paise money math, mandatory event
-logging) apply across every module and are enforced at the code level, not
-just in docs.
+## Final Year Project Evaluation and PPT Guide
 
-## Modules
+This project is a modular personal-finance planning application designed for
+Indian users. It helps a person understand their financial position, build
+financial safety, choose an appropriate risk level, create a category-level
+allocation plan, identify debt and spending leaks, understand why a
+recommendation was produced, verify market rumours against official filings,
+and learn financial basics through a short educational roadmap.
 
-| Module | Status | Path |
+The central idea is **ability before willingness**:
+
+> A user may be comfortable with high risk, but the application never allows
+> a recommendation to exceed what the user's current financial capacity can
+> support.
+
+This is a planning and education system, not a platform for named stock,
+fund, or scheme recommendations. It does not promise returns or present past
+market performance as proof of skill.
+
+---
+
+## 1. PPT At A Glance
+
+| Slide | Title | Main message |
+|---:|---|---|
+| 1 | Project title | Personal finance planning for Indian users |
+| 2 | Problem statement | Generic advice ignores cash flow, debt, liquidity, and capacity |
+| 3 | Motivation | Responsible investing begins with financial hygiene and safety |
+| 4 | Objectives | Measure, protect, plan, explain, educate, and improve |
+| 5 | Target users | Different economic classes need different priorities |
+| 6 | Proposed solution | A modular journey from onboarding to financial planning |
+| 7 | System architecture | Expo frontend, FastAPI backend, database, event log, research component |
+| 8 | Technology stack | Python, FastAPI, SQLAlchemy, PostgreSQL/SQLite, React Native, TypeScript |
+| 9 | Core data model | Profiles, snapshots, financial records, and suggestion events |
+| 10 | Module 1 | Event logging and auditability |
+| 11 | Module 2 | Onboarding and financial position |
+| 12 | Module 3 | Risk profile and capacity cap |
+| 13 | Module 4 | Asset classification and allocation |
+| 14 | Module 5 | Rumour verification against official filings |
+| 15 | Module 6 | Debt and leak engine |
+| 16 | Module 7 | Behaviour-based personalization |
+| 17 | Module 8 | Simulated drift detection |
+| 18 | Module 9 | Transparent reasoning |
+| 19 | Module 10 | Financial behaviour and financial literacy |
+| 20 | User journey demo | Show one user through the complete flow |
+| 21 | Testing and validation | Unit, service, API, migration, and research evaluation |
+| 22 | Limitations and ethics | State boundaries around advice, data, and automation |
+| 23 | Future scope | Data ingestion, authentication, deployment, and larger datasets |
+| 24 | Conclusion | Safer and more understandable financial planning |
+
+### Suggested evaluation opening
+
+"The problem is not simply that people do not know where to invest. The
+problem is that investment advice is often given before understanding income,
+expenses, debt, emergency savings, dependents, insurance, and time horizon.
+This project creates a structured financial journey that places safety and
+capacity before investment risk, while explaining every important decision."
+
+---
+
+## 2. Problem Statement
+
+Many personal-finance applications focus heavily on investment products or
+market returns. This creates several problems:
+
+1. A user may be encouraged to invest before creating an emergency fund.
+2. The same advice may be shown to a salaried employee, freelancer, and
+   debt-burdened household even though their capacity is different.
+3. A risk questionnaire measures what a user wants, but not necessarily what
+   the user can financially withstand.
+4. High-interest debt and recurring spending leaks may matter more than a new
+   investment.
+5. Users may not understand why an allocation or risk tier was produced.
+6. Market rumours can influence decisions without official support.
+7. Financial education is often disconnected from the user's actual journey.
+
+### Problem definition
+
+There is a need for an explainable, behaviour-aware, India-focused financial
+planning system that begins with financial position, separates willingness
+from ability, prioritizes certain improvements before uncertain returns,
+supports different economic conditions, avoids product promotion, stores
+decisions for auditability, teaches progressively, and distinguishes verified
+information from rumours.
+
+---
+
+## 3. Project Objectives
+
+### Primary objectives
+
+- Capture income, stability, expenses, debt, insurance, cash, and holdings.
+- Calculate surplus, debt burden, emergency-fund coverage, and net worth.
+- Compute stated risk from a questionnaire and capacity from financial data.
+- Produce `final_tier = min(stated_tier, capacity_ceiling)`.
+- Map holdings to broad asset classes and create category-level allocation.
+- Compare debt repayment options and identify recurring spending leaks.
+- Personalize only from the user's recorded responses to suggestions.
+- Show transparent reasoning from stored inputs and rules.
+- Verify explicitly supplied rumours against official exchange filings.
+- Reward healthy financial effort and learning, never market returns.
+
+### Non-objectives
+
+- No named stock, mutual fund, ETF, or scheme recommendation.
+- No guarantee of returns.
+- No portfolio-return leaderboard or social comparison.
+- No streak for merely opening the application.
+- No automated social-media rumour scraping.
+- No personalized tax or investment advice without adequate information.
+- No claim that simulated drift detection is ready for live users.
+
+---
+
+## 4. How The Project Helps Different Economic Classes
+
+The system is designed around financial conditions rather than wealth ranking.
+It does not compare users. The priority sequence changes according to each
+user's own data.
+
+| User group | Common need | How this project helps |
 |---|---|---|
-| 1 — Data Model & Event Logging | Done | [backend/](backend/) |
-| 2 — Onboarding & Financial Position | Done | [backend/](backend/) |
-| 3 — Risk Profiling | Done | [backend/](backend/) |
-| 4 — Asset Class Mapping & Allocation | Done | [backend/](backend/) |
-| 5 — Rumour Verification (research component) | Done | [modules/rumour_verification/](modules/rumour_verification/) |
-| 6 — Debt and Leak Engine | Done | [backend/](backend/) |
-| 7 — Fast Feedback Loop | Done | [backend/](backend/) |
-| 8 — Drift Detection (Simulated) | Done | [backend/](backend/) |
-| 9 — Transparency Layer | Done | [backend/](backend/) + [modules/rumour_verification/](modules/rumour_verification/) |
-| 10 — Gamification | Done | [backend/](backend/) |
+| Low-income or financially constrained users | Limited surplus and low emergency savings | Focuses on cash-flow visibility, essential expenses, initial buffer building, debt awareness, and avoiding unsuitable risk |
+| Lower-middle-income households | Small regular surplus, dependents, limited protection | Measures dependents, insurance, buffer coverage, recurring expenses, and manageable contributions |
+| Middle-income salaried users | Multiple goals, savings choices, recurring commitments | Compares liquidity needs, savings accounts, FDs/RDs, debt repayment, and category-level allocation |
+| Irregular-income users | Volatile monthly cash flow | Applies stricter capacity assessment when income is irregular |
+| Self-employed, business-owner, or freelance users | Variable income and higher uncertainty | Separates income stability from stated risk preference and emphasizes liquidity |
+| Debt-burdened users | EMI pressure and high interest costs | Provides avalanche/snowball comparison, prepay-versus-invest framing, rate calculations, and refinance break-even |
+| First-time investors | Low confidence and limited literacy | Provides progressive lessons, quizzes, risk explanations, and category-level allocation |
+| Existing investors | Diversification and allocation discipline | Classifies holdings, identifies exposure, applies capacity constraints, and discourages daily reactions |
 
-All planned modules are now built. Module 6's leak half runs at reduced
-scope (manual-entry expenses only, no statement parser), and Module 8 is
-validated only against simulated personas, never real users — see
-backend/README.md for both. Module 9's transparency views are labeled
-"transparent reasoning" throughout the backend (weighted sums and rule
-tables, not AI) except for Module 5's rumour-verification trace, where a
-genuine multi-step "explanation" is warranted — see both READMEs. Module
-10's milestones reward financial-behaviour effort only, never market
-outcomes or app engagement, enforced by an import-time guard, not just
-policy.
+### Inclusion principle
 
-## Stack
+Success is not defined as having a large portfolio. Success may mean building a
+one-month buffer, reducing expensive debt, cancelling a recurring charge,
+improving insurance coverage, maintaining a positive surplus, or learning an
+important concept.
 
-- Backend: Python + FastAPI, SQLAlchemy, Alembic
-- Database: PostgreSQL in production; tests run against SQLite so the suite
-  needs no local Postgres server (see [backend/README.md](backend/README.md))
-- Module 5 retrieval: scikit-learn TF-IDF, run as an isolated service/library
-  so it can be tuned independently of the rest of the app
+---
 
-## Money handling
+## 5. User Journey
 
-All monetary fields are integers in paise (1 INR = 100 paise). Never store
-or compute money as float. Formatting to `₹` happens only at display time.
+```mermaid
+flowchart LR
+    A[Welcome and profile] --> B[Income, expenses, debt, insurance, holdings]
+    B --> C[Financial position snapshot]
+    C --> D[Risk questionnaire]
+    D --> E[Capacity ceiling]
+    E --> F[Final risk tier]
+    F --> G[Category-level allocation]
+    B --> H[Debt and leak analysis]
+    G --> I[User response and personalization]
+    C --> J[Transparent reasoning]
+    J --> K[Monthly review]
+    B --> L[Financial literacy roadmap]
+    L --> M[Quizzes, badges, learning streak]
+    N[User-supplied rumour] --> O[Official filing verification]
+```
+
+### Typical demo flow
+
+1. Create or select a demo user.
+2. Enter income stability, cash, dependents, expenses, EMIs, insurance, and
+   holdings.
+3. Display the calculated financial position and monthly snapshot.
+4. Answer the risk questionnaire aggressively.
+5. Show that the final tier is capped by financial capacity.
+6. Open allocation and show category-level percentages.
+7. Open debt/leaks and show debt comparison and recurring-charge findings.
+8. Open transparency and show the rule inputs behind a decision.
+9. Complete a literacy lesson and answer its quiz.
+10. Paste a sample rumour and show its constrained official-filing match.
+
+---
+
+## 6. System Architecture
+
+```mermaid
+flowchart TB
+    UI[Expo React Native + TypeScript frontend]
+    API[FastAPI REST API]
+    SERVICES[Pure deterministic domain services]
+    EVENT[Suggestion event log]
+    SNAPSHOT[Monthly financial snapshots]
+    DB[(PostgreSQL production / SQLite tests)]
+    RESEARCH[Rumour verification research component]
+    UI --> API
+    API --> SERVICES
+    SERVICES --> EVENT
+    SERVICES --> SNAPSHOT
+    EVENT --> DB
+    SNAPSHOT --> DB
+    API --> RESEARCH
+    RESEARCH --> API
+```
+
+### Architectural principles
+
+- **Pure logic separated from I/O:** calculations are pure Python functions
+  wherever possible, making them easy to test.
+- **Service layer orchestration:** services read data, call pure functions,
+  and write auditable results.
+- **Versioned configuration:** questionnaire choices, capacity rules,
+  allocation assumptions, leak keywords, and gamification definitions are
+  explicit data.
+- **Event-log replay:** suggestions and responses are stored in one structure,
+  supporting transparency and personalization.
+- **Portable persistence:** SQLAlchemy and Alembic support PostgreSQL and
+  SQLite.
+- **No cross-user ranking:** services operate on one `user_id` at a time.
+
+---
+
+## 7. Technology Stack
+
+### Backend
+
+- Python 3
+- FastAPI for REST endpoints
+- Pydantic for validation
+- SQLAlchemy ORM
+- Alembic migrations
+- PostgreSQL in production
+- SQLite in automated tests
+- pytest for testing
+
+### Frontend
+
+- React Native with Expo
+- TypeScript
+- React Navigation
+- TanStack Query for server state and cache invalidation
+- Axios for HTTP communication
+- Shared React Native components and theme tokens
+- Fraunces and IBM Plex fonts
+
+### Research component
+
+- Python library/CLI under `modules/rumour_verification`
+- scikit-learn TF-IDF with unigram and bigram features
+- Cosine-similarity retrieval baseline
+- Entity, temporal, and source-authority constraints
+- Curated real filing pairs and marked synthetic distractors
+
+---
+
+## 8. Core Data Model
+
+### `suggestion_event`
+
+The central audit table. A row is created when a module produces a user-facing
+suggestion or records an education completion.
+
+Important fields include `event_id`, `user_id`, `timestamp`, `module_source`,
+structured `suggested_value`, `chosen_value`, `delta`, `action_taken`,
+`reason_code`, `funded`, and `market_context`.
+
+The same event shape supports risk, allocation, debt/leak, personalization,
+gamification, and education.
+
+### `user_monthly_snapshot`
+
+One row represents one user's financial position for one calendar month. It
+stores income, surplus, cash, debt-to-income ratio, and emergency-buffer
+coverage. Money uses integer paise; ratios use exact decimal values. The
+`(user_id, month)` pair is unique and repeated calculations update the row.
+
+### Onboarding tables
+
+The onboarding model stores user profile, EMI entries, insurance policies,
+holdings, expense items, closed EMI state, and removed expense state. History
+is preserved so later modules can detect actions such as clearing debt or
+cancelling a recurring subscription.
+
+### Money safety rule
+
+```text
+1 INR = 100 paise
+```
+
+All monetary values use integer paise. The application avoids floating-point
+money calculations and formats rupees only at display time.
+
+---
+
+## 9. Core Modules And Implementation
+
+### Module 1 - Data Model and Event Logging
+
+**Purpose:** Common data and audit foundation.
+
+**Implementation:** SQLAlchemy models define events and monthly snapshots.
+`log_suggestion_event` records a suggestion, `record_suggestion_outcome`
+records a later response, and `log_monthly_snapshot` upserts the user's
+monthly position. Read endpoints expose event and snapshot history.
+
+**Value:** The project can reconstruct what was suggested, which inputs were
+used, and how the user responded.
+
+### Module 2 - Onboarding and Financial Position
+
+**Inputs:** Income and stability, employment type, dependents, cash, expenses,
+EMIs, insurance, and holdings.
+
+**Implementation:** Pure functions calculate expenses, essential spending,
+EMI outflow, outstanding principal, net worth, surplus, emergency-fund
+coverage, and EMI-to-income ratio. Material edits recompute a monthly
+snapshot.
+
+**Value:** Planning starts with financial reality rather than a generic
+investment profile.
+
+### Module 3 - Risk Profiling and Capacity Ceiling
+
+**Implementation:** A versioned questionnaire scores horizon, drawdown
+reaction, experience, and goal. A separate rule table evaluates emergency
+coverage, EMI burden, income stability, dependents, and other constraints.
+
+```text
+final_tier = min(stated_tier, capacity_ceiling)
+```
+
+An aggressive questionnaire cannot override low financial capacity. The
+service gathers Module 2 data, computes the result, and logs it.
+
+### Module 4 - Asset Class Mapping and Allocation
+
+**Implementation:** Holdings are classified into cash, debt, equity, real
+assets, and alternatives. Hybrid products use look-through assumptions. A
+two-layer engine applies risk-ladder bounds and capital-market assumptions to
+the final tier. Output is category-level and never names a product. The
+allocation is logged as an event.
+
+### Module 5 - Rumour Verification Research Component
+
+**Purpose:** Verify an explicitly supplied market rumour against official
+company/exchange filings.
+
+**Implementation:** TF-IDF creates a retrieval baseline. The constrained
+retriever adds company/entity matching, a date window after the rumour, and
+official-source filtering. Results are confirmed, denied, unaddressed, or
+not-yet-due. A full trace shows why candidates passed or failed.
+
+**Boundary:** No automated social-media scraping or rumour detection.
+
+### Module 6 - Debt and Leak Engine
+
+**Debt features:** Avalanche versus snowball, amortization, prepay-versus-
+invest framing, credit-card effective rate, and refinance break-even.
+
+**Leak features:** Idle cash, fee/drag audit, recurring-charge detection, and
+one combined recoverable amount per year.
+
+**Implementation:** Pure calculators are combined by a service reading actual
+EMIs and manually entered expenses, then logged as a `debt_leak_engine` event.
+
+**Limitation:** The current version has no automatic bank-statement parser.
+
+### Module 7 - Fast Feedback Personalization
+
+**Implementation:** Replays the user's allocation responses from the event
+log, uses evidence-weighted EWMA logic, bounds the offset to `[-10, +10]`
+percentage points, and applies it only to displayed allocation. Module 3's
+capacity ceiling is reapplied after the offset.
+
+**Safety:** Personalization cannot modify the risk tier or display unsupported
+equity exposure.
+
+### Module 8 - Drift Detection, Simulated Only
+
+**Implementation:** Synthetic personas provide behavioural edits and monthly
+snapshots. The detector compares behavioural and capacity signal families,
+requires agreement, uses asymmetric hysteresis, and freezes after a simulated
+market drawdown.
+
+**Boundary:** This is an evaluation module, not a live-user feature.
+
+### Module 9 - Transparency Layer
+
+**Implementation:** Reads stored events and reconstructs rule inputs and
+calculations for risk, allocation, debt/leak, and personalization. It never
+silently invents missing fields; incomplete events are returned with
+`gap_detected` and missing-field details.
+
+The deterministic backend uses **transparent reasoning**, while the rumour
+component has a genuine retrieval-and-filter explanation trace.
+
+### Module 10 - Behaviour-Based Gamification and Financial Literacy
+
+**Behaviour milestones:** Emergency-buffer thresholds, rising capacity
+ceiling, clearing debt, cancelling subscription-like charges, and consecutive
+positive-surplus months.
+
+The real progression mechanic is the capacity ceiling. A two-month buffer may
+restrict capacity; a six-month buffer may remove that restriction. It has a
+financial reason instead of being an arbitrary level.
+
+An import-time effort-only guard rejects future milestones based on market
+returns or portfolio value. There are no leaderboards, social comparisons, or
+app-opening streaks.
+
+**Financial literacy roadmap:**
+
+1. **Financial Basics:** income, expenses, needs, wants, budgeting, cash flow,
+   emergency funds, inflation, and interest.
+2. **Financial Safety:** buffers, insurance, high-interest debt, credit scores,
+   subscriptions, and document organisation.
+3. **Banking and Saving:** savings accounts, FDs, RDs, sweep-in FDs, liquidity,
+   interest rates, tax on interest, and post-tax comparisons.
+4. **Investing Basics:** saving versus investing, risk, volatility, equity,
+   debt, mutual funds, index funds, ETFs, gold, government securities,
+   diversification, allocation, and SIPs.
+5. **Taxes and Retirement:** income tax, tax-saving investments, capital gains,
+   EPF, PPF, NPS, retirement planning, and pre-tax versus post-tax returns.
+
+Each topic has a multiple-choice quiz with server-side answer validation,
+feedback, and retry support. Badges represent learning milestones. Learning
+streaks use lesson or quiz completion dates, not app opening. A checklist
+covers financial foundation, savings, investing, and literacy.
+
+---
+
+## 10. API Surface
+
+| Area | Representative endpoints |
+|---|---|
+| Health | `GET /health` |
+| Authentication | `/auth/...` |
+| Events and snapshots | `/users/{user_id}/events`, `/snapshots` |
+| Onboarding | `/users/{user_id}/profile`, `/expenses`, `/emis`, `/insurance`, `/holdings` |
+| Risk profile | `/risk-profile/questionnaire`, `/users/{user_id}/risk-profile` |
+| Allocation | `/users/{user_id}/allocation` |
+| Debt and leaks | `/users/{user_id}/debt-leak` |
+| Personalization | `/users/{user_id}/personalization` |
+| Transparency | `/users/{user_id}/transparency` |
+| Gamification | `/users/{user_id}/gamification/check`, `/history` |
+| Education | `/users/{user_id}/gamification/education`, `/education/complete` |
+| Rumour verification | `/users/{user_id}/rumour-verification` |
+
+Interactive FastAPI documentation is available at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+## 11. Frontend Structure
+
+- **Home:** financial position and summary metrics.
+- **Plan:** risk questionnaire, capped risk profile, and allocation.
+- **Insights:** debt, leaks, personalization, and transparency.
+- **Verify:** explicit rumour verification.
+- **Progress:** milestones, literacy roadmap, quizzes, checklist, badges, and
+  learning streak.
+- **Profile:** edit income, expenses, EMIs, insurance, and holdings.
+
+Shared components provide cards, buttons, text styles, choices, metrics,
+charts, empty/error states, skeleton loading, and reasoning trees. Theme
+tokens centralize typography, spacing, colors, and dark-mode variants.
+TanStack Query invalidates related data after mutations to prevent stale
+financial screens.
+
+---
+
+## 12. Testing And Validation
+
+The backend suite covers financial calculations, onboarding, risk scoring,
+capacity caps, asset classification, allocation, debt amortization, leak
+detection, event logging, personalization, simulated drift, transparency,
+rumour verification, gamification, education, and Alembic migrations.
+
+The rumour component compares an unconstrained TF-IDF baseline with the same
+ranking plus entity, temporal, and source-authority constraints. It reports
+MRR, hit rate, and precision at `k`.
+
+```powershell
+# Backend
+cd backend
+pip install -r requirements.txt
+alembic upgrade head
+pytest
+uvicorn app.main:app --reload
+
+# Frontend, in a second terminal
+cd frontend
+npm install
+npx expo start
+
+# Research component
+cd modules/rumour_verification
+pip install -r requirements.txt
+pytest
+python demo.py "Paste an explicitly supplied rumour here" --date 2025-02-11 --full-trace
+```
+
+Tests use SQLite, so a local PostgreSQL server is not required for automated
+testing.
+
+---
+
+## 13. Ethical Design And Limitations
+
+- Capacity caps stated risk preference.
+- Allocation avoids named-product promotion.
+- Money uses integer paise and exact decimal ratios.
+- Gamification excludes market outcomes and app engagement.
+- There are no leaderboards or comparisons of personal financial positions.
+- Tax content is time-sensitive and circumstance-dependent.
+- Rumour verification requires explicit input and official-source filtering.
+- Drift detection is simulated only.
+- Transparency reports missing inputs instead of fabricating them.
+- The leak engine analyses manual expenses, not bank statements.
+- Production authentication, authorization hardening, monitoring, and
+  deployment security require further work.
+- The application supports planning and education; it is not a substitute for
+  a qualified financial, tax, legal, or insurance professional.
+
+---
+
+## 14. Future Scope
+
+- Secure production authentication and authorization.
+- Bank/account aggregation with explicit consent.
+- Statement parsing and transaction categorization.
+- Larger, continuously reviewed official-filing corpus.
+- Multilingual financial-literacy content for Indian users.
+- Offline-first lessons and accessibility improvements.
+- Current-rule tax verification with user-controlled tax profile.
+- Production observability, backups, rate limiting, and deployment automation.
+- More validation before any live drift research.
+- Goal scenario analysis with uncertainty ranges instead of guaranteed returns.
+
+---
+
+## 15. Evaluation Questions And Short Answers
+
+### Why is this better than a normal investment recommender?
+
+It begins with financial position and safety. Building an emergency fund or
+paying expensive debt may be more appropriate than taking investment risk.
+
+### Why separate stated risk and capacity?
+
+A questionnaire measures willingness; capacity measures ability. A user can
+want high risk while lacking a buffer or carrying excessive EMI burden.
+
+### Why category-level output?
+
+The project focuses on suitability, diversification, and explainability rather
+than product promotion.
+
+### Why use an event log?
+
+It provides an auditable history of suggestions, inputs, actions, and outcomes,
+which also supports transparency and personalization.
+
+### Why limit gamification?
+
+Personal finance should not reward luck, wealth, risky investing, or constant
+app usage. The project rewards controllable effort and education.
+
+### Is the system using AI?
+
+The main planning modules are deterministic and rule-based. The rumour
+component uses TF-IDF retrieval and structured filters. The project does not
+claim that weighted rules are explainable AI.
+
+### How is correctness tested?
+
+Pure functions have unit tests, orchestration has service tests, routes have
+API tests, migrations have schema tests, and rumour retrieval has evaluation
+tests. Capacity caps and effort-only milestones are directly tested.
+
+---
+
+## 16. Repository Structure
+
+```text
+backend/
+  app/api/                 FastAPI routes
+  app/models/              SQLAlchemy models
+  app/schemas/             Pydantic schemas
+  app/services/            Domain logic and orchestration
+  migrations/              Alembic history
+  tests/                   Backend tests
+
+frontend/
+  src/api/                 HTTP clients, types, query keys
+  src/components/          Shared UI components
+  src/hooks/               TanStack Query hooks
+  src/navigation/          Stack and tab navigation
+  src/screens/             Product screens
+  src/theme/               Design tokens
+
+modules/rumour_verification/
+  src/                     Retrieval, constraints, labels, trace
+  data/                    Dataset and filing corpus
+  eval/                    Research evaluation scripts
+  demo.py                  CLI demonstration
+```
+
+---
+
+## 17. Conclusion
+
+The project presents personal finance as a staged decision process:
+
+```text
+Understand financial position
+        -> build safety
+        -> measure capacity
+        -> set an appropriate risk tier
+        -> plan by asset category
+        -> address debt and leaks
+        -> explain decisions
+        -> verify information
+        -> learn and improve financial behaviour
+```
+
+Its contribution is the combination of financial safety, deterministic
+capacity-aware planning, event-based auditability, transparent reasoning,
+responsible gamification, and beginner-friendly financial education in one
+modular system for Indian users.
+
+
+================================================================================FILE: questions i have.md================================================================================
+# Questions I Have
+
+## How is the risk score calculated? Are there two scores?
+
+Yes — the system computes two independent scores and combines them with a strict rule (not a blend). The first is a **"stated" score** from the risk questionnaire itself: `compute_stated_tier()` in `backend/app/services/risk_profile.py` takes the user's questionnaire answers, applies a weighted sum (points per answer × question weight), and maps the total to a tier (1–5) using breakpoints defined in `backend/app/services/risk_profile_config.py`. This represents the person's self-reported *willingness* to take risk (what they think they can afford/handle). The second is an **objective "capacity ceiling"** from real financial data — `compute_capacity_ceiling()` looks at actual buffer/emergency fund coverage, EMI-to-income ratio, income stability, and insurance adequacy (all pulled from onboarding and spending data via `gather_capacity_inputs()` in `risk_profile_service.py`), and takes the *minimum* tier across those components. This represents the person's actual *ability* to bear risk, based on what their real numbers say they can afford — not their perception. Finally, `compute_final_tier()` combines them as `final_tier = min(stated_tier, capacity_ceiling)` — i.e. "ability before willingness": your actual financial capacity can only cap your risk tier downward, never be overridden by what you self-report on the questionnaire. If capacity caps the result, the system also returns which constraint caused it (e.g. low buffer, high EMI ratio) and "unlock conditions" telling the user what to change to raise their tier.
+
+## Are the questionnaire's points/weights/breakpoints backed by any data?
+
+No — checked `backend/app/services/risk_profile_config.py` directly, and these values are hand-designed, not empirically calibrated. Every question uses a plain 1–5 Likert scale where the safest answer is always 1 and the riskiest is always 5, evenly spaced — an ordering convention, not a measured value. The per-question weights (2, 3, or 4) reflect the developer's own judgment about which questions should matter more (e.g. `horizon` and `drawdown_reaction` are weighted 3, `experience` and `goal` are weighted 2), with no study or dataset behind the choice. The tier breakpoints (e.g. `(18, 26, 34, 42)`) are explicitly just an equal-width split of the total possible score range into 5 tiers, per the code's own comment — not derived from any distribution of real user scores or outcome validation. The one partial exception is the V2 question `sure_gain_tradeoff`, whose structure (guaranteed amount vs. escalating gamble) is explicitly commented as inspired by Grable & Lytton's (1999) published risk-tolerance research instrument — though its point values still follow the same linear 1–5 scale as every other question, not Grable & Lytton's actual scoring. So the design is internally consistent and documented, but not empirically validated (no backtest, no user study, no reliability/validity testing like Cronbach's alpha) — worth flagging as a limitation if this needs to hold up academically.
+
+## How do I validate/defend the questionnaire's numbers for my dissertation?
+
+Recommended validation plan, roughly in order of effort-to-payoff: (1) **Content validity** — have 3-5 independent reviewers (supervisor, peers) rate each question's relevance and guess the intended risk ordering of its options, without seeing the point values; agreement gives a citable Content Validity Index. (2) **Map every item to literature** — even self-written items should be framed as operationalizing an established construct (time horizon, loss aversion, experience, goal orientation are all standard dimensions in Grable & Lytton, FinaMetrica, and the Survey of Consumer Finances); state explicitly in the writeup which items are adapted vs. original. (3) **Pilot test + Cronbach's alpha** — run the questionnaire on ~20-30 people and compute Cronbach's alpha for internal consistency (target > 0.7); this is the standard reliability check expected in any psychometric section. (4) **Convergent validity** — in the same pilot, also administer the public-domain 13-item Grable & Lytton scale and correlate its total score against the custom score (Pearson r); a moderate-strong correlation supports that the custom instrument measures the same underlying trait. (5) **Known-groups validation** — show the score distinguishes two groups expected a priori to differ in risk tolerance (e.g. dependents/loans vs. none).
+
+On the weights: hand-picked integers (2/3/4) are hard to defend as-is. A stronger, citable alternative is **unit weighting (all weights = 1)** per Dawes (1979), "The robust beauty of improper linear models in decision making" — a classic finding that equal weights perform nearly as well as statistically-derived weights absent a calibration sample large enough to justify differential weighting. If differential weights are still wanted, derive them from pilot data (item-total correlations or factor analysis) rather than guessing. On tier breakpoints: prefer setting them at the quartiles of the pilot sample's actual score distribution rather than equal-width slices of the theoretical range, so tiers reflect real score spread rather than an assumption of uniform distribution. If a full pilot isn't feasible in the project timeline, an explicit "Threats to Validity / Limitations" section naming these gaps and proposing them as future work is an accepted fallback.
+
+
+================================================================================FILE: risk_questionnaire_content_validation_survey.md================================================================================
+# Content Validation Survey — Reviewer Questions
+
+For step 4 of the validation plan: at least 5 reviewers, each rating every item for relevance, clarity, and whether the answer choices are correctly ordered from lower to higher risk. Copy the sections below into Google Forms (or similar) as-is — one "Section" per item works well if the form tool supports sections.
+
+---
+
+## Intro text (top of form)
+
+> **Reviewing an investor risk-profile questionnaire**
+>
+> This questionnaire is part of a personal finance app. It combines two kinds of items: a **risk-tolerance core** (4 items) that measures how psychologically willing someone is to take on investment risk, and three **contextual profile items** — investment horizon, investment experience, and investment goal — that are commonly collected alongside risk tolerance but measure related, separate things. (For example, more investment experience is not assumed to mean higher risk tolerance — it's scored as its own dimension.) Each item below is labeled with which of these it's meant to measure. None of this assesses a person's financial *ability* to take risk (income, expenses, debt) — that's calculated separately, elsewhere, from actual financial data, and isn't asked here.
+>
+> Below are 7 questions, each with 5 answer choices. For each question, you'll be asked to rate its relevance to the dimension it's meant to measure, how clearly it's worded, and whether the five answer choices are genuinely ordered from lowest to highest on that dimension. There are no right or wrong answers here — I'm asking for your judgment as a reviewer, not testing your own risk tolerance.
+>
+> Takes about 10–15 minutes.
+
+## Reviewer background (once, at the start)
+
+1. Name (optional)
+2. Your professional designation/role (e.g. financial advisor, CFA charterholder, psychometrician/survey methodologist, academic researcher, other — please specify)
+3. Approximately how many years of relevant experience do you have in that role?
+4. Do you have professional experience in finance, investing, or psychometrics/survey design? (Yes / No / Some — free text if useful)
+
+---
+
+## Per-item block (repeat for each of the 7 items below)
+
+Q1 and Q2 use a 4-point forced-choice scale (no neutral midpoint) so that an item-level content validity index (I-CVI) can be calculated as the proportion of reviewers rating each item 3 or 4. For every item, ask exactly these questions:
+
+**Q1 — Relevance** (4-point scale: 1 = Not relevant / 2 = Somewhat relevant, needs major revision / 3 = Relevant, needs minor revision / 4 = Highly relevant)
+> "This question is relevant to measuring **[construct noted for this item]**."
+
+**Q2 — Clarity** (4-point scale: 1 = Not clear / 2 = Somewhat clear, needs major revision / 3 = Clear, needs minor revision / 4 = Very clear)
+> "This question's wording is clear and unambiguous."
+
+**Q3 — Answer ordering** (multiple choice: Yes / No / Unsure)
+> "The five answer choices are genuinely ordered from lowest to highest on the dimension this item measures."
+
+**Q4 — Comment** (open text, optional; shown after every item)
+> "Add any comments here — especially if you rated relevance or clarity below 4, or answered No/Unsure to Q3. Briefly explain why."
+
+---
+
+### Item 1 — Horizon
+
+**Construct:** Investment time horizon (contextual profile dimension, not risk tolerance itself)
+
+**Question shown to reviewer:** "When will you need most of this money?"
+**Answer choices (shown in this order):**
+1. Within 1 year
+2. 1–3 years
+3. 3–7 years
+4. 7–15 years
+5. More than 15 years
+
+*(Apply Q1–Q4 above to this item.)*
+
+---
+
+### Item 2 — Drawdown reaction
+
+**Construct:** Risk tolerance (core)
+
+**Question shown to reviewer:** "If your investments fell 20% in a month, what would you do?"
+**Answer choices (shown in this order):**
+1. Sell everything immediately
+2. Sell some to limit further loss
+3. Hold and wait it out
+4. Buy a little more if I can
+5. Buy significantly more
+
+*Note for reviewers: don't assume "buying more" is automatically the highest-risk-tolerance response (it could also reflect overconfidence or other factors) — please judge the ordering on its own merits in Q3.*
+
+*(Apply Q1–Q4 above to this item.)*
+
+---
+
+### Item 3 — Experience
+
+**Construct:** Investment experience (contextual profile dimension, scored separately from risk tolerance — more experience is not assumed to mean higher risk tolerance)
+
+**Question shown to reviewer:** "How much experience do you have with market-linked investments (equity, mutual funds)?"
+**Answer choices (shown in this order):**
+1. None
+2. A little (under 2 years)
+3. Moderate (2–5 years)
+4. Significant (5–10 years)
+5. Extensive (10+ years)
+
+*(Apply Q1–Q4 above to this item.)*
+
+---
+
+### Item 4 — Goal
+
+**Construct:** Investment goal/objective (contextual profile dimension)
+
+**Question shown to reviewer:** "What best describes your primary goal for this money?"
+**Answer choices (shown in this order):**
+1. Preserve what I have, minimize any loss
+2. Generate steady income
+3. Balanced growth and stability
+4. Grow it meaningfully over time
+5. Maximize long-term growth, even at the cost of short-term stability
+
+*Note for reviewers: this item is meant to capture the growth objective only. Comfort with short-term volatility as an attitude is tested separately, in the drawdown-reaction item.*
+
+*(Apply Q1–Q4 above to this item.)*
+
+---
+
+### Item 5 — Windfall allocation
+
+**Construct:** Risk tolerance (core)
+
+**Question shown to reviewer:** "You unexpectedly receive Rs 20,000. What would you do with it?"
+**Answer choices (shown in this order):**
+1. Put it in a bank FD or savings account
+2. Invest it in high-quality debt/bond funds
+3. Split it between debt and equity funds
+4. Invest it in equity mutual funds
+5. Invest it entirely in equities, including higher-risk/small-cap or thematic funds
+
+*(Apply Q1–Q4 above to this item.)*
+
+---
+
+### Item 6 — Sure-gain tradeoff
+
+**Construct:** Risk tolerance (core)
+
+**Question shown to reviewer:** "Which would you choose: a guaranteed amount, or a chance at more?"
+**Answer choices (shown in this order):**
+1. A guaranteed Rs 5,000
+2. A 70% chance at Rs 7,000, otherwise nothing
+3. A 50% chance at Rs 10,000, otherwise nothing
+4. A 30% chance at Rs 17,000, otherwise nothing
+5. A 10% chance at Rs 50,000, otherwise nothing
+
+*Note for reviewers: the expected value of each option is designed to stay roughly constant (~Rs 5,000) across all five choices (5000 → 4900 → 5000 → 5100 → 5000). What increases across the options is the variance/risk, not the expected payout. Please judge relevance, clarity, and ordering with that in mind.*
+
+*(Apply Q1–Q4 above to this item.)*
+
+---
+
+### Item 7 — Friend description
+
+**Construct:** Risk tolerance (core, self-perceived)
+
+**Question shown to reviewer:** "In general, how would your closest friend describe you as a risk-taker with money?"
+**Answer choices (shown in this order):**
+1. A real risk avoider
+2. Cautious
+3. Willing to take calculated risks after some research
+4. Comfortable taking risks for a shot at bigger rewards
+5. A real gambler
+
+**Q5 — Wording check (this item only)** (multiple choice: Keep as-is / Should be reworded, with optional suggestion)
+> "Is 'a real gambler' appropriate for the highest-risk option, or does it feel too loaded/judgmental? If it should be reworded, please suggest an alternative."
+
+*(Apply Q1–Q4 above to this item, plus Q5.)*
+
+---
+
+## Closing questions (once, at the end)
+
+1. (Open text) "Taken as a whole, does this set of 7 questions adequately cover what it's meant to (risk tolerance plus horizon/experience/goal)? Is anything important missing, or does anything feel redundant with another item?"
+2. (Open text) "Any question you think should be reworded, removed, or replaced entirely? Please specify which one and why."
+
+---
+
+## Scoring this survey once responses are in
+
+- **Relevance / clarity (I-CVI)**: for each item, compute the proportion of reviewers who rated it 3 or 4 (out of the 4-point scale) on Q1 and Q2, separately. A common threshold is I-CVI ≥ 0.78 (Lynn, 1986; Polit & Beck, 2006) for an item to be considered acceptable as-is; items below that should be revised or dropped, drawing on the Q4 comments. Averaging item-level I-CVIs gives the scale-level S-CVI.
+- **Answer ordering (content validity index)**: for each item, the proportion of reviewers who answered "Yes" on Q3. The same ≥0.78–0.80 threshold applies; anything below that should be revised based on the Q4 comments before the pilot.
+- **Item 7 wording check**: report separately — the proportion of reviewers who say "a real gambler" should be reworded, plus their suggested alternatives, before deciding whether to change it.
+
+
+================================================================================FILE: risk_questionnaire_item_table.md================================================================================
+# Risk Questionnaire — Item-Level Table
+
+Step 1 of the supervisor's validation plan. Source: `backend/app/services/risk_profile_config.py` (`QUESTIONNAIRE_V1` + `QUESTIONNAIRE_V2`). Options are listed in their stored order (current score 1→5); "expected answer order" records whether that order genuinely runs low-risk → high-risk on inspection, ahead of the reviewer check in step 4.
+
+| # | Question ID | Question text | Construct being measured | Source / reference | Answer options (current score) | Expected order correct? | Current weight |
+|---|---|---|---|---|---|---|---|
+| 1 | `horizon` | "When will you need most of this money?" | Investment time horizon | Original item. Standard dimension in suitability/risk-tolerance questionnaires generally (e.g. FinaMetrica, typical KYC risk forms); not drawn from a single cited instrument. | Within 1 year (1) · 1–3 years (2) · 3–7 years (3) · 7–15 years (4) · More than 15 years (5) | Yes — longer horizon consistently associated with higher risk capacity/tolerance in the literature | 3 |
+| 2 | `drawdown_reaction` | "If your investments fell 20% in a month, what would you do?" | Loss aversion / behavioral risk tolerance | Original wording. Same construct as the "market decline" item used in Grable & Lytton (1999) and FinaMetrica; not a verbatim reproduction. | Sell everything immediately (1) · Sell some to limit further loss (2) · Hold and wait it out (3) · Buy a little more if I can (4) · Buy significantly more (5) | Open — selling under loss plausibly reflects lower tolerance, but "buying the dip" isn't automatically proof of higher tolerance (could reflect overconfidence, contrarian behavior, etc.); leaving this ordering for reviewers to confirm rather than assuming it | 3 |
+| 3 | `experience` | "How much experience do you have with market-linked investments (equity, mutual funds)?" | Investment experience / financial literacy proxy | Original item. Standard in suitability questionnaires (e.g. FINRA/SEC-style suitability forms); experience is a known correlate of, not identical to, risk tolerance. | None (1) · Under 2 years (2) · 2–5 years (3) · 5–10 years (4) · 10+ years (5) | Plausible but not certain — experience correlates with tolerance but is arguably a distinct construct (see step 2) | 2 |
+| 4 | `goal` | "What best describes your primary goal for this money?" | Investment objective / return-orientation | Original item, goal-based investing framing common to suitability questionnaires. | Preserve, minimize any loss (1) · Generate steady income (2) · Balanced growth and stability (3) · Grow it meaningfully (4) · Maximize long-term growth, even at the cost of short-term stability (5) | Yes — ordering runs preservation → growth-maximizing. (Option 5 was reworded to state the growth objective only; it previously also claimed comfort with short-term volatility, which is a separate attitude already tested by `drawdown_reaction`.) | 2 |
+| 5 | `windfall_allocation` | "You unexpectedly receive Rs 20,000. What would you do with it?" | Risk tolerance (revealed allocation preference) | Original wording. Conceptually similar to hypothetical-windfall/income-gamble items used in behavioral risk-tolerance research (e.g. Barsky et al., 1997); not a direct reproduction. | FD/savings (1) · Debt/bond funds (2) · Split debt/equity (3) · Equity funds (4) · Equity, including higher-risk/small-cap or thematic funds (5) | Yes. (Option 5 previously read "equity + consider borrowing more to invest further," which conflated risk tolerance with leverage-seeking; reworded to raise risk within equity itself instead.) | 4 |
+| 6 | `sure_gain_tradeoff` | "Which would you choose: a guaranteed amount, or a chance at more?" | Risk tolerance (certainty equivalent / gamble preference) | **Adapted from Grable & Lytton (1999)** — forced-choice item contrasting a guaranteed amount against escalating, lower-probability, higher-payout gambles of broadly similar expected value. Wording and amounts are this project's own; scoring (linear 1–5) is not Grable & Lytton's original scoring. | Guaranteed Rs 5,000 (1) · 70% chance at Rs 7,000 (2) · 50% chance at Rs 10,000 (3) · 30% chance at Rs 17,000 (4) · 10% chance at Rs 50,000 (5) | Yes — variance/risk increases monotonically across the options. Expected value stays roughly constant throughout (5000 → 4900 → 5000 → 5100 → 5000); it is *not* increasing, only variance is. | 4 |
+| 7 | `friend_description` | "In general, how would your closest friend describe you as a risk-taker with money?" | Self-perceived risk-taking propensity | Same construct as an item in Grable & Lytton's (1999) 13-item scale (a "how would your friends describe you" risk-propensity item); wording adapted, not verbatim. | A real risk avoider (1) · Cautious (2) · Willing to take calculated risks after research (3) · Comfortable taking risks for bigger rewards (4) · A real gambler (5) | Yes, though "a real gambler" may read as loaded/judgmental — flagged as an explicit wording-check question for reviewers (Item 7, Q5) rather than decided here | 2 |
+
+## Step 2 — Dimension separation
+
+| Dimension | Items | Item count | Reliability feasible? |
+|---|---|---|---|
+| Risk tolerance (attitude) | `drawdown_reaction`, `windfall_allocation`, `sure_gain_tradeoff`, `friend_description` | 4 | Yes — enough items for a per-dimension alpha/omega (step 8) |
+| Investment horizon | `horizon` | 1 | No — single item, no internal consistency to test |
+| Investment experience | `experience` | 1 | No — single item |
+| Investment objective / goal | `goal` | 1 | No — single item, and conceptually mixed (see below) |
+| Risk capacity | *(none in this questionnaire)* | 0 | N/A — see below |
+| Financial commitments | *(none in this questionnaire)* | 0 | N/A — see below |
+
+**Risk capacity and financial commitments are not questionnaire items at all.** They're computed separately, objectively, from real onboarding/spending data — buffer-fund coverage in months, EMI-to-income ratio, income stability, and life-cover-to-dependents ratio — by `compute_capacity_ceiling()` in `backend/app/services/risk_profile.py`. Nobody is asked to self-report their EMI ratio or dependents; the system reads it from the financial data already captured elsewhere and turns it into a ceiling tier. That ceiling is then combined with this questionnaire's score as `final_tier = min(stated_tier, capacity_ceiling)` — the questionnaire is never the sole source of the final risk tier.
+
+**So: is this a pure risk-tolerance scale, or a broader risk-profile score?** Since `horizon`, `experience`, and `goal` are being kept, this is a **broader investor risk-profile questionnaire**, not a pure risk-tolerance scale — a 4-item risk-tolerance core (`drawdown_reaction`, `windfall_allocation`, `sure_gain_tradeoff`, `friend_description`) plus three single-item contextual dimensions (`horizon`, `experience`, `goal`) that aren't tolerance itself but are commonly collected alongside it. It deliberately does *not* try to cover capacity or financial commitments — that's handled by a separate, objective calculation elsewhere in the system, and the two are combined downstream. The content-validation survey's intro text has been updated to describe it this way explicitly, rather than calling it a "risk-tolerance questionnaire."
+
+Two structural gaps worth deciding on before the reviewer pass: (1) `horizon`, `experience`, and `goal` are each single items standing in for what look like three separate constructs — per step 8, none of them can get a real reliability check on their own, so either treat them explicitly as single-item covariates (common practice for horizon/experience-type items in the literature) rather than sub-scales, or expand each to 2–3 items if per-dimension reliability is wanted for all of them, not just risk tolerance. (2) `goal`'s last option previously mixed two ideas — the growth objective and comfort with short-term volatility (an attitude already tested by `drawdown_reaction`). It's now reworded to state the growth objective only ("Maximize long-term growth, even at the cost of short-term stability"); still worth asking reviewers whether it now reads cleanly as a needs/objective item rather than an attitude item.
+
+## Step 3 — Equal weighting (proposed, not yet applied to code)
+
+Per instruction, no code has been changed. This is the weighting scheme to apply once the item set is confirmed by content validation:
+
+| Question ID | Current weight | Proposed weight |
+|---|---|---|
+| `horizon` | 3 | 1 |
+| `drawdown_reaction` | 3 | 1 |
+| `experience` | 2 | 1 |
+| `goal` | 2 | 1 |
+| `windfall_allocation` | 4 | 1 |
+| `sure_gain_tradeoff` | 4 | 1 |
+| `friend_description` | 2 | 1 |
+
+With unit weighting, the raw score is a simple sum of the seven 1–5 answers: range **7–35**. Per step 9, this should stay a **continuous score** through the validation phase — no 1–5 tiers should be cut from it yet. Tier breakpoints get decided only after the ~150–200-person main sample, from that sample's actual score distribution, not before.
+
+## Notes for step 10 (reviewing the 1–5 scoring itself)
+
+All seven items currently use the same linear 1–5 scale regardless of what's actually being measured. Two items are the ones most worth reviewer scrutiny before treating "1–5, evenly spaced" as safe to assume:
+
+- `windfall_allocation`: option 5 was reworded from "equity + consider borrowing more to invest further" (which brought leverage into what should be a pure asset-allocation question) to "equity, including higher-risk/small-cap or thematic funds" — worth confirming with reviewers that this now reads as one point riskier than "equity funds" rather than a qualitatively different choice.
+- `experience`: is the psychological distance between "significant (5–10y)" and "extensive (10+y)" the same as between "none" and "a little (under 2y)"? Equal integer spacing assumes so; this hasn't been tested.
 
 
 ================================================================================FILE: structure.py================================================================================
@@ -543,6 +1413,17 @@ def main():
 if __name__ == "__main__":
     main()
 
+================================================================================FILE: .pytest_cache\README.md================================================================================
+# pytest cache directory #
+
+This directory contains data from the pytest's cache plugin,
+which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
+
+**Do not** commit this to version control.
+
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
+
+
 ================================================================================FILE: backend\README.md================================================================================
 # Backend
 
@@ -647,10 +1528,12 @@ app/
                                  logs the suggestion_event
     asset_classification_config.py  Module 4: versioned HoldingType taxonomy +
                                      look-through decomposition assumptions
-    allocation_config.py            Module 4: versioned target allocation by tier
+    allocation_config.py            Module 4: versioned Layer 1 risk-ladder bounds +
+                                     Layer 2 capital market assumptions by tier
     asset_classification.py         Module 4: pure classify_holding +
                                      aggregate_classifications (no I/O)
-    allocation.py                   Module 4: pure compute_target_allocation (no I/O)
+    allocation.py                   Module 4: pure compute_target_allocation --
+                                     Layer 1 bounds + Layer 2 Sharpe optimizer (no I/O)
     allocation_service.py           Module 4: gathers Module 2 holdings + Module 3's
                                      tier, calls the pure functions, logs the
                                      suggestion_event
@@ -1081,16 +1964,34 @@ just checking the final number in isolation.
 `tests/test_allocation_service.py` repeats the same numbers through the
 real Module 2 holdings + Module 4 service path.
 
-### Target allocation (`app/services/allocation.py` + `allocation_config.py`, version `v1`)
+### Target allocation (`app/services/allocation.py` + `allocation_config.py`, version `v2-hybrid`)
 
-A simple, auditable lookup from Module 3's final tier (1-5) to a
-percentage split across the five classes — equity rises from 10% at tier 1
-to 65% at tier 5, cash falls from 40% to 5%, alternatives stay at or near
-0% until tier 3+ given their illiquidity. The "reasoning trace" the brief
-asks for is exactly what this lookup is: `TargetAllocationResult` carries
-`final_tier`, `rule_table_version`, and a `reasoning` string naming both —
-there's no hidden formula to explain because there isn't one, just an
-explicit table.
+A two-layer hybrid from Module 3's final tier (1-5) to a percentage split
+across the five classes, replacing the original static per-tier lookup
+table:
+
+- **Layer 1 (deterministic, auditable)**: `RISK_LADDER_BOUNDS_V1` maps the
+  tier to a `[min, max]` weight range per asset class — equity's range
+  rises from tier 1 to tier 5, cash's falls, and alternatives are pinned
+  to exactly `[0%, 0%]` at tier 1. Debt/emergency-fund safety enforcement
+  already happened upstream, in Module 3's capacity-ceiling capping of
+  `final_tier` itself, so this layer does not re-derive a separate safety
+  override from raw profile fields.
+- **Layer 2 (mean-variance)**: within Layer 1's bounds, an SLSQP optimizer
+  (`scipy.optimize.minimize`) picks the Sharpe-ratio-maximizing point
+  against `CAPITAL_MARKET_ASSUMPTIONS_V1` — a small, explicitly
+  illustrative set of long-run annualized return/volatility/correlation
+  assumptions per asset class (not a market forecast, not fund-specific,
+  not updated live; a revision is a new config version, not a silent
+  edit). If the optimizer fails to converge, Layer 2 falls back to the
+  midpoint of Layer 1's bounds, renormalized to sum to 100 — Layer 1's
+  bounds are authoritative either way.
+
+The "reasoning trace" the brief asks for is still exactly what
+`TargetAllocationResult` carries: `final_tier`, `rule_table_version`, and a
+`reasoning` string naming the tier, the Layer 1 bounds used, and whether
+Layer 2 converged or fell back — auditable in two explicit steps rather
+than one flat table, but still no hidden formula.
 
 ### Logging
 
@@ -1786,6 +2687,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes_allocation import router as allocation_router
+from app.api.routes_auth import router as auth_router
 from app.api.routes_debt_leak import router as debt_leak_router
 from app.api.routes_events import router as events_router
 from app.api.routes_gamification import router as gamification_router
@@ -1810,6 +2712,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(events_router)
 app.include_router(onboarding_router)
 app.include_router(risk_profile_router)
@@ -1826,6 +2729,39 @@ app.include_router(rumour_verification_router)
 def health():
     return {"status": "ok"}
 
+
+================================================================================FILE: backend\app\test_env.py================================================================================
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+print(os.getenv("N8N_WEBHOOK_URL"))
+
+================================================================================FILE: backend\app\test_n8n.py================================================================================
+import httpx
+
+url = "https://saundaryafinalyear.app.n8n.cloud/webhook/rumour-verification"
+
+payload = {
+    "rumour": "Apple is going to acquire Disney.",
+    "company": "Apple",
+    "ticker": "Apple"
+}
+try:
+    response = httpx.post(
+        url,
+        json=payload,
+        timeout=60
+    )
+
+    print("Status:", response.status_code)
+    print("Response:")
+    print(response.text)
+
+except Exception as e:
+    print("ERROR:")
+    print(type(e).__name__, str(e))
 
 ================================================================================FILE: backend\app\api\__init__.py================================================================================
 
@@ -1884,6 +2820,45 @@ def get_allocation(user_id: str, session: Session = Depends(get_session)):
             for c in portfolio.holdings
         ],
     )
+
+
+================================================================================FILE: backend\app\api\routes_auth.py================================================================================
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.db import get_session
+from app.schemas.auth import AuthUserOut, LoginIn, SignupIn
+from app.services.auth_service import (
+    InvalidCredentialsError,
+    UsernameTakenError,
+    WeakPasswordError,
+    login,
+    signup,
+)
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/signup", response_model=AuthUserOut, status_code=201)
+def post_signup(body: SignupIn, session: Session = Depends(get_session)):
+    try:
+        user = signup(session, body.username, body.password)
+    except UsernameTakenError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except WeakPasswordError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return AuthUserOut(user_id=user.user_id, username=user.username)
+
+
+@router.post("/login", response_model=AuthUserOut)
+def post_login(body: LoginIn, session: Session = Depends(get_session)):
+    try:
+        user = login(session, body.username, body.password)
+    except InvalidCredentialsError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    return AuthUserOut(user_id=user.user_id, username=user.username)
 
 
 ================================================================================FILE: backend\app\api\routes_debt_leak.py================================================================================
@@ -2009,8 +2984,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db import get_session
-from app.schemas.gamification import AwardedMilestoneOut, MilestoneHistoryOut
-from app.services.gamification_service import check_milestones, get_milestone_history
+from app.schemas.gamification import AwardedMilestoneOut, EducationCompletionIn, EducationProgressOut, MilestoneHistoryOut, QuizResultOut
+from app.services.gamification_service import check_milestones, complete_education_item, get_education_progress, get_milestone_history
 from app.services.onboarding import ProfileNotFoundError
 
 router = APIRouter(prefix="/users/{user_id}/gamification", tags=["gamification"])
@@ -2028,6 +3003,19 @@ def post_check_milestones(user_id: str, session: Session = Depends(get_session))
 @router.get("/history", response_model=MilestoneHistoryOut)
 def get_history(user_id: str, session: Session = Depends(get_session)):
     return MilestoneHistoryOut(milestones=get_milestone_history(session, user_id))
+
+
+@router.get("/education", response_model=EducationProgressOut)
+def get_education(user_id: str, session: Session = Depends(get_session)):
+    return get_education_progress(session, user_id)
+
+
+@router.post("/education/complete", response_model=QuizResultOut | None)
+def post_education_completion(user_id: str, payload: EducationCompletionIn, session: Session = Depends(get_session)):
+    try:
+        return complete_education_item(session, user_id, payload.item_id, payload.kind, payload.correct, payload.answer_index)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 ================================================================================FILE: backend\app\api\routes_onboarding.py================================================================================
@@ -2227,7 +3215,7 @@ from app.db import get_session
 from app.schemas.risk_profile import QuestionnaireOut, RiskProfileAnswersIn, RiskTierOut
 from app.services.event_log import get_user_event_history
 from app.services.onboarding import ProfileNotFoundError
-from app.services.risk_profile_config import QUESTIONNAIRE_V1
+from app.services.risk_profile_config import QUESTIONNAIRE_V2
 from app.services.risk_profile_service import compute_and_log_risk_tier
 
 router = APIRouter(prefix="/users/{user_id}/risk-profile", tags=["risk_profile"])
@@ -2245,8 +3233,8 @@ config_router = APIRouter(prefix="/risk-profile", tags=["risk_profile"])
 @config_router.get("/questionnaire", response_model=QuestionnaireOut)
 def get_questionnaire():
     return QuestionnaireOut(
-        version=QUESTIONNAIRE_V1.version,
-        effective_date=QUESTIONNAIRE_V1.effective_date,
+        version=QUESTIONNAIRE_V2.version,
+        effective_date=QUESTIONNAIRE_V2.effective_date,
         questions=[
             {
                 "id": q.id,
@@ -2254,7 +3242,7 @@ def get_questionnaire():
                 "weight": q.weight,
                 "options": [{"value": o.value, "label": o.label} for o in q.options],
             }
-            for q in QUESTIONNAIRE_V1.questions
+            for q in QUESTIONNAIRE_V2.questions
         ],
     )
 
@@ -2298,7 +3286,7 @@ def get_latest_risk_profile(user_id: str, session: Session = Depends(get_session
 
 
 ================================================================================FILE: backend\app\api\routes_rumour_verification.py================================================================================
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -2319,14 +3307,18 @@ def post_verify_rumour(
     log_event: bool = Query(True, description="Log this verification as an auditable suggestion_event"),
     session: Session = Depends(get_session),
 ):
-    """Calls Module 5's own verify_rumour unchanged (see
-    rumour_verification_bridge.py) and, by default, logs the result as a
-    suggestion_event purely for auditability -- never touching
-    action_taken/chosen_value/funded, since a verification result isn't
-    something a user accepts/edits/rejects the way a suggestion is."""
-    result = run_verification(
-        body.rumour_text, rumour_date=body.rumour_date, company_name=body.company_name, evaluated_at=body.evaluated_at,
-    )
+    """Calls the n8n Module 5 workflow (see rumour_verification_bridge.py)
+    and, by default, logs the result as a suggestion_event purely for
+    auditability -- never touching action_taken/chosen_value/funded, since
+    a verification result isn't something a user accepts/edits/rejects the
+    way a suggestion is."""
+    try:
+        result = run_verification(
+            body.rumour_text, rumour_date=body.rumour_date, company_name=body.company_name, evaluated_at=body.evaluated_at,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     suggested_value = verification_result_to_suggested_value(result)
 
     logged_event_id = None
@@ -2337,8 +3329,8 @@ def post_verify_rumour(
     return RumourVerificationOut(
         query_text=result.query_text,
         rumour_date=result.rumour_date,
-        status=result.status,
-        matched_score=result.matched_score,
+        status=suggested_value["status"],
+        matched_score=suggested_value["matched_score"],
         matched_filing=suggested_value["matched_filing"],
         candidates_considered=suggested_value["candidates_considered"],
         candidates_passing=suggested_value["candidates_passing"],
@@ -2380,8 +3372,10 @@ def get_decision_trace(user_id: str, module_source: str, event_id: str | None = 
 
 
 ================================================================================FILE: backend\app\models\__init__.py================================================================================
+from app.models.auth import AuthUser
 from app.models.onboarding import (
     EmiEntry,
+    EmiPurpose,
     EmploymentType,
     ExpenseItem,
     ExpenseSourceDecisionRecord,
@@ -2396,18 +3390,58 @@ from app.models.user_monthly_snapshot import UserMonthlySnapshot
 
 __all__ = [
     "ActionTaken",
+    "AuthUser",
     "SuggestionEvent",
     "UserMonthlySnapshot",
     "UserProfile",
     "IncomeStability",
     "EmploymentType",
     "EmiEntry",
+    "EmiPurpose",
     "InsurancePolicy",
     "InsuranceType",
     "Holding",
     "ExpenseItem",
     "ExpenseSourceDecisionRecord",
 ]
+
+
+================================================================================FILE: backend\app\models\auth.py================================================================================
+"""Real signup/login accounts. Independent of `user_profile` (which is
+Module 2's onboarding data, created only once a signed-up user completes
+onboarding) -- `AuthUser.user_id` is generated at signup and is the same
+`user_id` string the rest of the app already keys everything on.
+
+Scope note: this adds real password-checked account creation/sign-in --
+signup and login genuinely fail on a wrong password. It does not retrofit
+bearer-token authorization onto the rest of the API, which (by the
+project's existing, documented design) trusts whatever `user_id` appears
+in the URL path. Adding that would mean touching every existing route.
+The frontend gates entry into the app on a successful login/signup and
+remembers the resulting user_id locally, the same way the app already
+persisted a plain demo user_id before this.
+"""
+
+from datetime import datetime, timezone
+
+from sqlalchemy import DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db import Base
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+class AuthUser(Base):
+    __tablename__ = "auth_user"
+
+    user_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
 
 
 ================================================================================FILE: backend\app\models\onboarding.py================================================================================
@@ -2450,6 +3484,16 @@ class EmploymentType(str, enum.Enum):
 class InsuranceType(str, enum.Enum):
     LIFE = "life"
     HEALTH = "health"
+
+
+class EmiPurpose(str, enum.Enum):
+    HOME = "home"
+    VEHICLE = "vehicle"
+    PERSONAL = "personal"
+    EDUCATION = "education"
+    CREDIT_CARD = "credit_card"
+    ELECTRONICS = "electronics"
+    OTHER = "other"
 
 
 class UserProfile(Base):
@@ -2499,6 +3543,9 @@ class EmiEntry(Base):
     amount_paise: Mapped[int] = mapped_column(BigInteger, nullable=False)
     remaining_tenure_months: Mapped[int] = mapped_column(Integer, nullable=False)
     annual_rate_bps: Mapped[int] = mapped_column(Integer, nullable=False)
+    # what the loan is for (home/vehicle/personal/...); nullable so existing
+    # rows from before this field existed don't need a backfill value
+    purpose: Mapped[EmiPurpose | None] = mapped_column(Enum(EmiPurpose, name="emi_purpose_enum"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -2738,6 +3785,25 @@ class AllocationReportOut(BaseModel):
     holdings: list[HoldingClassificationOut]
 
 
+================================================================================FILE: backend\app\schemas\auth.py================================================================================
+from pydantic import BaseModel
+
+
+class SignupIn(BaseModel):
+    username: str
+    password: str
+
+
+class LoginIn(BaseModel):
+    username: str
+    password: str
+
+
+class AuthUserOut(BaseModel):
+    user_id: str
+    username: str
+
+
 ================================================================================FILE: backend\app\schemas\debt_leak.py================================================================================
 from decimal import Decimal
 
@@ -2837,13 +3903,70 @@ class MilestoneHistoryOut(BaseModel):
     milestones: list[AwardedMilestoneOut]
 
 
+class QuizQuestionOut(BaseModel):
+    question_id: str
+    prompt: str
+    options: list[str]
+    passed: bool = False
+
+
+class RoadmapTopicOut(BaseModel):
+    topic_id: str
+    title: str
+    description: str
+    completed: bool = False
+    quiz_question: QuizQuestionOut | None = None
+
+
+class RoadmapLevelOut(BaseModel):
+    level: int
+    title: str
+    topics: list[RoadmapTopicOut]
+
+
+class ChecklistItemOut(BaseModel):
+    item_id: str
+    title: str
+    section: str
+    completed: bool = False
+
+
+class EducationCompletionIn(BaseModel):
+    item_id: str
+    kind: str
+    correct: bool | None = None
+    answer_index: int | None = None
+
+
+class QuizResultOut(BaseModel):
+    correct: bool
+    explanation: str
+
+
+class BadgeOut(BaseModel):
+    badge_id: str
+    title: str
+    description: str
+    earned: bool
+
+
+class EducationProgressOut(BaseModel):
+    roadmap: list[RoadmapLevelOut]
+    checklist: list[ChecklistItemOut]
+    badges: list[BadgeOut]
+    completed_topics: int
+    total_topics: int
+    progress_pct: int
+    learning_streak_days: int
+
+
 ================================================================================FILE: backend\app\schemas\onboarding.py================================================================================
 from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
+from app.models.onboarding import EmiPurpose, EmploymentType, IncomeStability, InsuranceType
 from app.services.asset_classification_config import HoldingType
 from app.services.expense_source_decision import ExpenseSourceMode
 from app.services.financial_position import ExpenseFrequency
@@ -2875,6 +3998,7 @@ class EmiIn(BaseModel):
     amount_paise: int
     remaining_tenure_months: int
     annual_rate_bps: int
+    purpose: EmiPurpose | None = None
 
 
 class EmiOut(EmiIn):
@@ -3125,18 +4249,48 @@ class UserMonthlySnapshotRead(BaseModel):
 
 
 ================================================================================FILE: backend\app\services\allocation.py================================================================================
-"""Module 4: pure target-allocation lookup by final risk tier. No I/O.
+"""Module 4: two-layer hybrid target-allocation engine, keyed by Module 3's
+final risk tier (1-5). No I/O -- pure function of tier + config, matching
+this project's convention for scoring/allocation logic.
 
-The "rule" that produces a split is deliberately just a table lookup keyed
-by tier — simple and auditable by design, not a black box formula, so the
-reasoning trace ("which tier, which rule produced this split") is exactly
-that: the tier number and the config version it was looked up in.
+Adapted from a standalone risk-score (1-10) + Sharpe-optimizer prototype:
+this version keys off the same 1-5 `final_tier` every other module already
+depends on (drift detection's tier ladder, personalization's capacity-
+ceiling capping, gamification's tier-change badges), and optimizes across
+all 5 of this project's AssetClass values rather than the prototype's
+equity/debt/cash-only set.
+
+Layer 1 (deterministic, auditable): RISK_LADDER_BOUNDS_V1 maps the tier to
+a [min, max] weight range per asset class. This is the only hard
+constraint applied here -- debt/emergency-fund safety enforcement already
+happened upstream in Module 3's capacity-ceiling capping
+(compute_capacity_ceiling / compute_final_tier caps the *tier itself*
+before it ever reaches this function), so Layer 1 does not re-derive a
+separate safety override from raw profile fields the way the prototype
+did.
+
+Layer 2 (mean-variance): within Layer 1's bounds, SLSQP maximizes the
+Sharpe ratio against CAPITAL_MARKET_ASSUMPTIONS_V1's illustrative
+long-run return/volatility/correlation assumptions. If the optimizer
+fails to converge, this falls back to the midpoint of Layer 1's bounds,
+renormalized to sum to 100 -- Layer 1's bounds remain authoritative
+either way, so a solver failure degrades to "safe interior point", never
+to an out-of-bounds or non-100%-summing result.
 """
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
-from app.services.allocation_config import TARGET_ALLOCATION_TABLE_V1
+import numpy as np
+from scipy.optimize import minimize
+
+from app.services.allocation_config import (
+    CAPITAL_MARKET_ASSUMPTIONS_V1,
+    CONFIG_VERSION,
+    RISK_FREE_RATE_V1,
+    RISK_LADDER_BOUNDS_V1,
+    CapitalMarketAssumptions,
+)
 from app.services.asset_classification_config import AssetClass
 
 
@@ -3148,80 +4302,225 @@ class TargetAllocationResult:
     reasoning: str
 
 
+def _neg_sharpe(weights: np.ndarray, mu: np.ndarray, cov: np.ndarray, risk_free_rate: float) -> float:
+    ret = float(np.dot(weights, mu))
+    vol = float(np.sqrt(weights.T @ cov @ weights))
+    if vol < 1e-12:
+        return 1e6  # penalize degenerate zero-vol portfolios
+    return -(ret - risk_free_rate) / vol
+
+
+def _weights_to_pct(weights: np.ndarray, asset_order: tuple[AssetClass, ...]) -> dict[AssetClass, Decimal]:
+    pct = {a: Decimal(str(round(w * 100, 10))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP) for a, w in zip(asset_order, weights)}
+    # Any rounding residual is absorbed by the largest weight so the
+    # result always sums to exactly 100.00, matching the project's
+    # convention for Decimal-percentage outputs (see personalization.py).
+    residual = Decimal("100.00") - sum(pct.values())
+    if residual != 0:
+        largest = max(pct, key=lambda a: pct[a])
+        pct[largest] += residual
+    return pct
+
+
 def compute_target_allocation(
     final_tier: int,
-    table: dict[int, dict[AssetClass, Decimal]] = TARGET_ALLOCATION_TABLE_V1,
-    table_version: str = "v1",
+    bounds_table: dict[int, dict[AssetClass, tuple[float, float]]] = RISK_LADDER_BOUNDS_V1,
+    market_assumptions: CapitalMarketAssumptions = CAPITAL_MARKET_ASSUMPTIONS_V1,
+    risk_free_rate: float = RISK_FREE_RATE_V1,
+    table_version: str = CONFIG_VERSION,
 ) -> TargetAllocationResult:
-    if final_tier not in table:
-        raise ValueError(f"no target allocation defined for tier {final_tier!r} in rule table {table_version}")
+    if final_tier not in bounds_table:
+        raise ValueError(f"no Layer 1 risk-ladder bounds defined for tier {final_tier!r} in rule table {table_version}")
+
+    asset_order = market_assumptions.asset_order
+    tier_bounds = bounds_table[final_tier]
+    scipy_bounds = [(tier_bounds[a][0] / 100.0, tier_bounds[a][1] / 100.0) for a in asset_order]
+
+    mu = np.array([market_assumptions.expected_returns[a] for a in asset_order])
+    cov = np.array([[market_assumptions.covariance[(ai, aj)] for aj in asset_order] for ai in asset_order])
+
+    x0 = np.array([(lo + hi) / 2 for lo, hi in scipy_bounds])
+    x0 = x0 / x0.sum()
+
+    result = minimize(
+        fun=_neg_sharpe,
+        x0=x0,
+        args=(mu, cov, risk_free_rate),
+        method="SLSQP",
+        bounds=scipy_bounds,
+        constraints=[{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}],
+        options={"maxiter": 500, "ftol": 1e-10},
+    )
+
+    if result.success:
+        weights = result.x
+        method_note = "Layer 2 Sharpe-maximizing weights within Layer 1 bounds"
+    else:
+        lo = np.array([b[0] for b in scipy_bounds])
+        hi = np.array([b[1] for b in scipy_bounds])
+        weights = np.clip(x0, lo, hi)
+        weights = weights / weights.sum()
+        method_note = f"Layer 2 optimizer did not converge ({result.message}); fell back to Layer 1 bounds midpoint"
+
+    target_pct = _weights_to_pct(weights, asset_order)
+
+    bounds_desc = ", ".join(f"{a.value}=[{tier_bounds[a][0]:.0f}%,{tier_bounds[a][1]:.0f}%]" for a in asset_order)
+    reasoning = f"Looked up tier {final_tier} bounds ({bounds_desc}) in rule table {table_version}; {method_note}."
 
     return TargetAllocationResult(
         final_tier=final_tier,
         rule_table_version=table_version,
-        target_pct=dict(table[final_tier]),
-        reasoning=f"Looked up tier {final_tier} in target allocation rule table {table_version}.",
+        target_pct=target_pct,
+        reasoning=reasoning,
     )
 
 
 ================================================================================FILE: backend\app\services\allocation_config.py================================================================================
-"""Versioned category-level target allocation by final risk tier (Module 3).
+"""Versioned Layer 1 risk-ladder bounds and Layer 2 capital market
+assumptions for Module 4 (Module 3's final risk tier -> Module 4's target
+allocation).
 
-Category-level only, per the project's hard legal boundary: this table
-never names a fund, stock, or scheme, and never will — it's a simple
-lookup from tier (1-5) to a percentage split across the five asset
-classes, nothing more. Alternatives exposure is capped low even at tier 5
-given its illiquidity and lack of standardized regulation; cash exposure
-scales down as tier rises since higher tiers already cleared the capacity
-checks (buffer, EMI ratio) that justify holding less idle cash.
+Module 4 runs a two-layer hybrid, adapted from a standalone risk-score/
+Sharpe-optimizer prototype into this project's tier-based pipeline:
+
+- Layer 1 (this config's RISK_LADDER_BOUNDS_V1) sets a deterministic,
+  auditable [min, max] weight range per asset class for a given final
+  tier. `final_tier` here is already the output of Module 3's "ability
+  before willingness" capacity-ceiling capping (compute_final_tier), so
+  this layer does not re-derive a separate debt/emergency-fund safety
+  override from raw profile fields the way the original prototype did --
+  that enforcement already happened before `final_tier` reaches Module 4.
+- Layer 2 (allocation.py) then picks the Sharpe-maximizing point inside
+  Layer 1's bounds using this config's CAPITAL_MARKET_ASSUMPTIONS_V1.
+
+CAPITAL_MARKET_ASSUMPTIONS_V1 is a deliberately simple, illustrative set
+of long-run annualized return/volatility/correlation assumptions per
+asset class -- NOT a market forecast, NOT updated live, and NOT specific
+to any fund/scheme/security (same category-level-only boundary as
+asset_classification_config.py's decomposition assumptions). A revision
+to these numbers is a new version here, not a silent edit, since it
+changes every user's suggested split.
 """
-
-from decimal import Decimal
 
 from app.services.asset_classification_config import AssetClass
 
-TARGET_ALLOCATION_TABLE_V1: dict[int, dict[AssetClass, Decimal]] = {
+# Per-tier [min, max] weight bounds in percent (0-100), one range per
+# asset class. Anchored to the retired TARGET_ALLOCATION_TABLE_V1 point
+# values for cash/debt/equity continuity, widened into ranges, and
+# extended with real_assets/alternatives bounds (absent from the original
+# 3-asset-class prototype) so Layer 2 has room to optimize within a tier
+# while every other module's 5-asset-class AssetClass contract still holds.
+RISK_LADDER_BOUNDS_V1: dict[int, dict[AssetClass, tuple[float, float]]] = {
     1: {
-        AssetClass.CASH: Decimal("40"),
-        AssetClass.DEBT: Decimal("50"),
-        AssetClass.EQUITY: Decimal("10"),
-        AssetClass.REAL_ASSETS: Decimal("0"),
-        AssetClass.ALTERNATIVES: Decimal("0"),
+        AssetClass.CASH: (30.0, 50.0),
+        AssetClass.DEBT: (40.0, 60.0),
+        AssetClass.EQUITY: (5.0, 15.0),
+        AssetClass.REAL_ASSETS: (0.0, 5.0),
+        AssetClass.ALTERNATIVES: (0.0, 0.0),
     },
     2: {
-        AssetClass.CASH: Decimal("25"),
-        AssetClass.DEBT: Decimal("50"),
-        AssetClass.EQUITY: Decimal("20"),
-        AssetClass.REAL_ASSETS: Decimal("5"),
-        AssetClass.ALTERNATIVES: Decimal("0"),
+        AssetClass.CASH: (15.0, 30.0),
+        AssetClass.DEBT: (40.0, 55.0),
+        AssetClass.EQUITY: (15.0, 25.0),
+        AssetClass.REAL_ASSETS: (3.0, 8.0),
+        AssetClass.ALTERNATIVES: (0.0, 2.0),
     },
     3: {
-        AssetClass.CASH: Decimal("15"),
-        AssetClass.DEBT: Decimal("40"),
-        AssetClass.EQUITY: Decimal("35"),
-        AssetClass.REAL_ASSETS: Decimal("8"),
-        AssetClass.ALTERNATIVES: Decimal("2"),
+        AssetClass.CASH: (8.0, 18.0),
+        AssetClass.DEBT: (30.0, 45.0),
+        AssetClass.EQUITY: (28.0, 40.0),
+        AssetClass.REAL_ASSETS: (5.0, 12.0),
+        AssetClass.ALTERNATIVES: (0.0, 4.0),
     },
     4: {
-        AssetClass.CASH: Decimal("10"),
-        AssetClass.DEBT: Decimal("25"),
-        AssetClass.EQUITY: Decimal("50"),
-        AssetClass.REAL_ASSETS: Decimal("10"),
-        AssetClass.ALTERNATIVES: Decimal("5"),
+        AssetClass.CASH: (5.0, 12.0),
+        AssetClass.DEBT: (18.0, 30.0),
+        AssetClass.EQUITY: (42.0, 55.0),
+        AssetClass.REAL_ASSETS: (7.0, 14.0),
+        AssetClass.ALTERNATIVES: (2.0, 7.0),
     },
     5: {
-        AssetClass.CASH: Decimal("5"),
-        AssetClass.DEBT: Decimal("15"),
-        AssetClass.EQUITY: Decimal("65"),
-        AssetClass.REAL_ASSETS: Decimal("10"),
-        AssetClass.ALTERNATIVES: Decimal("5"),
+        AssetClass.CASH: (2.0, 8.0),
+        AssetClass.DEBT: (8.0, 20.0),
+        AssetClass.EQUITY: (55.0, 72.0),
+        AssetClass.REAL_ASSETS: (7.0, 14.0),
+        AssetClass.ALTERNATIVES: (3.0, 8.0),
     },
 }
 
-assert all(sum(row.values()) == Decimal("100") for row in TARGET_ALLOCATION_TABLE_V1.values())
+for _tier, _bounds in RISK_LADDER_BOUNDS_V1.items():
+    _min_sum = sum(b[0] for b in _bounds.values())
+    _max_sum = sum(b[1] for b in _bounds.values())
+    assert _min_sum <= 100.0, f"tier {_tier}: Layer 1 min bounds sum to {_min_sum} > 100 -- infeasible"
+    assert _max_sum >= 100.0, f"tier {_tier}: Layer 1 max bounds sum to {_max_sum} < 100 -- infeasible"
 
-CONFIG_VERSION = "v1"
-CONFIG_EFFECTIVE_DATE = "2026-01-01"
+# Illustrative long-run annualized assumptions (decimals: 0.12 = 12%). Not
+# a forecast; see module docstring.
+_EXPECTED_RETURN: dict[AssetClass, float] = {
+    AssetClass.CASH: 0.045,
+    AssetClass.DEBT: 0.070,
+    AssetClass.EQUITY: 0.120,
+    AssetClass.REAL_ASSETS: 0.085,
+    AssetClass.ALTERNATIVES: 0.110,
+}
+
+_VOLATILITY: dict[AssetClass, float] = {
+    AssetClass.CASH: 0.010,
+    AssetClass.DEBT: 0.050,
+    AssetClass.EQUITY: 0.200,
+    AssetClass.REAL_ASSETS: 0.150,
+    AssetClass.ALTERNATIVES: 0.220,
+}
+
+_CORRELATION: dict[tuple[AssetClass, AssetClass], float] = {
+    (AssetClass.CASH, AssetClass.DEBT): 0.30,
+    (AssetClass.CASH, AssetClass.EQUITY): 0.00,
+    (AssetClass.CASH, AssetClass.REAL_ASSETS): 0.00,
+    (AssetClass.CASH, AssetClass.ALTERNATIVES): 0.00,
+    (AssetClass.DEBT, AssetClass.EQUITY): 0.10,
+    (AssetClass.DEBT, AssetClass.REAL_ASSETS): 0.05,
+    (AssetClass.DEBT, AssetClass.ALTERNATIVES): 0.05,
+    (AssetClass.EQUITY, AssetClass.REAL_ASSETS): 0.30,
+    (AssetClass.EQUITY, AssetClass.ALTERNATIVES): 0.40,
+    (AssetClass.REAL_ASSETS, AssetClass.ALTERNATIVES): 0.20,
+}
+
+
+def _correlation_of(a: AssetClass, b: AssetClass) -> float:
+    if a == b:
+        return 1.0
+    return _CORRELATION.get((a, b), _CORRELATION.get((b, a)))
+
+
+class CapitalMarketAssumptions:
+    """Expected returns and a derived covariance matrix (correlation x
+    volatility_i x volatility_j) for a fixed asset-class ordering, used
+    directly as scipy inputs by Layer 2's optimizer."""
+
+    def __init__(self, asset_order: tuple[AssetClass, ...]):
+        self.asset_order = asset_order
+        self.expected_returns: dict[AssetClass, float] = {a: _EXPECTED_RETURN[a] for a in asset_order}
+        self.covariance: dict[tuple[AssetClass, AssetClass], float] = {
+            (a, b): _correlation_of(a, b) * _VOLATILITY[a] * _VOLATILITY[b] for a in asset_order for b in asset_order
+        }
+
+
+ASSET_ORDER_V1: tuple[AssetClass, ...] = (
+    AssetClass.CASH,
+    AssetClass.DEBT,
+    AssetClass.EQUITY,
+    AssetClass.REAL_ASSETS,
+    AssetClass.ALTERNATIVES,
+)
+
+CAPITAL_MARKET_ASSUMPTIONS_V1 = CapitalMarketAssumptions(ASSET_ORDER_V1)
+
+# Assumed annualized risk-free rate (short-term G-sec/repo proxy) used by
+# Layer 2's Sharpe-ratio objective.
+RISK_FREE_RATE_V1 = 0.06
+
+CONFIG_VERSION = "v2-hybrid"
+CONFIG_EFFECTIVE_DATE = "2026-09-04"
 
 
 ================================================================================FILE: backend\app\services\allocation_service.py================================================================================
@@ -3789,6 +5088,71 @@ HOLDING_TYPE_PROFILES_V1: dict[HoldingType, HoldingTypeProfile] = {
 
 CONFIG_VERSION = "v1"
 CONFIG_EFFECTIVE_DATE = "2026-01-01"
+
+
+================================================================================FILE: backend\app\services\auth_service.py================================================================================
+"""Signup/login: real password verification gating account creation and
+sign-in. See app/models/auth.py for what this does and doesn't cover.
+"""
+
+import uuid
+
+import bcrypt
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models.auth import AuthUser
+
+MIN_PASSWORD_LENGTH = 8
+
+
+class UsernameTakenError(ValueError):
+    pass
+
+
+class InvalidCredentialsError(ValueError):
+    pass
+
+
+class WeakPasswordError(ValueError):
+    pass
+
+
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def _verify_password(password: str, password_hash: str) -> bool:
+    return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+
+
+def signup(session: Session, username: str, password: str, commit: bool = True) -> AuthUser:
+    username = username.strip()
+    if not username:
+        raise ValueError("username must not be blank")
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise WeakPasswordError(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
+
+    existing = session.execute(select(AuthUser).where(AuthUser.username == username)).scalar_one_or_none()
+    if existing is not None:
+        raise UsernameTakenError(f"username {username!r} is already taken")
+
+    user = AuthUser(user_id=str(uuid.uuid4()), username=username, password_hash=_hash_password(password))
+    session.add(user)
+    if commit:
+        session.commit()
+        session.refresh(user)
+    else:
+        session.flush()
+    return user
+
+
+def login(session: Session, username: str, password: str) -> AuthUser:
+    username = username.strip()
+    user = session.execute(select(AuthUser).where(AuthUser.username == username)).scalar_one_or_none()
+    if user is None or not _verify_password(password, user.password_hash):
+        raise InvalidCredentialsError("incorrect username or password")
+    return user
 
 
 ================================================================================FILE: backend\app\services\debt_amortization.py================================================================================
@@ -4531,7 +5895,7 @@ accumulation entirely (pausing, not resetting, any streak already built).
 from dataclasses import dataclass
 from decimal import Decimal
 
-from app.services.allocation_config import TARGET_ALLOCATION_TABLE_V1
+from app.services.allocation import compute_target_allocation
 from app.services.asset_classification_config import AssetClass
 from app.services.drift_detection_config import (
     BEHAVIORAL_SIGNAL_DEADBAND_PCT,
@@ -4548,7 +5912,7 @@ from app.services.risk_profile import CapacityInputs, IncomeStabilityValue, comp
 
 
 def _equity_target(tier: int) -> Decimal:
-    return TARGET_ALLOCATION_TABLE_V1[tier][AssetClass.EQUITY]
+    return compute_target_allocation(tier).target_pct[AssetClass.EQUITY]
 
 
 @dataclass(frozen=True)
@@ -5536,6 +6900,125 @@ class Category(str, Enum):
 
 
 @dataclass(frozen=True)
+class RoadmapTopic:
+    topic_id: str
+    title: str
+    description: str
+
+
+@dataclass(frozen=True)
+class RoadmapLevel:
+    level: int
+    title: str
+    topics: tuple[RoadmapTopic, ...]
+
+
+@dataclass(frozen=True)
+class QuizQuestion:
+    topic_id: str
+    prompt: str
+    options: tuple[str, ...]
+    answer_index: int
+    explanation: str
+
+
+ROADMAP: tuple[RoadmapLevel, ...] = (
+    RoadmapLevel(1, "Financial Basics", tuple(RoadmapTopic(*topic) for topic in (
+        ("income-expenses", "Income vs expenses", "See where money comes from and where it goes."),
+        ("needs-wants", "Needs vs wants", "Separate essentials from choices you can adjust."),
+        ("budgeting", "Budgeting and cash flow", "Plan a realistic month and track expenses."),
+        ("emergency-fund", "Emergency funds", "Protect everyday life from unexpected costs."),
+        ("inflation-interest", "Inflation and interest", "Understand purchasing power, simple interest, and compound interest."),
+    ))),
+    RoadmapLevel(2, "Financial Safety", tuple(RoadmapTopic(*topic) for topic in (
+        ("buffer-insurance", "Buffers and insurance", "Build resilience with an emergency buffer and appropriate cover."),
+        ("health-life-insurance", "Health and life insurance", "Learn what each type of cover is for."),
+        ("high-interest-debt", "High-interest debt", "Spot expensive debt and make a payoff plan."),
+        ("credit-score", "Credit scores", "Understand the habits that support a healthy credit history."),
+        ("subscriptions-documents", "Subscriptions and documents", "Review recurring costs and organise important records."),
+    ))),
+    RoadmapLevel(3, "Banking & Saving", tuple(RoadmapTopic(*topic) for topic in (
+        ("savings-accounts", "Savings accounts", "Compare access, safety, and interest for available cash."),
+        ("fd-rd", "FDs and RDs", "Understand fixed and recurring deposits."),
+        ("sweep-liquidity", "Sweep-in FDs and liquidity", "Match access to money with the goal's time horizon."),
+        ("post-tax-returns", "Interest, tax, and post-tax returns", "Compare what remains after tax, not only advertised rates."),
+        ("tax-efficient-savings", "Tax-efficient savings", "Explore legally applicable options and verify current Indian tax rules."),
+    ))),
+    RoadmapLevel(4, "Investing Basics", tuple(RoadmapTopic(*topic) for topic in (
+        ("saving-investing", "Saving vs investing", "Know why investing carries uncertainty beyond saving."),
+        ("risk-return", "Risk, return, and volatility", "Connect time horizon and uncertainty without chasing returns."),
+        ("asset-classes", "Equity, debt, gold, and securities", "Meet the main asset classes, including government securities."),
+        ("funds-etfs", "Mutual funds, index funds, and ETFs", "Understand pooled and index-tracking approaches."),
+        ("diversification-allocation", "Diversification and asset allocation", "Spread risk and set a deliberate mix."),
+        ("sips-goals", "SIPs and time horizons", "Use manageable contributions for suitable long-term goals."),
+    ))),
+    RoadmapLevel(5, "Taxes & Retirement", tuple(RoadmapTopic(*topic) for topic in (
+        ("income-tax", "Income-tax basics", "Learn the vocabulary before making tax decisions."),
+        ("tax-saving-capital-gains", "Tax-saving investments and capital gains", "Understand that treatment differs by product and can change."),
+        ("epf-ppf-nps", "EPF, PPF, and NPS", "Compare the purpose and broad features of retirement accounts."),
+        ("retirement-planning", "Retirement planning", "Turn a future need into a time-bound goal."),
+        ("pre-tax-post-tax", "Pre-tax vs post-tax returns", "Verify current rules and your circumstances before acting."),
+    )))
+)
+
+QUIZ_QUESTIONS: tuple[QuizQuestion, ...] = (
+    QuizQuestion("income-expenses", "Which statement best describes cash flow?", ("Money in minus money out", "Only your salary", "Your investment returns"), 0, "Cash flow is the money entering and leaving your household."),
+    QuizQuestion("budgeting", "What is the main purpose of a budget?", ("To spend every rupee", "To plan how income will be used", "To predict market returns"), 1, "A budget gives each rupee a job before the month unfolds."),
+    QuizQuestion("emergency-fund", "What is an emergency fund mainly for?", ("Planned holidays", "Unexpected essential costs", "Buying risky investments"), 1, "It protects essential spending when income or plans are disrupted."),
+    QuizQuestion("inflation-interest", "What does inflation generally do to purchasing power?", ("Increases it", "Leaves it unchanged", "Reduces it over time"), 2, "As prices rise, the same amount of money usually buys less."),
+    QuizQuestion("buffer-insurance", "Insurance is primarily designed to transfer which risk?", ("The cost of a covered loss", "The risk of every investment", "The need to budget"), 0, "Insurance helps protect against specified, financially significant losses."),
+    QuizQuestion("high-interest-debt", "Which debt usually deserves earlier attention?", ("The highest-interest debt", "The newest debt regardless of rate", "Debt with the smallest balance only"), 0, "Paying down expensive interest can prevent the balance from compounding."),
+    QuizQuestion("credit-score", "Which habit generally supports a healthy credit history?", ("Missing payments", "Paying obligations on time", "Applying for every card"), 1, "Payment history and responsible borrowing matter to credit health."),
+    QuizQuestion("savings-accounts", "What is a key feature of a savings account?", ("Usually easier access to cash", "Guaranteed equity returns", "No bank rules"), 0, "Savings accounts are generally intended for accessible cash, subject to account terms."),
+    QuizQuestion("fd-rd", "What is an RD designed for?", ("Regular periodic deposits", "Daily stock trading", "Insurance claims"), 0, "A recurring deposit accepts regular contributions for a defined period."),
+    QuizQuestion("post-tax-returns", "Why compare post-tax returns?", ("Tax can change what you keep", "Advertised rates are always wrong", "Taxes only affect equity"), 0, "The useful comparison is the amount left after applicable tax."),
+    QuizQuestion("saving-investing", "How does investing differ from saving?", ("Investing usually involves more uncertainty", "Saving always loses money", "They are identical"), 0, "Investing can grow over time but values may fluctuate and losses are possible."),
+    QuizQuestion("risk-return", "What is volatility?", ("A measure of price movement", "A guaranteed loss", "A type of bank account"), 0, "Volatility describes how much and how quickly an investment value moves."),
+    QuizQuestion("funds-etfs", "What does diversification aim to do?", ("Spread exposure across investments", "Guarantee a profit", "Remove every risk"), 0, "Holding different assets can reduce reliance on one investment or risk."),
+    QuizQuestion("diversification-allocation", "Asset allocation means deciding the mix between what?", ("Asset classes", "Bank branches", "Tax forms"), 0, "It is the deliberate split across assets such as cash, debt, and equity."),
+    QuizQuestion("sips-goals", "A time horizon is the period until what?", ("You need the goal's money", "The market opens", "A bank statement arrives"), 0, "Goals with different timelines may need different levels of uncertainty."),
+    QuizQuestion("income-tax", "Why should current tax rules be verified?", ("Rules and circumstances can change", "Tax never changes", "Only banks know tax"), 0, "Tax treatment depends on current law and the user's circumstances."),
+    QuizQuestion("epf-ppf-nps", "What is a common purpose of EPF, PPF, and NPS?", ("Long-term retirement planning", "Short-term grocery spending", "Daily trading"), 0, "These instruments are commonly used as part of long-term retirement planning."),
+    QuizQuestion("retirement-planning", "What makes a retirement goal more useful?", ("A time horizon and an estimated need", "No target at all", "Following daily market prices"), 0, "A timeframe and estimated spending need make planning more concrete."),
+)
+
+CHECKLIST: tuple[tuple[str, str, str], ...] = (
+    ("foundation", "Track monthly income and expenses", "Financial foundation"),
+    ("budget", "Create a basic monthly budget", "Financial foundation"),
+    ("recurring-costs", "Identify unnecessary recurring expenses", "Financial foundation"),
+    ("debt-plan", "Pay off or plan for high-interest debt", "Financial foundation"),
+    ("initial-buffer", "Build an initial emergency fund", "Financial foundation"),
+    ("buffer-3-6", "Work towards 3–6 months of essential expenses", "Financial foundation"),
+    ("health-cover", "Have adequate health insurance", "Financial foundation"),
+    ("life-cover", "Evaluate whether life insurance is required", "Financial foundation"),
+    ("documents", "Organise important financial documents", "Financial foundation"),
+    ("beneficiaries", "Nominate beneficiaries where applicable", "Financial foundation"),
+    ("savings-balance", "Maintain an appropriate savings balance", "Savings"),
+    ("fd-rd-basics", "Understand FDs, RDs, rates, liquidity, and tax", "Savings"),
+    ("short-long-term", "Keep short-term money separate from long-term investments", "Savings"),
+    ("goals-horizon", "Define goals and assign a time horizon", "Investing"),
+    ("risk-tolerance", "Understand your risk tolerance", "Investing"),
+    ("diversification", "Learn about diversification and asset allocation", "Investing"),
+    ("manageable-contribution", "Start with an appropriate, manageable contribution", "Investing"),
+    ("consistent-contributions", "Set up consistent contributions where appropriate", "Investing"),
+    ("periodic-review", "Review allocation periodically, not daily market moves", "Investing"),
+    ("roadmap-complete", "Complete the beginner financial-literacy roadmap", "Financial literacy"),
+    ("module-quizzes", "Complete short quizzes after each topic", "Financial literacy"),
+    ("final-assessment", "Complete a final financial-health assessment", "Financial literacy"),
+)
+
+BADGES: tuple[tuple[str, str, str], ...] = (
+    ("budget-beginner", "Budget Beginner", "Completed the budgeting module"),
+    ("emergency-ready", "Emergency Ready", "Learned how emergency funds work"),
+    ("debt-aware", "Debt Aware", "Completed the debt-management module"),
+    ("investing-101", "Investing 101", "Completed investing fundamentals"),
+    ("tax-smart", "Tax Smart", "Completed basic tax education"),
+    ("diversification-pro", "Diversification Pro", "Passed the diversification quiz"),
+    ("foundations-complete", "Financial Foundations Complete", "Completed the beginner roadmap"),
+)
+
+
+@dataclass(frozen=True)
 class MilestoneDefinition:
     category: Category
     signal_type: SignalType
@@ -5616,9 +7099,13 @@ from app.services.event_log import get_user_event_history, get_user_snapshot_his
 from app.services.financial_position import MAX_BUFFER_MONTHS, EmiInput, compute_outstanding_principal
 from app.services.gamification import crossed_thresholds, longest_trailing_positive_streak
 from app.services.gamification_config import (
+    BADGES,
     BUFFER_MONTHS_THRESHOLDS,
+    CHECKLIST,
     CONFIG_VERSION,
     CONSISTENCY_MONTH_THRESHOLDS,
+    ROADMAP,
+    QUIZ_QUESTIONS,
     SUBSCRIPTION_CANCELLED_COUNT_THRESHOLDS,
     Category,
 )
@@ -5632,6 +7119,75 @@ class AwardedMilestone:
     category: str
     headline: str
     details: dict
+
+
+EDUCATION_SOURCE = "gamification_education"
+
+
+def _education_events(session: Session, user_id: str):
+    return get_user_event_history(session, user_id, module_source=EDUCATION_SOURCE, limit=5000)
+
+
+def complete_education_item(session: Session, user_id: str, item_id: str, kind: str, correct: bool | None = None, answer_index: int | None = None) -> dict | None:
+    valid_ids = {topic.topic_id for level in ROADMAP for topic in level.topics} | {item[0] for item in CHECKLIST}
+    if item_id not in valid_ids or kind not in {"lesson", "quiz", "checklist"}:
+        raise ValueError("unknown education item or completion type")
+    question = next((item for item in QUIZ_QUESTIONS if item.topic_id == item_id), None)
+    if kind == "quiz" and (question is None or answer_index is None or answer_index < 0 or answer_index >= len(question.options)):
+        raise ValueError("a valid answer is required for this quiz")
+    if kind == "quiz":
+        is_correct = answer_index == question.answer_index
+        if not is_correct:
+            return {"correct": False, "explanation": question.explanation}
+        correct = True
+    existing = [
+        event for event in _education_events(session, user_id)
+        if event.suggested_value.get("item_id") == item_id and event.suggested_value.get("kind") == kind
+    ]
+    if existing:
+        return {"correct": True, "explanation": question.explanation} if kind == "quiz" and question else None
+    log_suggestion_event(
+        session, user_id=user_id, module_source=EDUCATION_SOURCE,
+        suggested_value={"item_id": item_id, "kind": kind, "correct": correct, "answer_index": answer_index},
+        market_context={"config_version": CONFIG_VERSION},
+    )
+    return {"correct": True, "explanation": question.explanation} if kind == "quiz" and question else None
+
+
+def get_education_progress(session: Session, user_id: str) -> dict:
+    events = _education_events(session, user_id)
+    completed_topics = {e.suggested_value["item_id"] for e in events if e.suggested_value.get("kind") == "lesson"}
+    completed_checklist = {e.suggested_value["item_id"] for e in events if e.suggested_value.get("kind") == "checklist"}
+    passed_quizzes = {e.suggested_value["item_id"] for e in events if e.suggested_value.get("kind") == "quiz" and e.suggested_value.get("correct") is True}
+    quiz_by_topic = {question.topic_id: question for question in QUIZ_QUESTIONS}
+    total_topics = sum(len(level.topics) for level in ROADMAP)
+    earned = {
+        "budget-beginner": "budgeting" in completed_topics,
+        "emergency-ready": "emergency-fund" in completed_topics,
+        "debt-aware": "high-interest-debt" in completed_topics,
+        "investing-101": {"saving-investing", "risk-return", "funds-etfs"}.issubset(completed_topics),
+        "tax-smart": {"income-tax", "tax-saving-capital-gains"}.issubset(completed_topics),
+        "diversification-pro": "diversification-allocation" in passed_quizzes,
+        "foundations-complete": all(topic.topic_id in completed_topics for level in ROADMAP[:2] for topic in level.topics),
+    }
+    dates = sorted({event.timestamp.date() for event in events if event.suggested_value.get("kind") in {"lesson", "quiz"}}, reverse=True)
+    streak = 0
+    if dates:
+        from datetime import timedelta
+        expected = dates[0]
+        for learning_date in dates:
+            if learning_date != expected:
+                break
+            streak += 1
+            expected -= timedelta(days=1)
+    return {
+        "roadmap": [{"level": level.level, "title": level.title, "topics": [{"topic_id": topic.topic_id, "title": topic.title, "description": topic.description, "completed": topic.topic_id in completed_topics, "quiz_question": ({"question_id": quiz.topic_id, "prompt": quiz.prompt, "options": list(quiz.options), "passed": quiz.topic_id in passed_quizzes} if (quiz := quiz_by_topic.get(topic.topic_id)) else None)} for topic in level.topics]} for level in ROADMAP],
+        "checklist": [{"item_id": item_id, "title": title, "section": section, "completed": item_id in completed_checklist} for item_id, title, section in CHECKLIST],
+        "badges": [{"badge_id": badge_id, "title": title, "description": description, "earned": earned[badge_id]} for badge_id, title, description in BADGES],
+        "completed_topics": len(completed_topics), "total_topics": total_topics,
+        "progress_pct": round(len(completed_topics) * 100 / total_topics) if total_topics else 0,
+        "learning_streak_days": streak,
+    }
 
 
 def _awarded_milestone_ids(session: Session, user_id: str) -> set[str]:
@@ -6100,6 +7656,7 @@ from sqlalchemy.orm import Session
 
 from app.models.onboarding import (
     EmiEntry,
+    EmiPurpose,
     EmploymentType,
     ExpenseItem,
     ExpenseSourceDecisionRecord,
@@ -6207,6 +7764,7 @@ def add_emi(
     amount_paise: int,
     remaining_tenure_months: int,
     annual_rate_bps: int,
+    purpose: EmiPurpose | None = None,
     commit: bool = True,
 ) -> EmiEntry:
     _require_profile(session, user_id)
@@ -6216,6 +7774,7 @@ def add_emi(
         amount_paise=amount_paise,
         remaining_tenure_months=remaining_tenure_months,
         annual_rate_bps=annual_rate_bps,
+        purpose=purpose,
     )
     session.add(emi)
     session.flush()
@@ -7239,6 +8798,61 @@ QUESTIONNAIRE_V1 = Questionnaire(
 )
 
 
+QUESTIONNAIRE_V2 = Questionnaire(
+    version="v2",
+    effective_date="2026-09-04",
+    questions=QUESTIONNAIRE_V1.questions
+    + (
+        Question(
+            id="windfall_allocation",
+            text="You unexpectedly receive Rs 20,000. What would you do with it?",
+            weight=4,
+            options=(
+                QuestionOption("fd_or_savings", "Put it in a bank FD or savings account", 1),
+                QuestionOption("debt_funds", "Invest it in high-quality debt/bond funds", 2),
+                QuestionOption("split_debt_equity", "Split it between debt and equity funds", 3),
+                QuestionOption("equity_funds", "Invest it in equity mutual funds", 4),
+                QuestionOption("equity_plus_borrow", "Invest it in equities, and consider borrowing more to invest further", 5),
+            ),
+        ),
+        # Grable & Lytton (1999)-inspired forced-choice risk item: a
+        # guaranteed amount vs. escalating (lower-probability, higher-payout)
+        # gambles of roughly similar expected value.
+        Question(
+            id="sure_gain_tradeoff",
+            text="Which would you choose: a guaranteed amount, or a chance at more?",
+            weight=4,
+            options=(
+                QuestionOption("guaranteed_5000", "A guaranteed Rs 5,000", 1),
+                QuestionOption("chance_70pct_7000", "A 70% chance at Rs 7,000, otherwise nothing", 2),
+                QuestionOption("chance_50pct_10000", "A 50% chance at Rs 10,000, otherwise nothing", 3),
+                QuestionOption("chance_30pct_17000", "A 30% chance at Rs 17,000, otherwise nothing", 4),
+                QuestionOption("chance_10pct_50000", "A 10% chance at Rs 50,000, otherwise nothing", 5),
+            ),
+        ),
+        Question(
+            id="friend_description",
+            text="In general, how would your closest friend describe you as a risk-taker with money?",
+            weight=2,
+            options=(
+                QuestionOption("real_risk_avoider", "A real risk avoider", 1),
+                QuestionOption("cautious", "Cautious", 2),
+                QuestionOption("calculated_after_research", "Willing to take calculated risks after some research", 3),
+                QuestionOption("comfortable_for_bigger_rewards", "Comfortable taking risks for a shot at bigger rewards", 4),
+                QuestionOption("real_gambler", "A real gambler", 5),
+            ),
+        ),
+    ),
+    # total weight = 20 (10 existing + 4 + 4 + 2), score range [20, 100];
+    # 4 breakpoints split it into 5 equal-width tiers of 16 points each:
+    # [20,36) [36,52) [52,68) [68,84) [84,100]
+    tier_breakpoints=(36, 52, 68, 84),
+)
+
+assert QUESTIONNAIRE_V2.min_score == 20
+assert QUESTIONNAIRE_V2.max_score == 100
+
+
 @dataclass(frozen=True)
 class Band:
     """A half-open [min_value, max_value) band mapping to a ceiling tier.
@@ -7333,7 +8947,7 @@ from app.services.risk_profile import (
     compute_final_tier,
     compute_stated_tier,
 )
-from app.services.risk_profile_config import CAPACITY_RULE_TABLE_V1, QUESTIONNAIRE_V1, CapacityRuleTable, Questionnaire
+from app.services.risk_profile_config import CAPACITY_RULE_TABLE_V1, QUESTIONNAIRE_V2, CapacityRuleTable, Questionnaire
 
 
 def gather_capacity_inputs(session: Session, user_id: str) -> CapacityInputs:
@@ -7365,7 +8979,7 @@ def compute_and_log_risk_tier(
     session: Session,
     user_id: str,
     answers: dict[str, str],
-    questionnaire: Questionnaire = QUESTIONNAIRE_V1,
+    questionnaire: Questionnaire = QUESTIONNAIRE_V2,
     rule_table: CapacityRuleTable = CAPACITY_RULE_TABLE_V1,
     commit: bool = True,
 ) -> FinalTierResult:
@@ -7413,47 +9027,58 @@ def compute_and_log_risk_tier(
 
 
 ================================================================================FILE: backend\app\services\rumour_verification_bridge.py================================================================================
-"""Thin bridge from the backend to Module 5 (modules/rumour_verification/),
-which lives outside backend/ by design — see that module's own README:
-it needed to be buildable and gradeable independently, in week 1, before
-Module 1's data substrate existed. Nothing here moves, duplicates, or
-modifies any of Module 5's code; it adds Module 5's own `src/` package to
-`sys.path` (the same import style Module 5's own files already use
-internally, e.g. `from src.corpus import Filing`) and re-exports exactly
-what the API route needs.
+"""Bridge between the FastAPI backend and the n8n Module 5 workflow."""
 
-`log_verification_event` is purely for auditability — it never sets
-`action_taken`/`chosen_value`/`funded`, since (per Module 5's own README)
-a rumour-verification result isn't something a user accepts/edits/rejects
-the way a suggested allocation is; the event log entry exists only so
-"a verification was shown to a user" is captured, which matters for a
-transparency-focused project even before anyone builds a UI on top of it.
-"""
-
-import sys
+import os
 from datetime import date, datetime
-from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
-_RUMOUR_VERIFICATION_ROOT = Path(__file__).resolve().parents[3] / "modules" / "rumour_verification"
-if str(_RUMOUR_VERIFICATION_ROOT) not in sys.path:
-    sys.path.insert(0, str(_RUMOUR_VERIFICATION_ROOT))
+import httpx
+from dotenv import load_dotenv
+from sqlalchemy.orm import Session
 
-from src.corpus import Filing, load_corpus  # noqa: E402
-from src.verification import VerificationResult, verify_rumour  # noqa: E402
+from app.models.suggestion_event import SuggestionEvent
+from app.services.event_log import log_suggestion_event
 
-from sqlalchemy.orm import Session  # noqa: E402
+# `os.getenv` only sees real process environment variables, not .env files --
+# nothing else in the app loads app/.env, so without this N8N_WEBHOOK_URL is
+# silently unset regardless of what's in the file. `load_dotenv` never
+# overrides a variable already set in the real environment (e.g. in CI or a
+# test's monkeypatch), so this is a no-op wherever the env var is set another way.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from app.models.suggestion_event import SuggestionEvent  # noqa: E402
-from app.services.event_log import log_suggestion_event  # noqa: E402
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 
 
-@lru_cache(maxsize=1)
-def _cached_corpus() -> tuple[Filing, ...]:
-    """The corpus is a static, read-only JSON file (see Module 5's own
-    data/filings_corpus.json) -- loaded once per process rather than off
-    disk on every request."""
-    return tuple(load_corpus())
+class N8NVerificationResult:
+    """Normalized representation of the JSON returned by n8n."""
+
+    def __init__(
+        self,
+        query_text: str,
+        rumour_date: date | None,
+        verdict: str | None,
+        confidence: float | None,
+        company: str,
+        ticker: str,
+        official_evidence: list[dict[str, Any]],
+        news_evidence: list[dict[str, Any]],
+        temporal_analysis: str,
+        reasoning: str,
+        caveats: list[str],
+    ):
+        self.query_text = query_text
+        self.rumour_date = rumour_date
+        self.verdict = verdict
+        self.confidence = confidence
+        self.company = company
+        self.ticker = ticker
+        self.official_evidence = official_evidence
+        self.news_evidence = news_evidence
+        self.temporal_analysis = temporal_analysis
+        self.reasoning = reasoning
+        self.caveats = caveats
 
 
 def run_verification(
@@ -7461,54 +9086,181 @@ def run_verification(
     rumour_date: date | None = None,
     company_name: str | None = None,
     evaluated_at: datetime | None = None,
-) -> VerificationResult:
-    corpus = list(_cached_corpus())
-    return verify_rumour(
-        rumour_text, corpus, rumour_date=rumour_date, company_name=company_name, evaluated_at=evaluated_at
+) -> N8NVerificationResult:
+
+    if not N8N_WEBHOOK_URL:
+        raise RuntimeError(
+            "N8N_WEBHOOK_URL is not configured."
+        )
+
+    # Your existing n8n workflow expects these names.
+    payload = {
+        "rumour": rumour_text,
+        "company": company_name or "",
+        "ticker": company_name or "",
+        "rumour_date": (
+            rumour_date.isoformat()
+            if rumour_date
+            else ""
+        ),
+        "evaluated_at": (
+            evaluated_at.isoformat()
+            if evaluated_at
+            else ""
+        ),
+    }
+
+    try:
+        response = httpx.post(
+            N8N_WEBHOOK_URL,
+            json=payload,
+            timeout=60.0,
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+    except httpx.TimeoutException as exc:
+        raise RuntimeError(
+            "The n8n rumour-verification workflow timed out."
+        ) from exc
+
+    except httpx.HTTPStatusError as exc:
+        raise RuntimeError(
+            f"n8n returned HTTP {exc.response.status_code}: "
+            f"{exc.response.text[:500]}"
+        ) from exc
+
+    except httpx.RequestError as exc:
+        raise RuntimeError(
+            f"Could not connect to n8n: {exc}"
+        ) from exc
+
+    except ValueError as exc:
+        raise RuntimeError(
+            "n8n returned invalid JSON."
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise RuntimeError(
+            f"n8n returned a malformed response (expected a JSON object, got {type(data).__name__})."
+        )
+
+    official_evidence = data.get("official_evidence")
+    if not isinstance(official_evidence, list):
+        official_evidence = []
+
+    news_evidence = data.get("news_evidence")
+    if not isinstance(news_evidence, list):
+        news_evidence = []
+
+    confidence = data.get("confidence")
+    if confidence is not None and not isinstance(confidence, (int, float)):
+        confidence = None
+
+    return N8NVerificationResult(
+        query_text=data.get("claim") or rumour_text,
+        rumour_date=rumour_date,
+        verdict=data.get("verdict"),
+        confidence=confidence,
+        company=data.get("company") or company_name or "",
+        ticker=data.get("ticker") or "",
+        official_evidence=official_evidence,
+        news_evidence=news_evidence,
+        temporal_analysis=data.get("temporal_analysis") or "",
+        reasoning=data.get("reasoning") or "",
+        caveats=data.get("caveats") or [],
     )
 
 
-def verification_result_to_suggested_value(result: VerificationResult) -> dict:
-    """Never recomputes anything -- a straight, JSON-safe reshaping of the
-    VerificationResult that verify_rumour already produced, for the
-    logged event and the API response alike."""
-    matched = result.matched_filing
+def _extract_matched_filing(result: N8NVerificationResult) -> dict | None:
+    """Build matched_filing from n8n's best official-evidence item, but
+    only when that item actually names a specific, dated, sourced filing.
+    An evidence entry missing an id/date/authority isn't "no information",
+    it's *insufficient* information -- surfacing it anyway (with blank or
+    guessed fallbacks) would present a fabricated filing as real, and a
+    raw `date` object slipping into `filing_date` here would also fail to
+    JSON-serialize when logged. Empty/insufficient evidence both resolve
+    to `None`, per the response contract's "matched_filing must be null"
+    rule.
+    """
+    if not result.official_evidence:
+        return None
+
+    best = result.official_evidence[0]
+    if not isinstance(best, dict):
+        return None
+
+    filing_id = best.get("filing_id") or best.get("id")
+    filing_date = best.get("filing_date") or best.get("date")
+    source_authority = best.get("source_authority") or best.get("source")
+
+    if not filing_id or not filing_date or not source_authority:
+        return None
+
     return {
-        "query_text": result.query_text,
-        "rumour_date": result.rumour_date.isoformat() if result.rumour_date else None,
-        "status": result.status,
-        "matched_score": result.matched_score,
-        "matched_filing": None
-        if matched is None
-        else {
-            "filing_id": matched.filing_id,
-            "company_name": matched.company_name,
-            "filing_date": matched.filing_date.isoformat(),
-            "filing_type": matched.filing_type,
-            "source_authority": matched.source_authority,
-            "source_url": matched.source_url,
-            "determination": matched.determination,
-        },
-        "candidates_considered": len(result.all_candidates),
-        "candidates_passing": len(result.candidates),
-        # result.candidates can be non-empty even with no match (it holds
-        # the top unfiltered-ranking candidates as a fallback in that
-        # case, not confirmed passers) -- gate on matched_filing, the
-        # actual signal of "there was a real winner", not on the list
-        # being non-empty.
-        "top_candidate_reasons": [] if matched is None else list(result.candidates[0].checks.reasons()),
+        "filing_id": filing_id,
+        "company_name": best.get("company_name") or result.company,
+        "filing_date": filing_date,
+        "filing_type": best.get("filing_type") or best.get("type") or "",
+        "source_authority": source_authority,
+        "source_url": best.get("source_url") or best.get("url"),
+        "determination": best.get("determination") or best.get("determination_status"),
     }
 
 
-def log_verification_event(session: Session, user_id: str, result: VerificationResult) -> SuggestionEvent:
+def verification_result_to_suggested_value(
+    result: N8NVerificationResult,
+) -> dict:
+
+    matched_filing = _extract_matched_filing(result)
+
+    return {
+        "query_text": result.query_text,
+        "rumour_date": (
+            result.rumour_date.isoformat()
+            if result.rumour_date
+            else None
+        ),
+        "status": result.verdict,
+        "matched_score": result.confidence,
+        "matched_filing": matched_filing,
+        "candidates_considered": (
+            len(result.official_evidence)
+            + len(result.news_evidence)
+        ),
+        "candidates_passing": len(result.official_evidence),
+        # filter out blanks -- n8n doesn't always populate reasoning/temporal
+        # analysis, and a list of empty strings isn't a useful "reasons" list
+        "top_candidate_reasons": [r for r in (result.reasoning, result.temporal_analysis, *result.caveats) if r],
+    }
+
+
+def log_verification_event(
+    session: Session,
+    user_id: str,
+    result: N8NVerificationResult,
+) -> SuggestionEvent:
+
+    suggested_value = verification_result_to_suggested_value(result)
+
     return log_suggestion_event(
         session,
         user_id=user_id,
         module_source="rumour_verification",
-        suggested_value=verification_result_to_suggested_value(result),
-        market_context={"corpus_size": len(result.all_candidates)},
+        suggested_value=suggested_value,
+        market_context={
+            "official_evidence_count": len(
+                result.official_evidence
+            ),
+            "news_evidence_count": len(
+                result.news_evidence
+            ),
+            "verdict": result.verdict,
+            "confidence": result.confidence,
+        },
     )
-
 
 ================================================================================FILE: backend\app\services\transparency.py================================================================================
 """Module 9: transparency/rule-tracing layer. Reads exclusively from
@@ -8117,6 +9869,72 @@ def downgrade() -> None:
     op.drop_column("emi_entry", "closed_at")
 
 
+================================================================================FILE: backend\migrations\versions\0006_create_auth_user.py================================================================================
+"""create auth_user table (real signup/login accounts)
+
+Revision ID: 0006
+Revises: 0005
+Create Date: 2026-09-04
+"""
+from alembic import op
+import sqlalchemy as sa
+
+revision = "0006"
+down_revision = "0005"
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    # unique constraint declared inline at create_table time -- SQLite (used
+    # in tests) can't ALTER a table to add a constraint after the fact
+    op.create_table(
+        "auth_user",
+        sa.Column("user_id", sa.String(36), primary_key=True),
+        sa.Column("username", sa.String(64), nullable=False),
+        sa.Column("password_hash", sa.String(255), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.UniqueConstraint("username", name="uq_auth_user_username"),
+    )
+    op.create_index("ix_auth_user_username", "auth_user", ["username"])
+
+
+def downgrade() -> None:
+    op.drop_index("ix_auth_user_username", table_name="auth_user")
+    op.drop_table("auth_user")
+
+
+================================================================================FILE: backend\migrations\versions\0007_add_emi_purpose.py================================================================================
+"""add purpose to emi_entry (what the loan is for -- home/vehicle/...)
+
+Revision ID: 0007
+Revises: 0006
+Create Date: 2026-09-04
+"""
+from alembic import op
+import sqlalchemy as sa
+
+revision = "0007"
+down_revision = "0006"
+branch_labels = None
+depends_on = None
+
+emi_purpose_enum = sa.Enum(
+    "home", "vehicle", "personal", "education", "credit_card", "electronics", "other",
+    name="emi_purpose_enum",
+)
+
+
+def upgrade() -> None:
+    emi_purpose_enum.create(op.get_bind(), checkfirst=True)
+    op.add_column("emi_entry", sa.Column("purpose", emi_purpose_enum, nullable=True))
+
+
+def downgrade() -> None:
+    op.drop_column("emi_entry", "purpose")
+    emi_purpose_enum.drop(op.get_bind(), checkfirst=True)
+
+
 ================================================================================FILE: backend\scripts\__init__.py================================================================================
 
 
@@ -8284,6 +10102,209 @@ if __name__ == "__main__":
     main()
 
 
+================================================================================FILE: backend\scripts\seed_dummy_user.py================================================================================
+"""Seeds one realistic dummy user through the ENTIRE workflow, against a
+REAL running server (not an in-memory DB like the other scripts/*.py demos)
+-- signup, full onboarding, risk profile, allocation, a personalization
+edit, debt/leak, gamification, and transparency. Run this, then log into
+the Expo app with the printed username/password to see every screen
+populated with real, backend-computed data.
+
+Prerequisites: the backend must already be running, e.g.
+    uvicorn app.main:app --reload
+(from backend/, in another terminal).
+
+Run with (from backend/):
+    python -m scripts.seed_dummy_user
+
+Re-running reuses the same account (logs in instead of signing up again)
+but will ADD a second copy of every expense/EMI/holding, since those are
+plain add-only endpoints -- change DUMMY_USERNAME below for a clean slate
+instead of re-running against the same one.
+"""
+
+import sys
+
+import httpx
+
+BASE_URL = "http://127.0.0.1:8000"
+DUMMY_USERNAME = "dummy_investor"
+DUMMY_PASSWORD = "dummydata123"
+
+
+def _print_step(label: str) -> None:
+    print(f"\n--- {label} ---")
+
+
+def signup_or_login(client: httpx.Client) -> str:
+    resp = client.post("/auth/signup", json={"username": DUMMY_USERNAME, "password": DUMMY_PASSWORD})
+    if resp.status_code == 201:
+        print(f"signed up new user {DUMMY_USERNAME!r}")
+    elif resp.status_code == 409:
+        resp = client.post("/auth/login", json={"username": DUMMY_USERNAME, "password": DUMMY_PASSWORD})
+        resp.raise_for_status()
+        print(f"{DUMMY_USERNAME!r} already existed -- logged in instead")
+    else:
+        resp.raise_for_status()
+    return resp.json()["user_id"]
+
+
+def main() -> None:
+    with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
+        try:
+            client.get("/health").raise_for_status()
+        except httpx.RequestError:
+            print(f"Could not reach {BASE_URL} -- start the backend first (uvicorn app.main:app --reload).")
+            sys.exit(1)
+
+        _print_step("Sign up / log in")
+        user_id = signup_or_login(client)
+        print(f"user_id = {user_id}")
+        u = f"/users/{user_id}"
+
+        _print_step("Profile")
+        client.put(f"{u}/profile", json={
+            "income_paise": 120_000_00,
+            "income_stability": "regular",
+            "employment_type": "salaried",
+            "dependents_count": 1,
+            "cash_balance_paise": 300_000_00,
+        }).raise_for_status()
+        print("profile saved: Rs 1,20,000/mo income, Rs 3,00,000 cash, 1 dependent")
+
+        _print_step("Expenses")
+        expenses = [
+            {"category": "rent", "amount_paise": 25_000_00, "frequency": "monthly", "is_essential": True},
+            {"category": "groceries", "amount_paise": 8_000_00, "frequency": "monthly", "is_essential": True},
+            {"category": "utilities", "amount_paise": 3_000_00, "frequency": "monthly", "is_essential": True},
+            {"category": "dining_out", "amount_paise": 6_000_00, "frequency": "monthly", "is_essential": False},
+            {"category": "subscriptions", "amount_paise": 1_500_00, "frequency": "monthly", "is_essential": False},
+            {"category": "annual_vacation", "amount_paise": 60_000_00, "frequency": "annual", "is_essential": False},
+        ]
+        for e in expenses:
+            client.post(f"{u}/expenses", json=e).raise_for_status()
+        print(f"added {len(expenses)} expense items")
+
+        _print_step("Loans / EMIs")
+        emis = [
+            {
+                "lender": "HDFC Home Loan", "amount_paise": 22_000_00, "remaining_tenure_months": 180,
+                "annual_rate_bps": 850, "purpose": "home",
+            },
+            {
+                "lender": "Bajaj Finserv", "amount_paise": 8_000_00, "remaining_tenure_months": 36,
+                "annual_rate_bps": 1100, "purpose": "vehicle",
+            },
+        ]
+        for e in emis:
+            client.post(f"{u}/emis", json=e).raise_for_status()
+        print(f"added {len(emis)} EMIs (home loan + vehicle loan)")
+
+        _print_step("Insurance")
+        policies = [
+            {"policy_type": "life", "sum_assured_paise": 1_50_00_000_00},
+            {"policy_type": "health", "sum_assured_paise": 10_00_000_00},
+        ]
+        for p in policies:
+            client.post(f"{u}/insurance-policies", json=p).raise_for_status()
+        print("added life (Rs 1.5 crore) + health (Rs 10 lakh) cover")
+
+        _print_step("Holdings")
+        holdings = [
+            {"description": "Savings balance", "value_paise": 150_000_00, "holding_type": "savings_account"},
+            {"description": "Equity mutual fund", "value_paise": 300_000_00, "holding_type": "equity_mutual_fund"},
+            {"description": "Direct stocks", "value_paise": 80_000_00, "holding_type": "direct_equity"},
+            {"description": "PPF account", "value_paise": 200_000_00, "holding_type": "ppf"},
+            {"description": "ELSS tax-saver fund", "value_paise": 100_000_00, "holding_type": "elss"},
+            {"description": "Gold ETF", "value_paise": 50_000_00, "holding_type": "gold_etf"},
+            {"description": "ULIP policy", "value_paise": 150_000_00, "holding_type": "ulip"},
+        ]
+        for h in holdings:
+            client.post(f"{u}/holdings", json=h).raise_for_status()
+        print(f"added {len(holdings)} holdings (every holding_type set, so allocation can classify all of them)")
+
+        _print_step("Complete onboarding")
+        snap = client.post(f"{u}/complete-onboarding")
+        snap.raise_for_status()
+        print(f"onboarding completed, first snapshot logged for {snap.json()['month']}")
+
+        _print_step("Risk questionnaire (v2, 7 questions)")
+        answers = {
+            "horizon": "7_15y",
+            "drawdown_reaction": "hold",
+            "experience": "moderate",
+            "goal": "growth",
+            "windfall_allocation": "split_debt_equity",
+            "sure_gain_tradeoff": "chance_50pct_10000",
+            "friend_description": "calculated_after_research",
+        }
+        risk = client.post(f"{u}/risk-profile", json={"answers": answers})
+        risk.raise_for_status()
+        risk_body = risk.json()
+        print(
+            f"stated_tier={risk_body['stated_tier']}, capacity_ceiling={risk_body['capacity_ceiling']}, "
+            f"final_tier={risk_body['final_tier']}, capped={risk_body['capped']}"
+        )
+
+        _print_step("Allocation")
+        alloc = client.get(f"{u}/allocation")
+        alloc.raise_for_status()
+        alloc_body = alloc.json()
+        print(f"target_pct = {alloc_body['target_pct']}")
+
+        _print_step("Personalization (simulate an edited allocation outcome)")
+        events = client.get(f"{u}/events", params={"module_source": "allocation"}).json()
+        if events:
+            event_id = events[0]["event_id"]
+            chosen = {k: v for k, v in alloc_body["target_pct"].items()}
+            # nudge equity up a little relative to the suggestion, funded=True,
+            # so the personalization EWMA has real evidence to show.
+            chosen["equity"] = str(float(chosen["equity"]) + 5)
+            client.post(
+                f"{u}/allocation/{event_id}/outcome",
+                json={"action_taken": "edited", "chosen_target_pct": chosen, "funded": True},
+            ).raise_for_status()
+            print("recorded a funded 'edited' outcome on the allocation suggestion")
+
+        personalization = client.get(f"{u}/personalization")
+        if personalization.status_code == 200:
+            print(f"personalization offset = {personalization.json()['offset_pct_points']} pts")
+        else:
+            print(f"personalization not available yet: {personalization.status_code} {personalization.text}")
+
+        _print_step("Debt & leak")
+        debt_leak = client.get(f"{u}/debt-leak")
+        if debt_leak.status_code == 200:
+            body = debt_leak.json()
+            print(f"total recoverable/year = Rs {body['total_recoverable_annual_paise'] / 100:.2f}")
+        else:
+            print(f"debt-leak not available: {debt_leak.status_code} {debt_leak.text}")
+
+        _print_step("Gamification")
+        newly_awarded = client.post(f"{u}/gamification/check")
+        if newly_awarded.status_code == 200:
+            print(f"newly awarded milestones: {[m['headline'] for m in newly_awarded.json()]}")
+        education = client.get(f"{u}/gamification/education")
+        if education.status_code == 200:
+            print(f"education progress: {education.json()['progress_pct']}%")
+
+        _print_step("Transparency")
+        index = client.get(f"{u}/transparency")
+        if index.status_code == 200:
+            print(f"decision types available to trace: {list(index.json()['counts_by_module_source'].keys())}")
+            trace = client.get(f"{u}/transparency/allocation")
+            if trace.status_code == 200:
+                print(f"allocation trace headline: {trace.json()['headline']}")
+
+        print("\n=== Done ===")
+        print(f"Log into the app with username={DUMMY_USERNAME!r} password={DUMMY_PASSWORD!r}")
+        print(f"user_id = {user_id}")
+
+
+if __name__ == "__main__":
+    main()
+
+
 ================================================================================FILE: backend\tests\__init__.py================================================================================
 
 
@@ -8310,6 +10331,7 @@ from decimal import Decimal
 import pytest
 
 from app.services.allocation import compute_target_allocation
+from app.services.allocation_config import RISK_LADDER_BOUNDS_V1
 from app.services.asset_classification_config import AssetClass
 
 
@@ -8319,17 +10341,28 @@ def test_every_tier_sums_to_100_percent(tier):
     assert sum(result.target_pct.values()) == Decimal("100")
 
 
+@pytest.mark.parametrize("tier", [1, 2, 3, 4, 5])
+def test_every_tier_respects_its_layer_1_bounds(tier):
+    result = compute_target_allocation(tier)
+    for asset_class, pct in result.target_pct.items():
+        lo, hi = RISK_LADDER_BOUNDS_V1[tier][asset_class]
+        assert Decimal(str(lo)) <= pct <= Decimal(str(hi)), f"tier {tier} {asset_class}: {pct} outside [{lo}, {hi}]"
+
+
 def test_tier_1_is_conservative_low_equity_high_cash_debt():
     result = compute_target_allocation(1)
-    assert result.target_pct[AssetClass.EQUITY] == Decimal("10")
-    assert result.target_pct[AssetClass.CASH] + result.target_pct[AssetClass.DEBT] == Decimal("90")
+    assert result.target_pct[AssetClass.EQUITY] <= Decimal("15")
+    assert result.target_pct[AssetClass.CASH] + result.target_pct[AssetClass.DEBT] >= Decimal("70")
+    # tier 1's Layer 1 bounds pin alternatives to exactly [0, 0] -- no
+    # optimizer freedom there, so this stays a hard zero regardless of
+    # capital market assumptions.
     assert result.target_pct[AssetClass.ALTERNATIVES] == Decimal("0")
 
 
 def test_tier_5_is_aggressive_high_equity_low_cash():
     result = compute_target_allocation(5)
-    assert result.target_pct[AssetClass.EQUITY] == Decimal("65")
-    assert result.target_pct[AssetClass.CASH] == Decimal("5")
+    assert result.target_pct[AssetClass.EQUITY] >= Decimal("55")
+    assert result.target_pct[AssetClass.CASH] <= Decimal("8")
 
 
 def test_equity_allocation_increases_monotonically_with_tier():
@@ -8341,9 +10374,9 @@ def test_equity_allocation_increases_monotonically_with_tier():
 def test_reasoning_trace_names_the_tier_and_rule_table_version():
     result = compute_target_allocation(3)
     assert result.final_tier == 3
-    assert result.rule_table_version == "v1"
+    assert result.rule_table_version == "v2-hybrid"
     assert "tier 3" in result.reasoning
-    assert "v1" in result.reasoning
+    assert "v2-hybrid" in result.reasoning
 
 
 def test_unknown_tier_raises_value_error():
@@ -8375,6 +10408,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -8499,6 +10535,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -8574,6 +10613,59 @@ def test_full_allocation_flow_via_api_shows_look_through(client):
     raw = resp.text
     assert "ULIP holding" not in raw
     assert "Equity fund holding" not in raw
+
+
+================================================================================FILE: backend\tests\test_api_auth.py================================================================================
+import pytest
+from fastapi.testclient import TestClient
+
+from app.db import get_session
+from app.main import app
+
+
+@pytest.fixture()
+def client(session):
+    app.dependency_overrides[get_session] = lambda: session
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+def test_signup_via_api_returns_a_user_id(client):
+    resp = client.post("/auth/signup", json={"username": "alice", "password": "correct horse battery"})
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["username"] == "alice"
+    assert body["user_id"]
+
+
+def test_signup_with_duplicate_username_is_409(client):
+    client.post("/auth/signup", json={"username": "alice", "password": "correct horse battery"})
+    resp = client.post("/auth/signup", json={"username": "alice", "password": "another password"})
+    assert resp.status_code == 409
+
+
+def test_signup_with_short_password_is_422(client):
+    resp = client.post("/auth/signup", json={"username": "bob", "password": "short"})
+    assert resp.status_code == 422
+
+
+def test_login_via_api_returns_the_same_user_id_as_signup(client):
+    signup_resp = client.post("/auth/signup", json={"username": "alice", "password": "correct horse battery"})
+    login_resp = client.post("/auth/login", json={"username": "alice", "password": "correct horse battery"})
+    assert login_resp.status_code == 200
+    assert login_resp.json()["user_id"] == signup_resp.json()["user_id"]
+
+
+def test_login_with_wrong_password_is_401(client):
+    client.post("/auth/signup", json={"username": "alice", "password": "correct horse battery"})
+    resp = client.post("/auth/login", json={"username": "alice", "password": "wrong password"})
+    assert resp.status_code == 401
+
+
+def test_login_with_unknown_username_is_401(client):
+    resp = client.post("/auth/login", json={"username": "nobody", "password": "whatever password"})
+    assert resp.status_code == 401
 
 
 ================================================================================FILE: backend\tests\test_api_debt_leak.py================================================================================
@@ -8867,9 +10959,13 @@ def test_full_onboarding_flow_via_api(client):
 
     emi_resp = client.post(
         f"/users/{USER}/emis",
-        json={"lender": "HDFC Home Loan", "amount_paise": 25_000_00, "remaining_tenure_months": 240, "annual_rate_bps": 850},
+        json={
+            "lender": "HDFC Home Loan", "amount_paise": 25_000_00, "remaining_tenure_months": 240,
+            "annual_rate_bps": 850, "purpose": "home",
+        },
     )
     assert emi_resp.status_code == 200
+    assert emi_resp.json()["purpose"] == "home"
 
     holding_resp = client.post(f"/users/{USER}/holdings", json={"description": "Mutual funds", "value_paise": 150_000_00})
     assert holding_resp.status_code == 200
@@ -8989,6 +11085,9 @@ CONSERVATIVE_ANSWERS = {
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 
@@ -9025,13 +11124,14 @@ def test_personalization_without_allocation_is_409(client):
 
 
 def test_full_personalization_flow_via_api(client):
-    _onboard(client)
+    allocation = _onboard(client)
+    tier1_equity = Decimal(allocation["target_pct"]["equity"])
 
     resp = client.get(f"/users/{USER}/personalization")
     assert resp.status_code == 200
     body = resp.json()
     assert body["offset_pct_points"] == "0"
-    assert body["displayed_target_pct"]["equity"] == "10.00"
+    assert Decimal(body["displayed_target_pct"]["equity"]) == tier1_equity
 
     events_resp = client.get(f"/users/{USER}/events?module_source=allocation")
     event_id = events_resp.json()[0]["event_id"]
@@ -9048,8 +11148,10 @@ def test_full_personalization_flow_via_api(client):
 
     resp2 = client.get(f"/users/{USER}/personalization")
     body2 = resp2.json()
-    assert Decimal(body2["offset_pct_points"]) == Decimal("4.5")
-    assert Decimal(body2["displayed_target_pct"]["equity"]) == Decimal("14.50")
+    # delta = 25 - tier1_equity, alpha=0.3, weight=1 -> offset = 0.3*delta
+    expected_offset = Decimal("0.3") * (Decimal("25") - tier1_equity)
+    assert Decimal(body2["offset_pct_points"]) == expected_offset
+    assert Decimal(body2["displayed_target_pct"]["equity"]) == tier1_equity + expected_offset
     assert body2["edits_considered"] == 1
     assert len(body2["trace"]) == 1
 
@@ -9077,6 +11179,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -9151,10 +11256,13 @@ def test_questionnaire_endpoint_is_not_user_scoped_and_omits_points(client):
     assert resp.status_code == 200
     body = resp.json()
 
-    assert body["version"] == "v1"
-    assert len(body["questions"]) == 4
+    assert body["version"] == "v2"
+    assert len(body["questions"]) == 7
     ids = {q["id"] for q in body["questions"]}
-    assert ids == {"horizon", "drawdown_reaction", "experience", "goal"}
+    assert ids == {
+        "horizon", "drawdown_reaction", "experience", "goal",
+        "windfall_allocation", "sure_gain_tradeoff", "friend_description",
+    }
 
     horizon = next(q for q in body["questions"] if q["id"] == "horizon")
     assert horizon["weight"] == 3
@@ -9164,32 +11272,85 @@ def test_questionnaire_endpoint_is_not_user_scoped_and_omits_points(client):
     # be able to reconstruct/duplicate the scoring formula
     assert "points" not in horizon["options"][0]
 
+    sure_gain = next(q for q in body["questions"] if q["id"] == "sure_gain_tradeoff")
+    assert sure_gain["weight"] == 4
+    assert len(sure_gain["options"]) == 5
+
 
 ================================================================================FILE: backend\tests\test_api_rumour_verification.py================================================================================
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from app.db import get_session
 from app.main import app
 from app.models.suggestion_event import SuggestionEvent
+from app.services import rumour_verification_bridge
 
 USER = "api-rumour-user-1"
+FAKE_URL = "https://fake-n8n.example.com/webhook/rumour-verification"
 
 ADANI_RUMOUR = (
     "Adani Enterprises shares rally 4% on $686 million investment in "
     "not-for-profit healthcare initiative"
 )
 
+MATCHED_PAYLOAD = {
+    "claim": ADANI_RUMOUR,
+    "verdict": "denied",
+    "confidence": 0.92,
+    "company": "Adani",
+    "ticker": "Adani",
+    "official_evidence": [
+        {
+            "filing_id": "F001",
+            "company_name": "Adani Enterprises",
+            "filing_date": "2025-02-11",
+            "filing_type": "clarification",
+            "source_authority": "BSE",
+            "source_url": "https://example.com/f001",
+            "determination": "denied",
+        }
+    ],
+    "news_evidence": [],
+    "temporal_analysis": "",
+    "reasoning": "Official BSE clarification denies the claim.",
+    "caveats": [],
+}
+
+NO_MATCH_PAYLOAD = {
+    "claim": "Some completely unrelated company launched a new snack brand",
+    "verdict": None,
+    "confidence": None,
+    "company": "",
+    "ticker": "",
+    "official_evidence": [],
+    "news_evidence": [],
+    "temporal_analysis": "",
+    "reasoning": "",
+    "caveats": [],
+}
+
+
+def _fake_post(json_body: dict):
+    def post(url, json=None, timeout=None):
+        return httpx.Response(200, json=json_body, request=httpx.Request("POST", url))
+
+    return post
+
 
 @pytest.fixture()
-def client(session):
+def client(session, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", FAKE_URL)
     app.dependency_overrides[get_session] = lambda: session
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
 
 
-def test_verify_rumour_via_api_logs_by_default(client, session):
+def test_verify_rumour_via_api_logs_by_default(client, session, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+
     resp = client.post(
         f"/users/{USER}/rumour-verification",
         json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"},
@@ -9198,6 +11359,7 @@ def test_verify_rumour_via_api_logs_by_default(client, session):
     body = resp.json()
 
     assert body["status"] == "denied"
+    assert body["matched_score"] == 0.92
     assert body["matched_filing"]["filing_id"] == "F001"
     assert body["logged_event_id"] is not None
 
@@ -9206,7 +11368,9 @@ def test_verify_rumour_via_api_logs_by_default(client, session):
     assert event.action_taken is None
 
 
-def test_verify_rumour_with_log_event_false_does_not_log(client, session):
+def test_verify_rumour_with_log_event_false_does_not_log(client, session, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+
     resp = client.post(
         f"/users/{USER}/rumour-verification?log_event=false",
         json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"},
@@ -9219,7 +11383,9 @@ def test_verify_rumour_with_log_event_false_does_not_log(client, session):
     assert count == 0
 
 
-def test_verify_rumour_no_match_via_api(client):
+def test_verify_rumour_no_match_via_api(client, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(NO_MATCH_PAYLOAD))
+
     resp = client.post(
         f"/users/{USER}/rumour-verification",
         json={"rumour_text": "Some completely unrelated company launched a new snack brand", "rumour_date": "2026-01-01"},
@@ -9232,12 +11398,39 @@ def test_verify_rumour_no_match_via_api(client):
     assert body["logged_event_id"] is not None  # still logged, auditability doesn't depend on finding a match
 
 
-def test_repeated_verifications_each_log_their_own_event(client, session):
+def test_repeated_verifications_each_log_their_own_event(client, session, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+
     client.post(f"/users/{USER}/rumour-verification", json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"})
     client.post(f"/users/{USER}/rumour-verification", json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"})
 
     count = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="rumour_verification").count()
     assert count == 2
+
+
+def test_n8n_timeout_surfaces_as_a_clean_502(client, monkeypatch):
+    def post(url, json=None, timeout=None):
+        raise httpx.TimeoutException("timed out")
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+
+    resp = client.post(
+        f"/users/{USER}/rumour-verification",
+        json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"},
+    )
+    assert resp.status_code == 502
+    assert "timed out" in resp.json()["detail"]
+
+
+def test_missing_webhook_url_surfaces_as_a_clean_502(client, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", None)
+
+    resp = client.post(
+        f"/users/{USER}/rumour-verification",
+        json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"},
+    )
+    assert resp.status_code == 502
+    assert "not configured" in resp.json()["detail"]
 
 
 ================================================================================FILE: backend\tests\test_api_transparency.py================================================================================
@@ -9254,6 +11447,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -9310,7 +11506,7 @@ def test_allocation_trace_via_api_has_no_holding_descriptions(client):
     resp = client.get(f"/users/{USER}/transparency/allocation")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["reasoning"]["which_rule"] == "v1"
+    assert body["reasoning"]["which_rule"] == "v2-hybrid"
     raw = resp.text
     assert "Equity fund" not in raw  # Module 4's hard constraint holds through the transparency view too
 
@@ -9507,6 +11703,58 @@ def test_empty_portfolio_aggregates_to_zero_without_crashing():
     assert result.concentration.largest_holding_pct == Decimal("0.00")
     assert result.concentration.largest_holding_id is None
     assert result.concentration.asset_class_hhi_bps == 0
+
+
+================================================================================FILE: backend\tests\test_auth_service.py================================================================================
+import pytest
+
+from app.services.auth_service import (
+    InvalidCredentialsError,
+    UsernameTakenError,
+    WeakPasswordError,
+    login,
+    signup,
+)
+
+
+def test_signup_creates_a_user_with_a_hashed_not_plaintext_password(session):
+    user = signup(session, "alice", "correct horse battery")
+    assert user.username == "alice"
+    assert user.password_hash != "correct horse battery"
+    assert user.user_id
+
+
+def test_signup_rejects_a_duplicate_username(session):
+    signup(session, "alice", "correct horse battery")
+    with pytest.raises(UsernameTakenError):
+        signup(session, "alice", "a different password")
+
+
+def test_signup_rejects_a_short_password(session):
+    with pytest.raises(WeakPasswordError):
+        signup(session, "bob", "short")
+
+
+def test_signup_rejects_a_blank_username(session):
+    with pytest.raises(ValueError):
+        signup(session, "   ", "correct horse battery")
+
+
+def test_login_succeeds_with_the_right_password(session):
+    created = signup(session, "alice", "correct horse battery")
+    logged_in = login(session, "alice", "correct horse battery")
+    assert logged_in.user_id == created.user_id
+
+
+def test_login_fails_with_the_wrong_password(session):
+    signup(session, "alice", "correct horse battery")
+    with pytest.raises(InvalidCredentialsError):
+        login(session, "alice", "wrong password")
+
+
+def test_login_fails_for_an_unknown_username(session):
+    with pytest.raises(InvalidCredentialsError):
+        login(session, "nobody", "whatever password")
 
 
 ================================================================================FILE: backend\tests\test_debt_amortization.py================================================================================
@@ -9831,6 +12079,8 @@ def test_recomputing_updates_the_same_snapshot_but_logs_a_new_event(session):
 ================================================================================FILE: backend\tests\test_drift_detector.py================================================================================
 from decimal import Decimal
 
+from app.services.allocation import compute_target_allocation
+from app.services.asset_classification_config import AssetClass
 from app.services.drift_detection_config import HYSTERESIS_CYCLES_TO_LOWER_TIER, HYSTERESIS_CYCLES_TO_RAISE_TIER
 from app.services.drift_detector import run_drift_detection
 from app.services.drift_personas import (
@@ -9888,12 +12138,15 @@ def test_no_deviation_anywhere_never_drifts():
 
 def test_capacity_alone_deviating_never_drifts_without_behavioral_agreement():
     # capacity says tier 5 every month; behavior stays exactly at the
-    # tier-3 suggestion. Only one family ever deviates -- must never drift.
+    # tier-3 suggestion (its actual computed equity target, not a
+    # hardcoded guess, so the behavioral family reads zero deviation).
+    # Only one family ever deviates -- must never drift.
+    tier3_equity = compute_target_allocation(3).target_pct[AssetClass.EQUITY]
     persona = _persona("capacity_only", 3)
     trace = PersonaTrace(
         persona,
         snapshots=_flat_snapshots(10, TIER5_BUFFER, TIER5_EMI),
-        allocation_edits=_flat_edits(10, Decimal("35"), Decimal("35")),
+        allocation_edits=_flat_edits(10, tier3_equity, tier3_equity),
         drawdown_month_index=None,
     )
     result = run_drift_detection(trace)
@@ -10615,6 +12868,8 @@ from app.services.gamification_service import (
     AwardedMilestone,
     check_milestones,
     get_milestone_history,
+    complete_education_item,
+    get_education_progress,
 )
 from app.services.onboarding import (
     ProfileNotFoundError,
@@ -10633,12 +12888,18 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 CONSERVATIVE_ANSWERS = {
     "horizon": "lt_1y",
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 
@@ -10836,6 +13097,22 @@ def test_gamification_source_never_reads_module4_outcome_fields():
         source = (backend_dir / "app" / "services" / filename).read_text(encoding="utf-8")
         for term in forbidden:
             assert term not in source, f"{filename} references forbidden outcome-signal term {term!r}"
+
+
+def test_education_progress_is_idempotent_and_awards_knowledge_badges(session):
+    _make_profile(session)
+    complete_education_item(session, USER, "budgeting", "lesson")
+    complete_education_item(session, USER, "budgeting", "lesson")
+    complete_education_item(session, USER, "diversification-allocation", "lesson")
+    complete_education_item(session, USER, "diversification-allocation", "quiz", answer_index=0)
+
+    progress = get_education_progress(session, USER)
+    assert progress["completed_topics"] == 2
+    assert progress["learning_streak_days"] == 1
+    badges = {badge["badge_id"]: badge["earned"] for badge in progress["badges"]}
+    assert badges["budget-beginner"] is True
+    assert badges["diversification-pro"] is True
+    assert session.query(SuggestionEvent).filter_by(user_id=USER, module_source="gamification_education").count() == 3
 
 
 ================================================================================FILE: backend\tests\test_leak_engine.py================================================================================
@@ -11051,6 +13328,7 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "holding",
         "expense_item",
         "expense_source_decision",
+        "auth_user",
     } <= tables
 
     event_columns = {c["name"] for c in inspector.get_columns("suggestion_event")}
@@ -11108,7 +13386,11 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "annual_rate_bps",
         "created_at",
         "closed_at",
+        "purpose",
     }
+
+    auth_user_columns = {c["name"] for c in inspector.get_columns("auth_user")}
+    assert auth_user_columns == {"user_id", "username", "password_hash", "created_at"}
 
     decision_columns = {c["name"] for c in inspector.get_columns("expense_source_decision")}
     assert decision_columns == {"user_id", "onboarding_started_at", "decision", "decided_at"}
@@ -11139,6 +13421,7 @@ def test_alembic_downgrade_removes_tables(tmp_path):
     assert "user_monthly_snapshot" not in tables
     assert "user_profile" not in tables
     assert "expense_source_decision" not in tables
+    assert "auth_user" not in tables
     engine.dispose()
 
 
@@ -11148,7 +13431,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
+from app.models.onboarding import EmiPurpose, EmploymentType, IncomeStability, InsuranceType
 from app.models.user_monthly_snapshot import UserMonthlySnapshot
 from app.services.expense_source_decision import ExpenseSourceMode
 from app.services.financial_position import ExpenseFrequency
@@ -11209,6 +13492,18 @@ def test_add_emi_expense_holding_require_existing_profile(session):
         add_expense_item(session, user_id="nobody", category="rent", amount_paise=1000, frequency=ExpenseFrequency.MONTHLY, is_essential=True)
     with pytest.raises(ProfileNotFoundError):
         add_holding(session, user_id="nobody", description="Mutual fund", value_paise=1000)
+
+
+def test_emi_purpose_is_optional_but_settable(session):
+    _make_profile(session)
+    no_purpose = add_emi(session, user_id=USER, lender="X Bank", amount_paise=1000, remaining_tenure_months=12, annual_rate_bps=1000)
+    assert no_purpose.purpose is None
+
+    with_purpose = add_emi(
+        session, user_id=USER, lender="Y Bank", amount_paise=2000, remaining_tenure_months=24, annual_rate_bps=900,
+        purpose=EmiPurpose.VEHICLE,
+    )
+    assert with_purpose.purpose == EmiPurpose.VEHICLE
 
 
 def test_full_onboarding_end_to_end_and_hand_checked_metrics(session):
@@ -11475,12 +13770,13 @@ def test_zero_offset_returns_the_original_target_unchanged():
 
 
 ================================================================================FILE: backend\tests\test_personalization_service.py================================================================================
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
 from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
+from app.services.allocation import compute_target_allocation
 from app.services.allocation_service import compute_and_log_allocation
 from app.services.asset_classification_config import AssetClass, HoldingType
 from app.services.onboarding import add_holding, upsert_profile
@@ -11501,6 +13797,9 @@ CONSERVATIVE_ANSWERS = {
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 
@@ -11550,18 +13849,22 @@ def test_no_risk_tier_raises(session):
 def test_no_edits_yet_gives_zero_offset_and_unchanged_display(session):
     _onboard_strong_capacity_conservative_stated(session)
 
+    tier1_equity = compute_target_allocation(1).target_pct[AssetClass.EQUITY]
+
     result = compute_and_log_personalization(session, USER)
 
     assert result.offset_pct_points == Decimal("0")
     assert result.edits_considered == 0
     assert result.final_tier == 1
     assert result.capacity_ceiling == 5
-    assert result.base_target_pct[AssetClass.EQUITY] == Decimal("10")
-    assert result.displayed_target_pct[AssetClass.EQUITY] == Decimal("10.00")
+    assert result.base_target_pct[AssetClass.EQUITY] == tier1_equity
+    assert result.displayed_target_pct[AssetClass.EQUITY] == tier1_equity.quantize(Decimal("0.01"))
 
 
 def test_recorded_funded_edit_moves_the_displayed_allocation(session):
     _onboard_strong_capacity_conservative_stated(session)
+
+    tier1_equity = compute_target_allocation(1).target_pct[AssetClass.EQUITY]
 
     allocation_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="allocation").one()
     record_allocation_outcome(
@@ -11575,10 +13878,13 @@ def test_recorded_funded_edit_moves_the_displayed_allocation(session):
 
     result = compute_and_log_personalization(session, USER)
 
-    # delta = 25 - 10 = 15, alpha=0.3, weight=1 -> offset = 0.3*15 = 4.5
-    assert result.offset_pct_points == Decimal("4.500")
+    # delta = 25 - tier1_equity, alpha=0.3, weight=1 -> offset = 0.3*delta
+    expected_offset = Decimal("0.3") * (Decimal("25") - tier1_equity)
+    assert result.offset_pct_points == expected_offset
     assert result.edits_considered == 1
-    assert result.displayed_target_pct[AssetClass.EQUITY] == Decimal("14.50")  # 10 + 4.5
+    assert result.displayed_target_pct[AssetClass.EQUITY] == (tier1_equity + expected_offset).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
     assert sum(result.displayed_target_pct.values()) == Decimal("100.00")
 
 
@@ -11776,12 +14082,18 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 CONSERVATIVE_ANSWERS = {
     "horizon": "lt_1y",
     "drawdown_reaction": "sell_all",
     "experience": "none",
     "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
 }
 
 
@@ -11999,7 +14311,26 @@ def test_rupees_truncates_leftover_paise():
 import pytest
 
 from app.services.risk_profile import compute_stated_tier
-from app.services.risk_profile_config import QUESTIONNAIRE_V1
+from app.services.risk_profile_config import QUESTIONNAIRE_V1, QUESTIONNAIRE_V2
+
+ALL_MIN_V2 = {
+    "horizon": "lt_1y",
+    "drawdown_reaction": "sell_all",
+    "experience": "none",
+    "goal": "preserve",
+    "windfall_allocation": "fd_or_savings",
+    "sure_gain_tradeoff": "guaranteed_5000",
+    "friend_description": "real_risk_avoider",
+}
+ALL_MAX_V2 = {
+    "horizon": "gt_15y",
+    "drawdown_reaction": "buy_a_lot",
+    "experience": "extensive",
+    "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
+}
 
 ALL_MIN = {"horizon": "lt_1y", "drawdown_reaction": "sell_all", "experience": "none", "goal": "preserve"}
 ALL_MAX = {"horizon": "gt_15y", "drawdown_reaction": "buy_a_lot", "experience": "extensive", "goal": "maximize"}
@@ -12008,6 +14339,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -12069,6 +14403,69 @@ def test_unknown_question_id_is_ignored_extra_keys_allowed():
     assert result.score == 10  # unaffected by the unused extra key
 
 
+# --- QUESTIONNAIRE_V2 (7 questions, total weight 20, score range [20, 100]) ---
+
+
+def test_v2_questionnaire_weights_sum_to_twenty():
+    assert sum(q.weight for q in QUESTIONNAIRE_V2.questions) == 20
+    assert QUESTIONNAIRE_V2.min_score == 20
+    assert QUESTIONNAIRE_V2.max_score == 100
+
+
+def test_v2_all_minimum_answers_score_the_floor_and_tier_1():
+    result = compute_stated_tier(ALL_MIN_V2, QUESTIONNAIRE_V2)
+    assert result.score == 20
+    assert result.tier == 1
+
+
+def test_v2_all_maximum_answers_score_the_ceiling_and_tier_5():
+    result = compute_stated_tier(ALL_MAX_V2, QUESTIONNAIRE_V2)
+    assert result.score == 100
+    assert result.tier == 5
+
+
+@pytest.mark.parametrize(
+    "score_answers,expected_score,expected_tier",
+    [
+        # baseline is ALL_MIN_V2 = score 20 (weights: horizon=3,
+        # drawdown_reaction=3, experience=2, goal=2, windfall_allocation=4,
+        # sure_gain_tradeoff=4, friend_description=2; sum=20). Each override
+        # below adds weight*(points-1) on top of that floor of 20.
+
+        # breakpoint 1 (36): only sure_gain_tradeoff maxed -> 20 + 4*4 = 36
+        ({**ALL_MIN_V2, "sure_gain_tradeoff": "chance_10pct_50000"}, 36, 2),
+        # breakpoint 2 (52): sure_gain_tradeoff + windfall_allocation maxed
+        # -> 20 + 4*4 + 4*4 = 52
+        (
+            {**ALL_MIN_V2, "sure_gain_tradeoff": "chance_10pct_50000", "windfall_allocation": "equity_plus_borrow"},
+            52,
+            3,
+        ),
+        # breakpoint 3 (68): horizon + windfall_allocation + sure_gain_tradeoff
+        # maxed (12+16+16=44), plus friend_description at its middle option
+        # (points=3, weight2*(3-1)=4) -> 20 + 44 + 4 = 68
+        (
+            {
+                **ALL_MIN_V2,
+                "horizon": "gt_15y",
+                "windfall_allocation": "equity_plus_borrow",
+                "sure_gain_tradeoff": "chance_10pct_50000",
+                "friend_description": "calculated_after_research",
+            },
+            68,
+            4,
+        ),
+        # breakpoint 4 (84): everything maxed except windfall_allocation left
+        # at its floor -> 20 + (80 - 4*4) = 20 + 64 = 84
+        ({**ALL_MAX_V2, "windfall_allocation": "fd_or_savings"}, 84, 5),
+    ],
+)
+def test_v2_breakpoint_boundaries_are_inclusive_on_the_upper_tier(score_answers, expected_score, expected_tier):
+    result = compute_stated_tier(score_answers, QUESTIONNAIRE_V2)
+    assert result.score == expected_score
+    assert result.tier == expected_tier
+
+
 ================================================================================FILE: backend\tests\test_risk_profile_service.py================================================================================
 import pytest
 
@@ -12085,6 +14482,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -12215,7 +14615,11 @@ def test_insurance_adequacy_feeds_from_module2_life_policies(session):
 ================================================================================FILE: backend\tests\test_rumour_verification_bridge.py================================================================================
 from datetime import date
 
+import httpx
+import pytest
+
 from app.models.suggestion_event import SuggestionEvent
+from app.services import rumour_verification_bridge
 from app.services.rumour_verification_bridge import (
     log_verification_event,
     run_verification,
@@ -12223,55 +14627,193 @@ from app.services.rumour_verification_bridge import (
 )
 
 USER = "bridge-user-1"
+FAKE_URL = "https://fake-n8n.example.com/webhook/rumour-verification"
 
-ADANI_RUMOUR = (
-    "Adani Enterprises shares rally 4% on $686 million investment in "
-    "not-for-profit healthcare initiative"
-)
+MATCHED_PAYLOAD = {
+    "claim": "Adani Group is going to acquire a stake in Paytm.",
+    "verdict": "denied",
+    "confidence": 0.92,
+    "company": "Adani",
+    "ticker": "Adani",
+    "official_evidence": [
+        {
+            "filing_id": "F001",
+            "company_name": "Adani Enterprises",
+            "filing_date": "2025-02-11",
+            "filing_type": "clarification",
+            "source_authority": "BSE",
+            "source_url": "https://example.com/f001",
+            "determination": "denied",
+        }
+    ],
+    "news_evidence": [],
+    "temporal_analysis": "Filed within the same news cycle as the rumour.",
+    "reasoning": "Official BSE clarification denies the claim.",
+    "caveats": [],
+}
+
+NO_MATCH_PAYLOAD = {
+    "claim": "Some completely unrelated company launched a new snack brand",
+    "verdict": None,
+    "confidence": None,
+    "company": "",
+    "ticker": "",
+    "official_evidence": [],
+    "news_evidence": [],
+    "temporal_analysis": "",
+    "reasoning": "",
+    "caveats": [],
+}
 
 
-def test_run_verification_calls_module_5_unchanged_and_finds_the_real_match():
-    result = run_verification(ADANI_RUMOUR, rumour_date=date(2025, 2, 11))
-    assert result.matched_filing is not None
-    assert result.matched_filing.filing_id == "F001"
-    assert result.status == "denied"
+def _fake_post(json_body: dict, status_code: int = 200):
+    def post(url, json=None, timeout=None):
+        return httpx.Response(status_code, json=json_body, request=httpx.Request("POST", url))
+
+    return post
 
 
-def test_run_verification_with_no_match_returns_none_gracefully():
+@pytest.fixture(autouse=True)
+def _configured_webhook_url(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", FAKE_URL)
+
+
+def test_run_verification_calls_n8n_and_maps_a_real_match(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+
+    result = run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11), company_name="Adani")
+
+    assert result.verdict == "denied"
+    assert result.confidence == 0.92
+    assert result.official_evidence[0]["filing_id"] == "F001"
+
+
+def test_run_verification_sends_the_translated_payload(monkeypatch):
+    captured = {}
+
+    def post(url, json=None, timeout=None):
+        captured["url"] = url
+        captured["json"] = json
+        captured["timeout"] = timeout
+        return httpx.Response(200, json=MATCHED_PAYLOAD, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+
+    run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11), company_name="Adani")
+
+    assert captured["url"] == FAKE_URL
+    assert captured["json"] == {
+        "rumour": "Adani Group is going to acquire a stake in Paytm.",
+        "company": "Adani",
+        "ticker": "Adani",
+        "rumour_date": "2025-02-11",
+        "evaluated_at": "",
+    }
+
+
+def test_run_verification_with_no_match_returns_none_gracefully(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(NO_MATCH_PAYLOAD))
+
     result = run_verification("Some completely unrelated company launched a new snack brand", rumour_date=date(2026, 1, 1))
-    assert result.matched_filing is None
-    assert result.status is None
+    assert result.official_evidence == []
+    assert result.verdict is None
 
 
-def test_corpus_is_cached_across_calls():
-    from app.services.rumour_verification_bridge import _cached_corpus
-
-    first = _cached_corpus()
-    second = _cached_corpus()
-    assert first is second  # same tuple object, not reloaded from disk
+def test_run_verification_raises_when_webhook_url_missing(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", None)
+    with pytest.raises(RuntimeError, match="not configured"):
+        run_verification("anything")
 
 
-def test_suggested_value_shape_is_json_safe_and_never_recomputes():
-    result = run_verification(ADANI_RUMOUR, rumour_date=date(2025, 2, 11))
+def test_run_verification_wraps_timeout_cleanly(monkeypatch):
+    def post(url, json=None, timeout=None):
+        raise httpx.TimeoutException("timed out")
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+    with pytest.raises(RuntimeError, match="timed out"):
+        run_verification("anything")
+
+
+def test_run_verification_wraps_connection_errors_cleanly(monkeypatch):
+    def post(url, json=None, timeout=None):
+        raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+    with pytest.raises(RuntimeError, match="Could not connect"):
+        run_verification("anything")
+
+
+def test_run_verification_wraps_non_2xx_response_cleanly(monkeypatch):
+    def post(url, json=None, timeout=None):
+        return httpx.Response(500, text="internal error", request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+    with pytest.raises(RuntimeError, match="HTTP 500"):
+        run_verification("anything")
+
+
+def test_run_verification_wraps_invalid_json_cleanly(monkeypatch):
+    def post(url, json=None, timeout=None):
+        return httpx.Response(200, content=b"not json", request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+    with pytest.raises(RuntimeError, match="invalid JSON"):
+        run_verification("anything")
+
+
+def test_run_verification_rejects_non_object_json_cleanly(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(["not", "an", "object"]))
+    with pytest.raises(RuntimeError, match="malformed response"):
+        run_verification("anything")
+
+
+def test_malformed_confidence_type_is_dropped_not_crashed(monkeypatch):
+    bad_payload = dict(MATCHED_PAYLOAD, confidence="high")
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(bad_payload))
+
+    result = run_verification("anything")
+    assert result.confidence is None
+
+
+def test_suggested_value_shape_is_json_safe(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+
+    result = run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11))
     value = verification_result_to_suggested_value(result)
 
     assert value["matched_filing"]["filing_id"] == "F001"
     assert value["status"] == "denied"
+    assert value["matched_score"] == 0.92
     assert isinstance(value["rumour_date"], str)  # date serialized, not a date object
-    assert value["candidates_considered"] == len(result.all_candidates)
-    assert value["candidates_passing"] == len(result.candidates)
-    assert value["top_candidate_reasons"] == list(result.candidates[0].checks.reasons())
+    assert isinstance(value["matched_filing"]["filing_date"], str)  # never a raw date object
+    assert value["candidates_considered"] == 1
+    assert value["candidates_passing"] == 1
 
 
-def test_suggested_value_for_no_match_has_null_filing():
+def test_suggested_value_for_no_match_has_null_filing(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(NO_MATCH_PAYLOAD))
+
     result = run_verification("Some completely unrelated company launched a new snack brand", rumour_date=date(2026, 1, 1))
     value = verification_result_to_suggested_value(result)
     assert value["matched_filing"] is None
     assert value["top_candidate_reasons"] == []
 
 
-def test_log_verification_event_writes_a_suggestion_event_for_auditability_only(session):
-    result = run_verification(ADANI_RUMOUR, rumour_date=date(2025, 2, 11))
+def test_incomplete_evidence_never_fabricates_a_matched_filing(monkeypatch):
+    # official_evidence is non-empty, but missing filing_id/date/authority --
+    # this must still resolve to a null matched_filing, not a half-invented one.
+    incomplete_payload = dict(MATCHED_PAYLOAD, official_evidence=[{"company_name": "Adani Enterprises"}])
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(incomplete_payload))
+
+    result = run_verification("anything")
+    value = verification_result_to_suggested_value(result)
+    assert value["matched_filing"] is None
+
+
+def test_log_verification_event_writes_a_suggestion_event_for_auditability_only(session, monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+
+    result = run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11))
     event = log_verification_event(session, USER, result)
 
     assert event.module_source == "rumour_verification"
@@ -12315,6 +14857,9 @@ AGGRESSIVE_ANSWERS = {
     "drawdown_reaction": "buy_a_lot",
     "experience": "significant",
     "goal": "maximize",
+    "windfall_allocation": "equity_plus_borrow",
+    "sure_gain_tradeoff": "chance_10pct_50000",
+    "friend_description": "real_gambler",
 }
 
 
@@ -12364,7 +14909,7 @@ def test_allocation_trace_names_which_tier_and_which_rule(session):
 
     assert trace.gap_detected is False
     assert trace.reasoning["which_tier"] == 5
-    assert trace.reasoning["which_rule"] == "v1"
+    assert trace.reasoning["which_rule"] == "v2-hybrid"
     assert "target_pct" in trace.reasoning
     assert trace.reasoning["per_holding_classification"]  # holdings present, not description text
     for h in trace.reasoning["per_holding_classification"]:
@@ -12502,6 +15047,8 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
         "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
         "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
         "@expo/metro-runtime": "~57.0.15",
+        "@expo/vector-icons": "^15.0.2",
+        "@lottiefiles/dotlottie-react": "^0.13.5",
         "@react-native-async-storage/async-storage": "2.2.0",
         "@react-navigation/bottom-tabs": "^7.18.18",
         "@react-navigation/native": "^7.3.18",
@@ -12512,6 +15059,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
         "expo-font": "~57.0.3",
         "expo-linear-gradient": "~57.0.1",
         "expo-status-bar": "~57.0.1",
+        "lottie-react-native": "~7.3.8",
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "react-hook-form": "^7.87.0",
@@ -14155,6 +16703,17 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
       "integrity": "sha512-HHQigo3rQWKMDzYDLkubN5WQOYXJJE2eNqIQC2axC2iO3mHdwnIR7FgZVvHWtBwAdzBgAP0ECp8KqS8TiMKvgw==",
       "license": "MIT"
     },
+    "node_modules/@expo/vector-icons": {
+      "version": "15.1.1",
+      "resolved": "https://registry.npmjs.org/@expo/vector-icons/-/vector-icons-15.1.1.tgz",
+      "integrity": "sha512-Iu2VkcoI5vygbtYngm7jb4ifxElNVXQYdDrYkT7UCEIiKLeWnQY0wf2ZhHZ+Wro6Sc5TaumpKUOqDRpLi5rkvw==",
+      "license": "MIT",
+      "peerDependencies": {
+        "expo-font": ">=14.0.4",
+        "react": "*",
+        "react-native": "*"
+      }
+    },
     "node_modules/@expo/xcpretty": {
       "version": "4.4.4",
       "resolved": "https://registry.npmjs.org/@expo/xcpretty/-/xcpretty-4.4.4.tgz",
@@ -14718,6 +17277,24 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
         "@jridgewell/resolve-uri": "^3.1.0",
         "@jridgewell/sourcemap-codec": "^1.4.14"
       }
+    },
+    "node_modules/@lottiefiles/dotlottie-react": {
+      "version": "0.13.5",
+      "resolved": "https://registry.npmjs.org/@lottiefiles/dotlottie-react/-/dotlottie-react-0.13.5.tgz",
+      "integrity": "sha512-4U5okwjRqDPkjB572hfZtLXJ/LGfCo6vDwUB2KIPEUoSgqbIlw+UrbnaqVp3GS+dRvhMD27F2JObpHpYRlpF0Q==",
+      "license": "MIT",
+      "dependencies": {
+        "@lottiefiles/dotlottie-web": "0.44.0"
+      },
+      "peerDependencies": {
+        "react": "^17 || ^18 || ^19"
+      }
+    },
+    "node_modules/@lottiefiles/dotlottie-web": {
+      "version": "0.44.0",
+      "resolved": "https://registry.npmjs.org/@lottiefiles/dotlottie-web/-/dotlottie-web-0.44.0.tgz",
+      "integrity": "sha512-IUWKVciDJI/BMWDWnh7j0Ngd0N8q9ySRAwm84aDqIE07qpmdZ7x1rkIpBaU1yHSNqNYHeh1Rxsl+LC3CY4f0KA==",
+      "license": "MIT"
     },
     "node_modules/@react-native-async-storage/async-storage": {
       "version": "2.2.0",
@@ -19948,6 +22525,26 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
         "loose-envify": "cli.js"
       }
     },
+    "node_modules/lottie-react-native": {
+      "version": "7.3.8",
+      "resolved": "https://registry.npmjs.org/lottie-react-native/-/lottie-react-native-7.3.8.tgz",
+      "integrity": "sha512-GAOl99TKi0c6xCcB1AJ+o70mgOPIAI/7K2G+Gs+o4po/qBhgvWijPNCKH8h6yNmlwFTg+RN3DmzRvHNFGxZMKQ==",
+      "license": "Apache-2.0",
+      "peerDependencies": {
+        "@lottiefiles/dotlottie-react": "^0.13.5",
+        "react": "*",
+        "react-native": ">=0.46",
+        "react-native-windows": ">=0.63.x"
+      },
+      "peerDependenciesMeta": {
+        "@lottiefiles/dotlottie-react": {
+          "optional": true
+        },
+        "react-native-windows": {
+          "optional": true
+        }
+      }
+    },
     "node_modules/lru-cache": {
       "version": "5.1.1",
       "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-5.1.1.tgz",
@@ -23027,6 +25624,8 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
     "@expo/metro-runtime": "~57.0.15",
+    "@expo/vector-icons": "^15.0.2",
+    "@lottiefiles/dotlottie-react": "^0.13.5",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.18.18",
     "@react-navigation/native": "^7.3.18",
@@ -23037,6 +25636,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
     "expo-font": "~57.0.3",
     "expo-linear-gradient": "~57.0.1",
     "expo-status-bar": "~57.0.1",
+    "lottie-react-native": "~7.3.8",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.87.0",
@@ -23108,6 +25708,17 @@ Upon project creation, the ".expo" folder is already added to your ".gitignore" 
 {
   "devices": []
 }
+
+
+================================================================================FILE: frontend\.pytest_cache\README.md================================================================================
+# pytest cache directory #
+
+This directory contains data from the pytest's cache plugin,
+which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
+
+**Do not** commit this to version control.
+
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
 
 
 ================================================================================FILE: modules\rumour_verification\README.md================================================================================
@@ -25046,10 +27657,10 @@ def verify_rumour(
     )
 
 
-================================================================================FILE: modules\rumour_verification\src\tests\__init__.py================================================================================
+================================================================================FILE: modules\rumour_verification\tests\__init__.py================================================================================
 
 
-================================================================================FILE: modules\rumour_verification\src\tests\test_evaluate.py================================================================================
+================================================================================FILE: modules\rumour_verification\tests\test_evaluate.py================================================================================
 from eval.evaluate import _rank_of_correct, run_evaluation
 from src.corpus import load_corpus, load_rumour_dataset
 
@@ -25082,7 +27693,7 @@ def test_constrained_system_finds_every_labeled_rumour_within_top_5():
     assert constrained_metrics.hit_rate_at_k[5] == 1.0
 
 
-================================================================================FILE: modules\rumour_verification\src\tests\test_labels.py================================================================================
+================================================================================FILE: modules\rumour_verification\tests\test_labels.py================================================================================
 from datetime import datetime, timedelta
 
 from src.labels import FilingResponse, classify_rumour_status
@@ -25152,7 +27763,7 @@ def test_custom_response_window_is_respected():
     assert label == "unaddressed"
 
 
-================================================================================FILE: modules\rumour_verification\src\tests\test_retrieval.py================================================================================
+================================================================================FILE: modules\rumour_verification\tests\test_retrieval.py================================================================================
 from datetime import date
 
 import pytest
@@ -25253,7 +27864,7 @@ def test_constrained_result_reasons_are_human_readable(corpus):
     assert any(r.startswith("source:") for r in reasons)
 
 
-================================================================================FILE: modules\rumour_verification\src\tests\test_transparency.py================================================================================
+================================================================================FILE: modules\rumour_verification\tests\test_transparency.py================================================================================
 from datetime import date
 
 import pytest
@@ -25351,7 +27962,7 @@ def test_format_full_trace_never_claims_ai(corpus):
     assert "artificial intelligence" not in text
 
 
-================================================================================FILE: modules\rumour_verification\src\tests\test_verification.py================================================================================
+================================================================================FILE: modules\rumour_verification\tests\test_verification.py================================================================================
 from datetime import date, datetime
 
 import pytest

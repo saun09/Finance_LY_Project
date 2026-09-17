@@ -1,9 +1,10 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from './src/api/queryClient';
+import { SplashScreen } from './src/components/SplashScreen';
 import { DemoUserProvider } from './src/context/DemoUserContext';
 import { OnboardingStatusProvider } from './src/context/OnboardingStatusContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -22,6 +23,7 @@ import { useAppFonts } from './src/theme/useAppFonts';
 function AppShell() {
   const fontsLoaded = useAppFonts();
   const { colors, dark } = useAppTheme();
+  const [splashVisible, setSplashVisible] = useState(true);
 
   if (!fontsLoaded) {
     return (
@@ -29,6 +31,10 @@ function AppShell() {
         <ActivityIndicator color={colors.terracotta} />
       </View>
     );
+  }
+
+  if (splashVisible) {
+    return <SplashScreen onFinish={() => setSplashVisible(false)} />;
   }
 
   return (

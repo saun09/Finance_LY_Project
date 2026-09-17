@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { TextInput, StyleSheet } from 'react-native';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Card } from '../../components/Card';
 import { Text } from '../../components/Text';
@@ -8,44 +8,23 @@ import { SectionHeader } from '../../components/SectionHeader';
 import { useDemoUser } from '../../context/DemoUserContext';
 import { useOnboardingStatus } from '../../context/OnboardingStatusContext';
 import { API_BASE_URL } from '../../api/client';
-import { useAppTheme } from '../../theme/ThemeContext';
-import { SPACE, RADIUS } from '../../theme/tokens';
+import { SPACE } from '../../theme/tokens';
 
-/**
- * The backend has no authentication system (verified directly against
- * app/main.py) -- so this is a plain, labeled demo-user switcher, not a
- * fake login screen. Only technical detail shown is the API base URL,
- * for verifying connectivity during a demo; no backend config is exposed.
- */
 export function SettingsScreen() {
-  const { colors } = useAppTheme();
-  const { userId, setUserId } = useDemoUser();
+  const { username, userId, logout } = useDemoUser();
   const { resetOnboarding } = useOnboardingStatus();
-  const [draft, setDraft] = useState(userId);
 
   return (
     <ScreenContainer>
       <Text variant="display">Settings</Text>
 
       <Card>
-        <SectionHeader title="Demo user" subtitle="The backend has no login system yet" />
-        <Text variant="caption" tone="muted" style={styles.spacedTop}>
-          All data is scoped to this id. Change it to demo a different user's data, or to start a fresh
-          onboarding flow.
+        <SectionHeader title="Account" />
+        <Text variant="body" tone="muted" style={styles.spacedTop}>
+          Signed in as
         </Text>
-        <TextInput
-          value={draft}
-          onChangeText={setDraft}
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="demo-user"
-          placeholderTextColor={colors.inkFaint}
-          style={[
-            styles.input,
-            { borderColor: colors.border, color: colors.ink, backgroundColor: colors.paperSunken },
-          ]}
-        />
-        <Button label="Save user id" onPress={() => setUserId(draft)} />
+        <Text variant="figure">{username ?? userId}</Text>
+        <Button label="Log out" variant="ghost" onPress={logout} />
       </Card>
 
       <Card>
@@ -59,7 +38,7 @@ export function SettingsScreen() {
       <Card>
         <SectionHeader title="Onboarding" />
         <Text variant="caption" tone="muted" style={styles.spacedTop}>
-          Replays the onboarding flow for this user id on this device. Does not delete anything on the
+          Replays the onboarding flow for this account on this device. Does not delete anything on the
           backend.
         </Text>
         <Button label="Restart onboarding on this device" variant="ghost" onPress={resetOnboarding} />
@@ -69,12 +48,5 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  input: {
-    minHeight: 48,
-    borderWidth: StyleSheet.hairlineWidth * 1.5,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACE.md,
-    marginVertical: SPACE.md,
-  },
   spacedTop: { marginTop: SPACE.xs, marginBottom: SPACE.xs },
 });

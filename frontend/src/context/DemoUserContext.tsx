@@ -1,49 +1,107 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { authApi } from '../api/auth';
+import { toApiError } from '../api/client';
 
 /**
- * The backend has no authentication system (confirmed: no auth
- * middleware anywhere in app/main.py). Per Section 27, this is a clean
- * dev/demo configuration, not fake auth: a plain user_id string, editable
- * from the Settings screen, persisted locally so a demo doesn't reset
- * between app launches. Nothing here simulates a login flow.
+ * Real, password-checked accounts (see backend/app/services/auth_service.py)
+ * gate entry into the app -- login/signup genuinely fail on a wrong
+ * password. Every other endpoint in the app still trusts the user_id in
+ * its URL path exactly as before this existed; this only decides whether
+ * RootNavigator shows the app at all, and which user_id it uses once it
+ * does. The name `DemoUserContext` predates real auth and every existing
+ * screen already reads `userId` from here -- kept as-is to avoid a
+ * pointless rename across ~25 files that only ever needed the user_id.
  */
 
-const STORAGE_KEY = 'demo_user_id';
-const DEFAULT_USER_ID = 'demo-user';
+const STORAGE_KEY = 'auth_session_v1';
+
+interface StoredSession {
+  userId: string;
+  username: string;
+}
 
 interface DemoUserContextValue {
   userId: string;
-  setUserId: (id: string) => Promise<void>;
+  username: string | null;
+  isAuthenticated: boolean;
   ready: boolean;
+  signup: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const DemoUserCtx = createContext<DemoUserContextValue>({
-  userId: DEFAULT_USER_ID,
-  setUserId: async () => {},
+  userId: '',
+  username: null,
+  isAuthenticated: false,
   ready: false,
+  signup: async () => {},
+  login: async () => {},
+  logout: async () => {},
 });
 
 export function DemoUserProvider({ children }: { children: React.ReactNode }) {
-  const [userId, setUserIdState] = useState(DEFAULT_USER_ID);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (stored) setUserIdState(stored);
+        if (stored) setSession(JSON.parse(stored) as StoredSession);
       })
       .finally(() => setReady(true));
   }, []);
 
-  const setUserId = useCallback(async (id: string) => {
-    const trimmed = id.trim();
-    if (!trimmed) return;
-    setUserIdState(trimmed);
-    await AsyncStorage.setItem(STORAGE_KEY, trimmed);
+  const persist = useCallback(async (next: StoredSession) => {
+    setSession(next);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }, []);
 
-  return <DemoUserCtx.Provider value={{ userId, setUserId, ready }}>{children}</DemoUserCtx.Provider>;
+  const signup = useCallback(
+    async (username: string, password: string) => {
+      try {
+        const user = await authApi.signup({ username: username.trim(), password });
+        await persist({ userId: user.user_id, username: user.username });
+      } catch (err) {
+        throw toApiError(err);
+      }
+    },
+    [persist],
+  );
+
+  const login = useCallback(
+    async (username: string, password: string) => {
+      try {
+        const user = await authApi.login({ username: username.trim(), password });
+        await persist({ userId: user.user_id, username: user.username });
+      } catch (err) {
+        throw toApiError(err);
+      }
+    },
+    [persist],
+  );
+
+  const logout = useCallback(async () => {
+    setSession(null);
+    await AsyncStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  return (
+    <DemoUserCtx.Provider
+      value={{
+        userId: session?.userId ?? '',
+        username: session?.username ?? null,
+        isAuthenticated: session !== null,
+        ready,
+        signup,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </DemoUserCtx.Provider>
+  );
 }
 
 export function useDemoUser() {

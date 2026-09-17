@@ -96,7 +96,7 @@ export function HomeScreen() {
       </View>
 
       <Card>
-        <SectionHeader title="What matters now" subtitle="Prioritized by the backend, not this screen" />
+        <SectionHeader title="What matters now" />
         {debtLeak.isPending ? (
           <View style={styles.leakSkeleton}>
             <Skeleton width="80%" height={14} />

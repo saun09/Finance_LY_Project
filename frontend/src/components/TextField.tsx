@@ -15,6 +15,7 @@ interface Props {
   prefix?: string;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   multiline?: boolean;
+  secureTextEntry?: boolean;
 }
 
 /** The one text-input primitive every onboarding form uses -- labeled,
@@ -31,6 +32,7 @@ export function TextField({
   prefix,
   autoCapitalize = 'sentences',
   multiline = false,
+  secureTextEntry = false,
 }: Props) {
   const { colors } = useAppTheme();
 
@@ -59,6 +61,7 @@ export function TextField({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           multiline={multiline}
+          secureTextEntry={secureTextEntry}
           textAlignVertical={multiline ? 'top' : 'center'}
           style={[
             styles.input,

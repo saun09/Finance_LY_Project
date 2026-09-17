@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { BackHeader } from '../../components/BackHeader';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -18,10 +19,8 @@ export function LeaksScreen() {
   return (
     <ScreenContainer>
       <View>
-        <Text variant="caption" tone="muted">
-          Insights
-        </Text>
-        <Text variant="display">Recoverable costs</Text>
+        <BackHeader label="Insights" />
+        <Text variant="display" style={styles.title}>Recoverable costs</Text>
       </View>
 
       {isPending ? (
@@ -81,6 +80,7 @@ export function LeaksScreen() {
 }
 
 const styles = StyleSheet.create({
+  title: { marginTop: SPACE.xs },
   componentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: SPACE.md },
   componentLabel: { flex: 1 },
   spaced: { marginTop: SPACE.sm, marginBottom: SPACE.md },

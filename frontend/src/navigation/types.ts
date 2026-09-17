@@ -2,6 +2,11 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { UserMonthlySnapshotRead } from '../api/types';
 import type { TransparencyDecisionType } from '../api/transparency';
 
+export type AuthStackParamList = {
+  Login: undefined;
+  Signup: undefined;
+};
+
 export type OnboardingStackParamList = {
   Welcome: undefined;
   Profile: undefined;
@@ -58,6 +63,7 @@ export type MainTabParamList = {
 };
 
 export type RootStackParamList = {
+  Auth: NavigatorScreenParams<AuthStackParamList>;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
 };

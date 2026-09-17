@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { AwardedMilestoneOut, EducationProgressOut } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
@@ -47,9 +48,17 @@ function MilestoneCard({ milestone, isNew }: { milestone: AwardedMilestoneOut; i
 }
 
 function EducationHub({ education }: { education: EducationProgressOut }) {
+  const { colors } = useAppTheme();
   const complete = useCompleteEducation();
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [quizFeedback, setQuizFeedback] = useState<Record<string, { correct: boolean; explanation: string }>>({});
+  // Collapsed by default, one level open at a time -- opens on the first
+  // level with unfinished topics so there's still something to act on
+  // without having to tap through every level first.
+  const [expandedLevel, setExpandedLevel] = useState<number | null>(() => {
+    const firstIncomplete = education.roadmap.find((lvl) => lvl.topics.some((t) => !t.completed));
+    return firstIncomplete ? firstIncomplete.level : null;
+  });
   const completeItem = (itemId: string, kind: 'lesson' | 'quiz' | 'checklist') =>
     complete.mutate({ itemId, kind, answerIndex: kind === 'quiz' ? selectedAnswers[itemId] : undefined }, {
       onSuccess: (result) => {
@@ -78,11 +87,25 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
           {education.completed_topics} of {education.total_topics} topics complete · {education.learning_streak_days}-day learning streak
         </Text>
       </Card>
-      {education.roadmap.map((level) => (
+      {education.roadmap.map((level) => {
+        const isOpen = expandedLevel === level.level;
+        const completedCount = level.topics.filter((t) => t.completed).length;
+        return (
         <Card key={level.level}>
-          <Text variant="label" tone="terracotta">LEVEL {level.level}</Text>
-          <Text variant="h2" style={styles.levelTitle}>{level.title}</Text>
-          {level.topics.map((topic) => (
+          <Pressable
+            onPress={() => setExpandedLevel(isOpen ? null : level.level)}
+            style={styles.levelHeader}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: isOpen }}
+          >
+            <View style={styles.levelHeaderCopy}>
+              <Text variant="label" tone="terracotta">LEVEL {level.level}</Text>
+              <Text variant="h2" style={styles.levelTitle}>{level.title}</Text>
+              <Text variant="caption" tone="muted">{completedCount} of {level.topics.length} topics complete</Text>
+            </View>
+            <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={22} color={colors.inkFaint} />
+          </Pressable>
+          {isOpen ? level.topics.map((topic) => (
             <View key={topic.topic_id} style={styles.topicRow}>
               <View style={styles.topicCopy}>
                 <Text variant="bodyMedium">{topic.completed ? '✓ ' : ''}{topic.title}</Text>
@@ -126,9 +149,10 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
                 </View>
               ) : null}
             </View>
-          ))}
+          )) : null}
         </Card>
-      ))}
+        );
+      })}
       <Card>
         <Text variant="h2">Beginner journey checklist</Text>
         {['Financial foundation', 'Savings', 'Investing', 'Financial literacy'].map((section) => {
@@ -225,6 +249,8 @@ const styles = StyleSheet.create({
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   progressTrack: { height: 8, backgroundColor: '#DCE9E7', borderRadius: 4, overflow: 'hidden', marginVertical: SPACE.md },
   progressFill: { height: '100%', backgroundColor: '#1F4B4C', borderRadius: 4 },
+  levelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SPACE.sm },
+  levelHeaderCopy: { flex: 1 },
   levelTitle: { marginTop: SPACE.xs },
   topicRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#DCD3BE', paddingTop: SPACE.md, marginTop: SPACE.md },
   topicCopy: { marginBottom: SPACE.sm, gap: SPACE.xs },

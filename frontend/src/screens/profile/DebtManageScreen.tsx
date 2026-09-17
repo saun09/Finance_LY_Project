@@ -4,8 +4,10 @@ import { StyleSheet, View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
 import { invalidateFinancialData, qk } from '../../api/queryClient';
+import type { EmiPurpose } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
+import { EmiPurposePicker, EMI_PURPOSE_LABEL } from '../../components/EmiPurposePicker';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { InlineError } from '../../components/InlineError';
@@ -29,6 +31,7 @@ export function DebtManageScreen() {
   const [amountInput, setAmountInput] = useState('');
   const [tenureInput, setTenureInput] = useState('');
   const [rateInput, setRateInput] = useState('');
+  const [purpose, setPurpose] = useState<EmiPurpose | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [closingId, setClosingId] = useState<string | null>(null);
 
@@ -45,13 +48,14 @@ export function DebtManageScreen() {
       if (!lender.trim() || amount_paise === null || remaining_tenure_months === null || annual_rate_bps === null) {
         throw new Error('validation');
       }
-      return onboardingApi.postEmi(userId, { lender: lender.trim(), amount_paise, remaining_tenure_months, annual_rate_bps });
+      return onboardingApi.postEmi(userId, { lender: lender.trim(), amount_paise, remaining_tenure_months, annual_rate_bps, purpose });
     },
     onSuccess: () => {
       setLender('');
       setAmountInput('');
       setTenureInput('');
       setRateInput('');
+      setPurpose(null);
       invalidateAll();
     },
     onError: (err) =>
@@ -99,7 +103,7 @@ export function DebtManageScreen() {
                 <ListRow
                   key={item.id}
                   title={item.lender}
-                  subtitle={`${item.remaining_tenure_months} months left · ${(item.annual_rate_bps / 100).toFixed(2)}% p.a.`}
+                  subtitle={`${item.purpose ? `${EMI_PURPOSE_LABEL[item.purpose]} · ` : ''}${item.remaining_tenure_months} months left · ${(item.annual_rate_bps / 100).toFixed(2)}% p.a.`}
                   trailing={`${formatPaise(item.amount_paise)}/mo`}
                   onRemove={() => closeMutation.mutate(item.id)}
                   removing={closingId === item.id}
@@ -127,6 +131,7 @@ export function DebtManageScreen() {
         <TextField label="Monthly EMI" value={amountInput} onChangeText={setAmountInput} placeholder="18000" keyboardType="numeric" prefix="₹" />
         <TextField label="Remaining tenure (months)" value={tenureInput} onChangeText={setTenureInput} placeholder="36" keyboardType="numeric" />
         <TextField label="Interest rate (annual %)" value={rateInput} onChangeText={setRateInput} placeholder="9.5" keyboardType="decimal-pad" />
+        <EmiPurposePicker value={purpose} onChange={setPurpose} />
         {formError ? <InlineError message={formError} /> : null}
         <Button
           label="Add loan"

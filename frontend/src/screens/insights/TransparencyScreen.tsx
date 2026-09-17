@@ -50,10 +50,8 @@ export function TransparencyScreen() {
   return (
     <ScreenContainer>
       <View>
-        <Text variant="caption" tone="muted">
-          Insights
-        </Text>
-        <Text variant="display">Transparency</Text>
+        <BackHeader label="Insights" />
+        <Text variant="display" style={styles.title}>Transparency</Text>
         <Text variant="body" tone="muted" style={styles.subtitle}>
           Every decision the app makes about you is recorded when it’s made, and shown back to you
           exactly as recorded — never recomputed after the fact.
@@ -99,6 +97,7 @@ export function TransparencyScreen() {
 }
 
 const styles = StyleSheet.create({
+  title: { marginTop: SPACE.xs },
   subtitle: { marginTop: SPACE.xs },
   groupNote: { marginTop: SPACE.xs },
 });
