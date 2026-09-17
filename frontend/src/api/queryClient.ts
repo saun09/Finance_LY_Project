@@ -38,7 +38,14 @@ export const qk = {
   debtLeak: (userId: string) => ['debt-leak', userId] as const,
   personalization: (userId: string) => ['personalization', userId] as const,
   transparencyIndex: (userId: string) => ['transparency-index', userId] as const,
-  transparencyTrace: (userId: string, moduleSource: string) => ['transparency-trace', userId, moduleSource] as const,
+  transparencyTrace: (userId: string, moduleSource: string, eventId?: string) =>
+    ['transparency-trace', userId, moduleSource, eventId ?? 'latest'] as const,
+  transparencyHistory: (userId: string, moduleSource: string) =>
+    ['transparency-history', userId, moduleSource] as const,
+  transparencyCompare: (userId: string, moduleSource: string, before: string, after: string) =>
+    ['transparency-compare', userId, moduleSource, before, after] as const,
+  transparencyContestReasons: (userId: string) => ['transparency-contest-reasons', userId] as const,
+  verificationEngines: (userId: string) => ['verification-engines', userId] as const,
   gamificationHistory: (userId: string) => ['gamification-history', userId] as const,
   gamificationEducation: (userId: string) => ['gamification-education', userId] as const,
 };

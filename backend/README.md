@@ -917,8 +917,9 @@ inform an actual re-tiering decision, and is explicitly out of scope here.
 
 ## Module 9 — Transparency Layer
 
-A rule-tracing view over what Modules 3, 4, 6, and 7 have already
-computed and stored — never a second computation of its own.
+A rule-tracing view over what Modules 3, 4, 6, 7 and 10 have already
+computed and stored — never a second computation of its own — plus the
+one place in this project that makes a genuine explainability claim.
 
 ### The rule, and how it's enforced, not just stated
 
@@ -926,86 +927,167 @@ computed and stored — never a second computation of its own.
 central constraint. `transparency.py` obeys it structurally:
 `build_trace` only ever reads `event.suggested_value` and
 `event.market_context` off a stored `SuggestionEvent` — it has no access
-to (and never calls) any of Modules 3/4/6/7's actual computation
-functions. Each decision type declares the exact stored keys it needs
-(`DecisionTypeSpec.required_suggested_value_keys` /
-`required_market_context_keys`); if a stored event is missing any of
-them, the response sets `gap_detected=True` and lists `missing_fields`
-instead of silently omitting them or (worse) calling back into the
-originating module to fill them in fresh — which would mean the "trace"
-no longer describes what actually drove the stored decision, only what a
-*new* computation would produce.
-`tests/test_transparency.py::test_incomplete_stored_event_is_flagged_as_a_gap_not_fabricated`
-proves this by feeding `build_trace` a deliberately incomplete
-`risk_profile`-shaped event and confirming it's flagged, not patched over.
-As it happens, Modules 3/4/6/7 all currently store complete traces (by
-design — see each module's own `suggested_value`/`market_context`
-construction), so there is no live gap to report today; the mechanism
-exists so a future module that under-stores its reasoning gets caught
-here rather than silently producing a fabricated-looking trace.
+to (and never calls) any originating module's computation functions.
 
-### Four decision types (`DECISION_TYPES` in `transparency.py`)
+Gap handling works at **section** granularity. Each decision type is a
+`DecisionTypeSpec` made of `ReasoningSection`s, and each section declares
+the exact stored keys it needs. A section whose keys are all present
+renders in full; one missing a key is replaced by an
+`{"__unavailable__": true, "missing_fields": [...], "recorded_values":
+{...}}` marker that still shows whatever *was* recorded. So an older
+event missing `unlock_conditions` costs the reader the outcome block and
+nothing else — the questionnaire and capacity blocks, recorded perfectly
+well, still render. All-or-nothing degradation was throwing away good
+evidence to punish one bad field.
 
-| `module_source` | What it traces | Reused from |
+A key stored as `null` counts as **missing**, not as a recorded value.
+Presence-only checking would let `{"final_tier": null}` render as "stated
+tier 5 → final tier None", which reads like a real trace and explains
+nothing. An empty list or `0` *is* a real value (`binding_constraints:
+[]` legitimately means nothing was binding) and is not treated as a gap.
+
+### The producer/spec contract is tested, not assumed
+
+`required_*_keys` is a hand-written description of what each producing
+service stores, and nothing in the type system links the two. Rename a
+key on one side and there is no crash — just every newly produced event
+silently reporting `gap_detected=True` forever, which is the most
+expensive failure mode available because it looks like working gap
+detection.
+
+`tests/test_transparency_contract.py` closes that loop the only way that
+holds: it runs each producer for real, then asserts the event it just
+wrote satisfies its own spec with nothing missing and every section
+rendering. It also asserts every registered spec is covered, so a new
+decision type cannot slip in without someone deciding how its producer
+gets contract-tested.
+
+### Seven decision types (`DECISION_TYPES` in `transparency.py`)
+
+| `module_source` | What it traces | Framing label |
 |---|---|---|
-| `risk_profile` | Questionnaire weights + answers, capacity component ceilings, binding constraint(s), unlock condition(s) | Module 3's `suggested_value`/`market_context` |
-| `allocation` | Which tier, which rule-table version, the lookup's own `reasoning` string, per-holding classification | Module 4's `suggested_value`/`market_context` |
-| `debt_leak_engine` | Every itemized recoverable-Rs component with its own explanation/action, the manual-entry-only scope note | Module 6's `suggested_value` |
-| `personalization` | The full step-by-step EWMA trace (weight, delta, offset before/after per edit) | Module 7's `market_context.trace` |
+| `risk_profile` | Questionnaire weights + answers, capacity component ceilings, binding constraint(s), unlock condition(s) | transparent reasoning |
+| `allocation` | Which tier, which rule-table version, the lookup's own `reasoning` string, per-holding classification | transparent reasoning |
+| `debt_leak_engine` | Every itemized recoverable-₹ component with its own explanation/action, the manual-entry-only scope note | transparent reasoning |
+| `personalization` | The full step-by-step EWMA trace (weight, delta, offset before/after per edit) | transparent reasoning |
+| `gamification` | Which milestone, which category, which threshold was crossed, which config version | transparent reasoning |
+| `rumour_verification_local` | Every candidate filing considered, the constraint that eliminated each rejected one, why the winner ranked first | **retrieval explanation** |
+| `rumour_verification` | The n8n workflow's verdict, evidence counts, and its own prose | **third-party workflow output** |
 
-Each has a `headline` (a one-line human summary) and a structured
-`reasoning` dict, both built by pure functions over the stored JSON — no
-new numbers are computed, only formatted.
+### Three labels, because there are three different claims
 
-### "Transparent reasoning," not "explainable AI"
+`framing_label` lives on the spec, not as one module-level constant,
+because this module carries claims of genuinely different strength:
 
-Every one of these four decision types is either a weighted sum (Module
-3's questionnaire) or a table lookup (everything else). `FRAMING_LABEL =
-"transparent reasoning"` is attached to every response, and
-`test_all_decision_types_use_the_transparent_reasoning_label_never_ai`
-checks the label itself and that neither "ai" nor "explainable" appears
-in it. This mirrors Module 1's original convention that scoring/cap logic
-stays pure, deterministic, and free of model calls — there's no model
-here to be "AI" about, and printing the weights already *is* the
-transparency feature.
+- **"transparent reasoning"** — Modules 3/4/6/7/10. Every one of these is
+  a weighted sum or a rule-table lookup. Printing the weights and the
+  table *is* the whole feature. Never "explainable AI" or "AI-powered":
+  there is no model here to be AI about, and the phrase would overclaim
+  what a handful of `if` statements are.
+- **"retrieval explanation"** — Module 5's *local constrained-retrieval*
+  engine only. There, "which constraint eliminated which candidate, and
+  why did the returned filing rank first" is a genuine multi-step
+  question with a checkable multi-step answer. Still never "AI": TF-IDF
+  cosine similarity and rule-based filters are a retrieval pipeline.
+- **"third-party workflow output"** — Module 5's *n8n* path. That
+  workflow is an external LLM pipeline whose prose is its own
+  self-report, which this project neither computed nor evaluated.
 
-### Module 5 is out of scope for this file, on purpose
+An import-time assertion restricts `framing_label` to
+`ALLOWED_FRAMING_LABELS` and rejects any label containing "ai" or
+"explainable", so adding a stronger claim has to be a deliberate act.
+`tests/test_rumour_local_engine.py::test_this_is_the_only_decision_type_allowed_to_claim_an_explanation`
+pins the retrieval-explanation label to exactly one decision type.
 
-Module 5 (rumour verification) lives in `modules/rumour_verification/`
-with no *build-time* dependency on this backend, and produces its own
-trace at verification time rather than through `suggestion_event`. Its
-transparency view is built there instead
-(`modules/rumour_verification/src/transparency.py`), reusing
-`VerificationResult.all_candidates` directly. That file is also where
-"explanation"/"explainable" language is used deliberately and
-differently from here — see its own module docstring for exactly why a
-multi-stage retrieval-and-elimination pipeline earns that word while a
-weighted sum doesn't.
+### Where the explainability claim attaches — decided and stated
 
-This backend does, separately, expose Module 5 over HTTP for
-auditability — `POST /users/{user_id}/rumour-verification`, described
-below. That endpoint is glue, not a merge: `rumour_verification_bridge.py`
-adds `modules/rumour_verification`'s own `src/` to `sys.path` and calls
-`verify_rumour` unchanged, then (by default) logs the result via
-`log_suggestion_event` purely so "a verification was shown to a user" is
-auditable — never through the accept/edit/reject lifecycle, since a
-factual confirmed/denied/unaddressed finding isn't a suggestion the way
-Modules 3/4/6/7's outputs are. This is a Module 1 <-> Module 5 integration
-point, independent of Module 9's transparency work above.
+Module 5 has **two engines**, and the claim attaches to exactly one:
 
-- `POST /users/{user_id}/rumour-verification` `{"rumour_text",
-  "rumour_date"?, "company_name"?, "evaluated_at"?}` — runs Module 5's
-  `verify_rumour` and returns the match, status, score, and top-candidate
-  reasons. `?log_event=false` skips logging (defaults to `true`).
+- `app/services/rumour_local_engine.py` runs the local constrained-
+  retrieval pipeline (`modules/rumour_verification/`), imported lazily by
+  path so that module keeps its independence and its own dependencies.
+  `POST /users/{id}/rumour-verification/explain` returns every candidate
+  considered, the constraint that eliminated each rejected one, and a
+  comparative justification for the winner. **This is the project's
+  explainability claim.** It is evaluated in
+  `modules/rumour_verification/eval/evaluate_explanations.py`.
+- `app/services/rumour_verification_bridge.py` calls the n8n workflow.
+  It is useful because it is not limited to a fixed corpus, but it
+  returns no candidate list, so there is nothing to explain the
+  elimination of. Every event it logs records
+  `market_context.engine = "n8n_llm_workflow"` so the two can never be
+  confused in the log.
+
+Previously `format_full_trace` was reachable only from
+`modules/rumour_verification/demo.py`, which made the explainability
+claim true of the research artifact and false of the shipped app. The
+`/explain` endpoint and the app's "show the working" action close that.
+If the local engine's dependencies are absent the endpoint returns
+**503**, never a silent fallback to the n8n path — a user who asked for
+the explanation must not be handed something else that resembles one.
+
+### Decision history and comparison
+
+Module 1 has always stored every decision. Until now the app could only
+show the latest one, so "my tier changed last month — what moved?" was
+unanswerable despite the answer sitting in the database.
+
+- `list_decision_events` returns every recorded decision of a type,
+  newest first, each with its headline and whether it was contested.
+- `compare_traces` diffs two of them field by field, returning changed
+  leaf paths with before/after and the declared unit. Both sides are read
+  from the log; neither decision is recomputed.
+
+### Contest: the trace is not read-only
+
+A trace a user can read but not answer back to is a one-way mirror.
+`contest_decision` records an objection through Module 1's *existing*
+outcome fields (`action_taken=REJECTED`, a `reason_code` from the closed
+`CONTEST_REASON_CODES` set, and the note in `delta`) rather than a
+parallel store — so the objection lands where Module 7's feedback loop
+already reads, instead of dying on a read-only screen.
+
+### Value hints: readable without being paraphrased
+
+`total_recoverable_annual_paise: 4560000` is faithful and useless at the
+same time. But letting the client infer units from key names is how an
+audit trace starts lying. So the server declares the unit for every leaf
+it emits, from a versioned table (`VALUE_HINT_RULES_VERSION`), and ships
+it as `value_hints`. The client formats only what it was told the unit
+of, and keeps the stored value visible alongside anything it reformats —
+a reader gets `₹45,600` and an auditor still gets `4560000`.
+
+### Counting
+
+`list_available_decision_types` issues **one** grouped `COUNT(*)` query
+(`count_events_by_module_source`) rather than fetching rows per type and
+calling `len()`. The count is shown to the user as "how many decisions of
+this kind you have", so it must be exact at any history length rather
+than capped by a fetch limit.
 
 ### Endpoints
 
 - `GET /users/{user_id}/transparency` — which decision types this user has
   at least one logged decision for, and how many.
+- `GET /users/{user_id}/transparency/contest-reasons` — the closed set of
+  contest reason codes, served so the client can't drift from it.
 - `GET /users/{user_id}/transparency/{module_source}` — the trace for the
-  latest (or `?event_id=` a specific) decision of that type. `404` for an
-  unknown decision type or no matching event.
-
+  latest (or `?event_id=` a specific) decision. `404` for an unknown
+  decision type or no matching event.
+- `GET /users/{user_id}/transparency/{module_source}/history` — every
+  recorded decision of that type, newest first.
+- `GET /users/{user_id}/transparency/{module_source}/compare?before_event_id=&after_event_id=`
+  — field-level diff between two decisions.
+- `POST /users/{user_id}/transparency/{module_source}/contest`
+  `{"event_id", "reason_code", "note"?}` — records the user's objection.
+- `GET /users/{user_id}/rumour-verification/engines` — which Module 5
+  engines this deployment can run and what each can honestly claim.
+- `POST /users/{user_id}/rumour-verification` — the n8n workflow path.
+  Returns `engine` and `framing_label` so the client cannot present its
+  prose as an elimination trace. `?log_event=false` skips logging.
+- `POST /users/{user_id}/rumour-verification/explain` — the local
+  explainable path: every candidate, every elimination, and why the
+  winner ranked first. `503` if the local engine is unavailable.
 ---
 
 ## Module 10 — Gamification

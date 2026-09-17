@@ -25,7 +25,15 @@ export type InsightsStackParamList = {
   Leaks: undefined;
   Personalization: undefined;
   Transparency: undefined;
-  TransparencyDetail: { moduleSource: TransparencyDecisionType };
+  /** `eventId` addresses one specific past decision; omitted, the screen
+   * shows the most recent one. */
+  TransparencyDetail: { moduleSource: TransparencyDecisionType; eventId?: string };
+  TransparencyHistory: { moduleSource: TransparencyDecisionType };
+  TransparencyCompare: {
+    moduleSource: TransparencyDecisionType;
+    beforeEventId: string;
+    afterEventId: string;
+  };
 };
 export type VerifyStackParamList = {
   RumourVerification: undefined;

@@ -21,6 +21,10 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 
+#: Recorded on every event this bridge logs so Module 9 can tell the two
+#: Module 5 engines apart. See rumour_local_engine.py for the other one.
+N8N_ENGINE_NAME = "n8n_llm_workflow"
+
 
 class N8NVerificationResult:
     """Normalized representation of the JSON returned by n8n."""
@@ -222,6 +226,13 @@ def log_verification_event(
         module_source="rumour_verification",
         suggested_value=suggested_value,
         market_context={
+            # Which engine produced this. Module 9 reads it to label the
+            # trace honestly: this path is an external LLM workflow whose
+            # prose reasoning is a self-report, NOT the constraint-
+            # elimination explanation the local engine produces (see
+            # app/services/rumour_local_engine.py). Without this field the
+            # two are indistinguishable in the log.
+            "engine": N8N_ENGINE_NAME,
             "official_evidence_count": len(
                 result.official_evidence
             ),
