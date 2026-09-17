@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 from fastapi.testclient import TestClient
@@ -79,7 +79,9 @@ def test_full_personalization_flow_via_api(client):
     # delta = 25 - tier1_equity, alpha=0.3, weight=1 -> offset = 0.3*delta
     expected_offset = Decimal("0.3") * (Decimal("25") - tier1_equity)
     assert Decimal(body2["offset_pct_points"]) == expected_offset
-    assert Decimal(body2["displayed_target_pct"]["equity"]) == tier1_equity + expected_offset
+    # displayed_target_pct is quantized to 2dp for display; the raw offset above is not
+    expected_displayed_equity = (tier1_equity + expected_offset).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    assert Decimal(body2["displayed_target_pct"]["equity"]) == expected_displayed_equity
     assert body2["edits_considered"] == 1
     assert len(body2["trace"]) == 1
 

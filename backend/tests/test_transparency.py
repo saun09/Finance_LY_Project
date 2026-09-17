@@ -93,9 +93,10 @@ def test_allocation_trace_names_which_tier_and_which_rule(session):
     trace = get_trace(session, USER, "allocation")
 
     assert trace.gap_detected is False
-    assert trace.reasoning["rule_lookup"]["which_rule"] == ALLOCATION_CONFIG_VERSION
+    assert trace.reasoning["rule_lookup"]["which_tier"] == 5
+    assert trace.reasoning["rule_lookup"]["which_rule"] == "v3-hybrid"
     assert "target_pct" in trace.reasoning["rule_lookup"]
-    assert trace.reasoning["current_position"]["per_holding_classification"]
+    assert trace.reasoning["current_position"]["per_holding_classification"]  # holdings present, not description text
     for h in trace.reasoning["current_position"]["per_holding_classification"]:
         assert "description" not in h  # Module 4's hard constraint still holds through this view
 

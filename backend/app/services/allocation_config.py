@@ -22,51 +22,59 @@ to any fund/scheme/security (same category-level-only boundary as
 asset_classification_config.py's decomposition assumptions). A revision
 to these numbers is a new version here, not a silent edit, since it
 changes every user's suggested split.
+
+v3-hybrid revises the Layer 1 risk-ladder bounds (widened cash/debt
+ranges at the conservative end, a nonzero alternatives ceiling at tier 1)
+and the Layer 2 capital market assumptions (debt/real-assets/alternatives
+expected returns, real-assets/alternatives volatility and all pairwise
+correlations, and the risk-free rate) to align with an updated set of
+benchmark-derived defaults. v2-hybrid's values remain available in
+version-control history.
 """
 
 from app.services.asset_classification_config import AssetClass
 
 # Per-tier [min, max] weight bounds in percent (0-100), one range per
-# asset class. Anchored to the retired TARGET_ALLOCATION_TABLE_V1 point
-# values for cash/debt/equity continuity, widened into ranges, and
-# extended with real_assets/alternatives bounds (absent from the original
-# 3-asset-class prototype) so Layer 2 has room to optimize within a tier
-# while every other module's 5-asset-class AssetClass contract still holds.
+# asset class. v2 realigns these ranges to the Module 4 hybrid engine's
+# updated risk ladder (widened cash/debt ranges for the conservative tiers,
+# and a per-tier alternatives ceiling instead of a hard [0, 0] at tier 1)
+# so Layer 2 has room to optimize within a tier while every other module's
+# 5-asset-class AssetClass contract still holds.
 RISK_LADDER_BOUNDS_V1: dict[int, dict[AssetClass, tuple[float, float]]] = {
     1: {
-        AssetClass.CASH: (30.0, 50.0),
-        AssetClass.DEBT: (40.0, 60.0),
-        AssetClass.EQUITY: (5.0, 15.0),
-        AssetClass.REAL_ASSETS: (0.0, 5.0),
-        AssetClass.ALTERNATIVES: (0.0, 0.0),
+        AssetClass.CASH: (15.0, 30.0),
+        AssetClass.DEBT: (55.0, 75.0),
+        AssetClass.EQUITY: (0.0, 15.0),
+        AssetClass.REAL_ASSETS: (0.0, 10.0),
+        AssetClass.ALTERNATIVES: (0.0, 5.0),
     },
     2: {
-        AssetClass.CASH: (15.0, 30.0),
-        AssetClass.DEBT: (40.0, 55.0),
-        AssetClass.EQUITY: (15.0, 25.0),
-        AssetClass.REAL_ASSETS: (3.0, 8.0),
-        AssetClass.ALTERNATIVES: (0.0, 2.0),
+        AssetClass.CASH: (10.0, 20.0),
+        AssetClass.DEBT: (45.0, 65.0),
+        AssetClass.EQUITY: (15.0, 30.0),
+        AssetClass.REAL_ASSETS: (0.0, 12.0),
+        AssetClass.ALTERNATIVES: (0.0, 7.0),
     },
     3: {
-        AssetClass.CASH: (8.0, 18.0),
-        AssetClass.DEBT: (30.0, 45.0),
-        AssetClass.EQUITY: (28.0, 40.0),
-        AssetClass.REAL_ASSETS: (5.0, 12.0),
-        AssetClass.ALTERNATIVES: (0.0, 4.0),
+        AssetClass.CASH: (5.0, 15.0),
+        AssetClass.DEBT: (30.0, 50.0),
+        AssetClass.EQUITY: (30.0, 50.0),
+        AssetClass.REAL_ASSETS: (5.0, 15.0),
+        AssetClass.ALTERNATIVES: (0.0, 10.0),
     },
     4: {
-        AssetClass.CASH: (5.0, 12.0),
-        AssetClass.DEBT: (18.0, 30.0),
-        AssetClass.EQUITY: (42.0, 55.0),
-        AssetClass.REAL_ASSETS: (7.0, 14.0),
-        AssetClass.ALTERNATIVES: (2.0, 7.0),
+        AssetClass.CASH: (3.0, 10.0),
+        AssetClass.DEBT: (15.0, 35.0),
+        AssetClass.EQUITY: (45.0, 65.0),
+        AssetClass.REAL_ASSETS: (5.0, 15.0),
+        AssetClass.ALTERNATIVES: (3.0, 12.0),
     },
     5: {
         AssetClass.CASH: (2.0, 8.0),
-        AssetClass.DEBT: (8.0, 20.0),
-        AssetClass.EQUITY: (55.0, 72.0),
-        AssetClass.REAL_ASSETS: (7.0, 14.0),
-        AssetClass.ALTERNATIVES: (3.0, 8.0),
+        AssetClass.DEBT: (5.0, 20.0),
+        AssetClass.EQUITY: (60.0, 80.0),
+        AssetClass.REAL_ASSETS: (5.0, 15.0),
+        AssetClass.ALTERNATIVES: (5.0, 15.0),
     },
 }
 
@@ -77,34 +85,40 @@ for _tier, _bounds in RISK_LADDER_BOUNDS_V1.items():
     assert _max_sum >= 100.0, f"tier {_tier}: Layer 1 max bounds sum to {_max_sum} < 100 -- infeasible"
 
 # Illustrative long-run annualized assumptions (decimals: 0.12 = 12%). Not
-# a forecast; see module docstring.
+# a forecast; see module docstring. v2 realigns these to the Module 4
+# hybrid engine's benchmark-derived fallback defaults (Nifty 50 TRI /
+# CRISIL Composite Bond Fund Index / 91-day T-Bill / gold+REIT blend /
+# international-equity proxy).
 _EXPECTED_RETURN: dict[AssetClass, float] = {
     AssetClass.CASH: 0.045,
-    AssetClass.DEBT: 0.070,
+    AssetClass.DEBT: 0.075,
     AssetClass.EQUITY: 0.120,
-    AssetClass.REAL_ASSETS: 0.085,
-    AssetClass.ALTERNATIVES: 0.110,
+    AssetClass.REAL_ASSETS: 0.090,
+    AssetClass.ALTERNATIVES: 0.100,
 }
 
+# Volatility and correlation are derived from Module 4's raw annualized
+# covariance matrix (vol_i = sqrt(cov_ii), corr_ij = cov_ij / (vol_i *
+# vol_j)) to fit this module's vol/correlation representation.
 _VOLATILITY: dict[AssetClass, float] = {
     AssetClass.CASH: 0.010,
     AssetClass.DEBT: 0.050,
     AssetClass.EQUITY: 0.200,
-    AssetClass.REAL_ASSETS: 0.150,
-    AssetClass.ALTERNATIVES: 0.220,
+    AssetClass.REAL_ASSETS: 0.148,
+    AssetClass.ALTERNATIVES: 0.173,
 }
 
 _CORRELATION: dict[tuple[AssetClass, AssetClass], float] = {
-    (AssetClass.CASH, AssetClass.DEBT): 0.30,
-    (AssetClass.CASH, AssetClass.EQUITY): 0.00,
-    (AssetClass.CASH, AssetClass.REAL_ASSETS): 0.00,
-    (AssetClass.CASH, AssetClass.ALTERNATIVES): 0.00,
-    (AssetClass.DEBT, AssetClass.EQUITY): 0.10,
-    (AssetClass.DEBT, AssetClass.REAL_ASSETS): 0.05,
-    (AssetClass.DEBT, AssetClass.ALTERNATIVES): 0.05,
-    (AssetClass.EQUITY, AssetClass.REAL_ASSETS): 0.30,
-    (AssetClass.EQUITY, AssetClass.ALTERNATIVES): 0.40,
-    (AssetClass.REAL_ASSETS, AssetClass.ALTERNATIVES): 0.20,
+    (AssetClass.CASH, AssetClass.DEBT): 0.06,
+    (AssetClass.CASH, AssetClass.EQUITY): 0.01,
+    (AssetClass.CASH, AssetClass.REAL_ASSETS): 0.007,
+    (AssetClass.CASH, AssetClass.ALTERNATIVES): 0.012,
+    (AssetClass.DEBT, AssetClass.EQUITY): 0.20,
+    (AssetClass.DEBT, AssetClass.REAL_ASSETS): 0.054,
+    (AssetClass.DEBT, AssetClass.ALTERNATIVES): 0.069,
+    (AssetClass.EQUITY, AssetClass.REAL_ASSETS): 0.203,
+    (AssetClass.EQUITY, AssetClass.ALTERNATIVES): 0.347,
+    (AssetClass.REAL_ASSETS, AssetClass.ALTERNATIVES): 0.195,
 }
 
 
@@ -137,9 +151,9 @@ ASSET_ORDER_V1: tuple[AssetClass, ...] = (
 
 CAPITAL_MARKET_ASSUMPTIONS_V1 = CapitalMarketAssumptions(ASSET_ORDER_V1)
 
-# Assumed annualized risk-free rate (short-term G-sec/repo proxy) used by
-# Layer 2's Sharpe-ratio objective.
-RISK_FREE_RATE_V1 = 0.06
+# Assumed annualized risk-free rate (91-day T-Bill proxy) used by Layer 2's
+# Sharpe-ratio objective.
+RISK_FREE_RATE_V1 = 0.045
 
-CONFIG_VERSION = "v2-hybrid"
-CONFIG_EFFECTIVE_DATE = "2026-09-04"
+CONFIG_VERSION = "v3-hybrid"
+CONFIG_EFFECTIVE_DATE = "2026-09-17"

@@ -464,7 +464,7 @@ module's outputs; `tests/test_allocation_service.py` and
 JSON for the exact description strings entered in their test fixtures to
 confirm this rather than just asserting a specific field is absent.
 
-### Classification taxonomy (`app/services/asset_classification_config.py`, version `v1`)
+### Classification taxonomy (`app/services/asset_classification_config.py`, version `v2`)
 
 24 `HoldingType` categories (a controlled vocabulary — this is what the
 user picks when entering a holding, e.g. "PPF", "ELSS", "ULIP", never a
@@ -473,9 +473,9 @@ scheme name), each mapped to:
 - **Decomposition**: fractions across the five asset classes, summing to 1.
   Simple types are 100% one class (e.g. `direct_equity` -> 100% equity,
   `ppf` -> 100% debt). Hybrid mutual fund sub-types use SEBI's own
-  scheme-categorization equity bands at their midpoint (Aggressive Hybrid
-  65-80% equity -> 70/30; Balanced Hybrid 40-60% -> 50/50; Conservative
-  Hybrid 10-25% -> 15/85). `ulip`, `endowment_or_moneyback_policy`, and
+  scheme-categorization equity bands (Aggressive Hybrid 65-80% equity ->
+  75/25; Balanced Hybrid 40-60% -> 50/50 midpoint; Conservative Hybrid
+  10-25% -> 25/75). `ulip`, `endowment_or_moneyback_policy`, and
   `nps` use illustrative default splits, documented in the config's own
   docstring as assumptions (a ULIP's real split depends on the internal
   fund option the policyholder chose, which a category label can't
@@ -529,15 +529,15 @@ sums exposure across a portfolio and also computes:
 
 `tests/test_asset_classification.py::test_aggregate_look_through_exposure_is_not_the_label_exposure`
 builds a portfolio of an equity fund, a savings account, a ULIP, and an
-endowment policy, and asserts the aggregate equity exposure (Rs 2,15,000)
+endowment policy, and asserts the aggregate equity exposure (Rs 2,35,000)
 is *not* what you'd get from summing only holdings labeled "equity"
-(Rs 1,00,000) — it's Rs 1,15,000 more, hidden inside the ULIP and
+(Rs 1,00,000) — it's Rs 1,35,000 more, hidden inside the ULIP and
 endowment wrappers, and the test asserts that gap explicitly rather than
 just checking the final number in isolation.
 `tests/test_allocation_service.py` repeats the same numbers through the
 real Module 2 holdings + Module 4 service path.
 
-### Target allocation (`app/services/allocation.py` + `allocation_config.py`, version `v2-hybrid`)
+### Target allocation (`app/services/allocation.py` + `allocation_config.py`, version `v3-hybrid`)
 
 A two-layer hybrid from Module 3's final tier (1-5) to a percentage split
 across the five classes, replacing the original static per-tier lookup
@@ -545,8 +545,9 @@ table:
 
 - **Layer 1 (deterministic, auditable)**: `RISK_LADDER_BOUNDS_V1` maps the
   tier to a `[min, max]` weight range per asset class — equity's range
-  rises from tier 1 to tier 5, cash's falls, and alternatives are pinned
-  to exactly `[0%, 0%]` at tier 1. Debt/emergency-fund safety enforcement
+  rises from tier 1 to tier 5, cash's falls, and alternatives are capped
+  at `5%` at tier 1, widening to `[5%, 15%]` by tier 5. Debt/emergency-fund
+  safety enforcement
   already happened upstream, in Module 3's capacity-ceiling capping of
   `final_tier` itself, so this layer does not re-derive a separate safety
   override from raw profile fields.
