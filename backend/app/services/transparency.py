@@ -45,6 +45,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
+from app.services import transparency_labels as L
 from app.services.event_log import (
     count_events_by_module_source,
     get_user_event_history,
@@ -170,6 +171,30 @@ def build_value_hints(node: Any, out: dict[str, str] | None = None) -> dict[str,
 
 
 @dataclass(frozen=True)
+class Fact:
+    """One readable line of a trace.
+
+    `value` is what the user reads; `raw` is what was stored, carried
+    alongside so the translation never becomes a paraphrase the reader
+    cannot check. `raw` is only set where the two actually differ, so the
+    UI isn't cluttered with "stored as" on values that were already plain.
+    """
+
+    label: str
+    value: str
+    raw: str | None = None
+    note: str | None = None
+
+
+def fact(label: str, value: str, raw=None, note: str | None = None) -> Fact:
+    """Build a Fact, dropping `raw` when it adds nothing over `value`."""
+    raw_text = None if raw is None else str(raw)
+    if raw_text is not None and raw_text == value:
+        raw_text = None
+    return Fact(label=label, value=value, raw=raw_text, note=note)
+
+
+@dataclass(frozen=True)
 class ReasoningSection:
     """One independently-degradable block of a trace.
 
@@ -186,6 +211,12 @@ class ReasoningSection:
     build: Callable[[dict, dict], Any]
     requires_value: tuple[str, ...] = ()
     requires_context: tuple[str, ...] = ()
+    #: The readable rows a person actually reads. `build` stays as the
+    #: machine-readable payload behind them, so the screen is legible and
+    #: the record is still checkable.
+    facts: Callable[[dict, dict], list[Fact]] | None = None
+    #: One plain-English sentence summarising this block.
+    summary: Callable[[dict, dict], str] | None = None
 
 
 @dataclass(frozen=True)
@@ -222,6 +253,12 @@ class SectionResult:
     title: str
     available: bool
     missing_fields: tuple[str, ...]
+    #: The same fields named the way a person would say them. The UI has no
+    #: raw-record view any more, so an unrecorded field has to be
+    #: describable on its own terms rather than as a `snake_case` key.
+    missing_field_labels: tuple[str, ...] = ()
+    summary: str | None = None
+    facts: tuple[Fact, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -235,6 +272,7 @@ class TraceResult:
     reasoning: dict
     gap_detected: bool
     missing_fields: tuple[str, ...]
+    missing_field_labels: tuple[str, ...] = ()
     sections: tuple[SectionResult, ...] = ()
     value_hints: dict[str, str] = field(default_factory=dict)
     value_hint_rules_version: str = VALUE_HINT_RULES_VERSION
@@ -305,14 +343,6 @@ def _rupees(paise) -> str:
 # --------------------------------------------------------------------------
 
 
-def _risk_profile_headline(v: dict, m: dict) -> str:
-    tier_note = f"stated tier {v['stated_tier']} -> final tier {v['final_tier']}"
-    if v["capped"]:
-        binding = ", ".join(v.get("binding_constraints") or []) or "unspecified"
-        return f"{tier_note} (capped by capacity: {binding})"
-    return f"{tier_note} (not capped)"
-
-
 def _risk_questionnaire_section(v: dict, m: dict) -> dict:
     return {
         "version": v["questionnaire_version"],
@@ -352,10 +382,6 @@ def _risk_outcome_section(v: dict, m: dict) -> dict:
 # --------------------------------------------------------------------------
 
 
-def _allocation_headline(v: dict, m: dict) -> str:
-    return f"Target allocation for tier {v['final_tier']} (rule table {v['rule_table_version']})"
-
-
 def _allocation_rule_section(v: dict, m: dict) -> dict:
     return {
         "which_tier": v["final_tier"],
@@ -383,12 +409,6 @@ def _allocation_config_section(v: dict, m: dict) -> dict:
 # --------------------------------------------------------------------------
 # Module 6 -- recoverable Rs/year
 # --------------------------------------------------------------------------
-
-
-def _debt_leak_headline(v: dict, m: dict) -> str:
-    total = v["total_recoverable_annual_paise"]
-    n = len(v["leak_components"] or [])
-    return f"{_rupees(total)}/year recoverable across {n} itemized component(s)"
 
 
 def _debt_leak_total_section(v: dict, m: dict) -> dict:
@@ -419,13 +439,6 @@ def _debt_leak_provenance_section(v: dict, m: dict) -> dict:
 # --------------------------------------------------------------------------
 
 
-def _personalization_headline(v: dict, m: dict) -> str:
-    return (
-        f"Offset {v['offset_pct_points']} pct points from "
-        f"{v['edits_considered']} edit(s) (alpha={v['alpha']})"
-    )
-
-
 def _personalization_inputs_section(v: dict, m: dict) -> dict:
     return {"alpha": v["alpha"], "edits_considered": v["edits_considered"]}
 
@@ -451,10 +464,6 @@ def _personalization_effect_section(v: dict, m: dict) -> dict:
 # rule trace settles. Effort-only categories are enforced at import time in
 # that module, not here -- this view just prints which threshold was crossed.
 # --------------------------------------------------------------------------
-
-
-def _gamification_headline(v: dict, m: dict) -> str:
-    return f"{v['headline']} (milestone {v['milestone_id']}, category {v['category']})"
 
 
 def _gamification_rule_section(v: dict, m: dict) -> dict:
@@ -485,13 +494,6 @@ N8N_CLAIM_NOTE = (
     "path -- which constraint eliminated which candidate filing, and why "
     "the returned filing ranked first -- use the local engine."
 )
-
-
-def _rumour_headline(v: dict, m: dict) -> str:
-    status = v["status"] or "no verdict"
-    matched = v.get("matched_filing")
-    where = f"matched {matched['filing_id']}" if matched else "no filing matched"
-    return f"Verdict: {status} ({where}, {v['candidates_considered']} evidence item(s) considered)"
 
 
 def _rumour_claim_section(v: dict, m: dict) -> dict:
@@ -548,15 +550,6 @@ LOCAL_ENGINE_CLAIM_NOTE = (
 )
 
 
-def _rumour_local_headline(v: dict, m: dict) -> str:
-    matched = v.get("matched_filing")
-    where = f"matched {matched['filing_id']}" if matched else "no filing matched"
-    return (
-        f"Verdict: {v['status'] or 'no match'} ({where}); "
-        f"{v['candidates_eliminated']} of {v['candidates_considered']} candidates eliminated by constraint"
-    )
-
-
 def _rumour_local_claim_section(v: dict, m: dict) -> dict:
     return {
         "query_text": v["query_text"],
@@ -592,6 +585,599 @@ def _rumour_local_engine_section(v: dict, m: dict) -> dict:
     }
 
 
+# --------------------------------------------------------------------------
+# Readable rows
+#
+# Everything below turns stored codes into the sentences a person would
+# actually say. The machine-readable `_*_section` builders above are
+# unchanged and still ship alongside these, so the screen is legible and
+# the record stays checkable -- see transparency_labels.py for why this
+# lives on the server and why it is version-aware.
+# --------------------------------------------------------------------------
+
+
+def _sorted_pct(pct_map: dict | None) -> list[tuple[str, str]]:
+    """Asset-class percentages, largest first, so the mix reads the way a
+    person would describe it rather than in dict order."""
+    items = list((pct_map or {}).items())
+
+    def as_float(pair):
+        try:
+            return float(pair[1])
+        except (TypeError, ValueError):
+            return 0.0
+
+    return [(k, str(v)) for k, v in sorted(items, key=as_float, reverse=True)]
+
+
+def _mix_sentence(pct_map: dict | None, limit: int = 3) -> str:
+    parts = [
+        f"{L.ASSET_CLASS_LABEL.get(ac, L.field_label(ac))} {L.percent(v)}"
+        for ac, v in _sorted_pct(pct_map)
+        if _nonzero(v)
+    ]
+    return L.joined(parts[:limit], empty="nothing allocated")
+
+
+def _nonzero(value) -> bool:
+    try:
+        return float(value) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _format_by_hint(key: str, value) -> str:
+    """Format a loose key/value pair using the same declared units that
+    drive `value_hints`, so an ad-hoc dict (a milestone's `details`) reads
+    like the rest of the trace instead of dumping a bare Decimal."""
+    hint = hint_for_key(key)
+    if hint == "paise":
+        return L.rupees(value)
+    if hint == "months":
+        return L.months(value)
+    if hint == "percent":
+        return L.percent(value)
+    if hint == "ratio":
+        return L.ratio_as_percent(value)
+    if hint == "tier":
+        return L.tier(value)
+    return L.number(value) if isinstance(value, (int, float, str)) else str(value)
+
+
+def _humanize_codes(text: str) -> str:
+    """Config-generated prose (Module 4's rule explanation) embeds the
+    asset-class codes it looked up. Swap them for the words a person
+    reads; the untouched string stays in the machine-readable payload."""
+    for code, label in L.ASSET_CLASS_LABEL.items():
+        text = text.replace(code, label.lower())
+    return text
+
+
+def _sentence_case(text: str) -> str:
+    """Upper-case the first letter only. `str.capitalize()` lower-cases
+    everything after it, which turns "EMIs" into "emis"."""
+    return text[:1].upper() + text[1:] if text else text
+
+
+def _normalize_currency(text: str) -> str:
+    """Older backend messages (Module 3's unlock conditions) spell money as
+    'Rs 6,000'. The app writes '₹6,000' everywhere else, and two spellings
+    on one screen reads like a bug. Display-boundary only; the stored
+    message is untouched."""
+    return text.replace("Rs ", "₹").replace("Rs.", "₹")
+
+
+# --- Module 3: risk tier ---------------------------------------------------
+
+
+def _risk_profile_headline(v: dict, m: dict) -> str:
+    stated, final = L.tier(v["stated_tier"]), L.tier(v["final_tier"])
+    if v["capped"]:
+        blockers = L.joined([L.constraint_label(c) for c in (v.get("binding_constraints") or [])], empty="your finances")
+        return (
+            f"You told us you'd take on {stated} risk. Your finances currently support "
+            f"{final}, so we've held you there — the limit is {blockers}."
+        )
+    return f"You're on {final}, which matches what you told us. Nothing in your finances is holding you back."
+
+
+def _risk_questionnaire_summary(v: dict, m: dict) -> str:
+    return (
+        f"Your answers scored {v['stated_score']} out of 100, which on its own "
+        f"would put you on {L.tier(v['stated_tier'])}."
+    )
+
+
+def _risk_questionnaire_facts(v: dict, m: dict) -> list[Fact]:
+    version = v.get("questionnaire_version")
+    facts = [
+        fact(
+            _normalize_currency(L.question_text(version, qid)),
+            _normalize_currency(L.answer_label(version, qid, answer)),
+            raw=answer,
+        )
+        for qid, answer in (v.get("answers") or {}).items()
+    ]
+    facts.append(fact("Your willingness score", f"{v['stated_score']} out of 100", raw=v["stated_score"]))
+    facts.append(fact("On your answers alone", L.tier(v["stated_tier"]), raw=v["stated_tier"]))
+    return facts
+
+
+def _risk_capacity_summary(v: dict, m: dict) -> str:
+    return (
+        f"Looking only at the hard numbers — your buffer, your EMIs, how steady your "
+        f"income is and your cover — your finances support {L.tier(v['capacity_ceiling'])}."
+    )
+
+
+def _risk_capacity_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [
+        fact("Emergency buffer", f"{L.months(m['buffer_coverage_months'])} of essential spending covered", raw=m["buffer_coverage_months"]),
+        fact("Share of income going to EMIs", L.ratio_as_percent(m["emi_to_income_ratio"]), raw=m["emi_to_income_ratio"]),
+        fact("How steady your income is", L.enum_label("income_stability", m["income_stability"]), raw=m["income_stability"]),
+        fact("People who depend on you", L.count(m["dependents_count"], "dependent"), raw=m["dependents_count"]),
+        fact("Life insurance cover", L.rupees(m["total_life_cover_paise"]), raw=m["total_life_cover_paise"]),
+        fact("Monthly income", L.rupees(m["monthly_income_paise"]), raw=m["monthly_income_paise"]),
+    ]
+    for component in v.get("capacity_components") or []:
+        name = L.field_label(component.get("name", ""))
+        if not component.get("applicable", True):
+            facts.append(fact(name, "Doesn't apply to you", note="No dependents, so life cover isn't a limit here."))
+        else:
+            facts.append(fact(f"{name} allows up to", L.tier(component.get("ceiling")), raw=component.get("ceiling")))
+    facts.append(fact("Your finances support", L.tier(v["capacity_ceiling"]), raw=v["capacity_ceiling"]))
+    return facts
+
+
+def _risk_outcome_summary(v: dict, m: dict) -> str:
+    if not v["capped"]:
+        return "You're not being held back by anything — your plan follows your own answers."
+    blockers = L.joined([L.constraint_label(c) for c in (v["binding_constraints"] or [])], empty="your finances")
+    return f"We've capped you at {L.tier(v['final_tier'])} because of {blockers}. Here's what would lift it."
+
+
+def _risk_outcome_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [
+        fact("Where you ended up", L.tier(v["final_tier"]), raw=v["final_tier"]),
+        fact(
+            "Were you held back?",
+            "Yes — by your finances, not your answers" if v["capped"] else "No",
+            raw=v["capped"],
+        ),
+    ]
+    if v["binding_constraints"]:
+        facts.append(
+            fact(
+                "What's holding you back",
+                L.joined([_sentence_case(L.constraint_label(c)) for c in v["binding_constraints"]]),
+                raw=", ".join(v["binding_constraints"]),
+            )
+        )
+    for condition in v["unlock_conditions"] or []:
+        facts.append(
+            fact(
+                "To move up a tier",
+                _normalize_currency(condition.get("message", "")),
+                note=(
+                    f"Right now: {_normalize_currency(str(condition.get('current_value')))}. "
+                    f"You need: {_normalize_currency(str(condition.get('target_value')))}."
+                ),
+            )
+        )
+    return facts
+
+
+# --- Module 4: target allocation -------------------------------------------
+
+
+def _allocation_headline(v: dict, m: dict) -> str:
+    return f"Your target mix for {L.tier(v['final_tier'])}: {_mix_sentence(v.get('target_pct'))}."
+
+
+def _allocation_rule_summary(v: dict, m: dict) -> str:
+    return f"This mix comes straight from the rule table for {L.tier(v['final_tier'])} — no model decided it."
+
+
+def _allocation_rule_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [fact("Your tier", L.tier(v["final_tier"]), raw=v["final_tier"])]
+    for asset_class, pct in _sorted_pct(v.get("target_pct")):
+        facts.append(fact(L.ASSET_CLASS_LABEL.get(asset_class, L.field_label(asset_class)), L.percent(pct), raw=pct))
+    if v.get("reasoning"):
+        facts.append(fact("The rule we applied", _humanize_codes(str(v["reasoning"]))))
+    return facts
+
+
+def _allocation_position_summary(v: dict, m: dict) -> str:
+    concentration = v.get("concentration") or {}
+    largest = concentration.get("largest_holding_pct")
+    if largest is None:
+        return "Where your money sits today, for comparison against the target above."
+    return (
+        f"Where your money sits today. Your single biggest holding is "
+        f"{L.percent(largest)} of everything you have."
+    )
+
+
+def _allocation_position_facts(v: dict, m: dict) -> list[Fact]:
+    facts = []
+    for asset_class, pct in _sorted_pct(v.get("current_exposure_pct")):
+        if not _nonzero(pct):
+            continue  # "You hold 0% in alternatives" is noise, not information
+        facts.append(
+            fact(f"You hold in {L.ASSET_CLASS_LABEL.get(asset_class, asset_class).lower()}", L.percent(pct), raw=pct)
+        )
+    concentration = v.get("concentration") or {}
+    if concentration.get("largest_holding_pct") is not None:
+        facts.append(
+            fact("Biggest single holding", L.percent(concentration["largest_holding_pct"]), raw=concentration["largest_holding_pct"])
+        )
+    for holding in v.get("holdings") or []:
+        facts.append(
+            fact(
+                L.holding_type_label(holding.get("holding_type")),
+                L.rupees(holding.get("value_paise")),
+                raw=holding.get("value_paise"),
+                note=(
+                    f"{L.enum_label('liquidity', holding.get('liquidity'))}"
+                    + (f" · locked in for {L.months(holding['lock_in_months'])}" if holding.get("lock_in_months") else "")
+                ),
+            )
+        )
+    return facts
+
+
+def _allocation_config_summary(v: dict, m: dict) -> str:
+    return "The exact version of the rules that produced this, so an old plan can always be reproduced."
+
+
+def _allocation_config_facts(v: dict, m: dict) -> list[Fact]:
+    return [
+        fact("Investment-mix rules", f"Version {m['allocation_config_version']}", raw=m["allocation_config_version"]),
+        fact("Investment-classification rules", f"Version {m['asset_classification_config_version']}", raw=m["asset_classification_config_version"]),
+    ]
+
+
+# --- Module 6: recoverable rupees ------------------------------------------
+
+
+def _debt_leak_headline(v: dict, m: dict) -> str:
+    n = len(v["leak_components"] or [])
+    if n == 0:
+        return "We couldn't find anything recoverable in what you've entered."
+    return f"You could recover about {L.rupees(v['total_recoverable_annual_paise'])} a year, across {L.count(n, 'thing')} we found."
+
+
+def _debt_leak_total_summary(v: dict, m: dict) -> str:
+    return (
+        f"{L.rupees(v['total_recoverable_annual_paise'])} a year, and here is every piece "
+        "of it — nothing in that figure is unexplained."
+    )
+
+
+def _debt_leak_total_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [fact("Recoverable each year", L.rupees(v["total_recoverable_annual_paise"]), raw=v["total_recoverable_annual_paise"])]
+    for component in v["leak_components"] or []:
+        facts.append(
+            fact(
+                str(component.get("label", "")),
+                f"{L.rupees(component.get('annual_amount_paise'))} a year",
+                raw=component.get("annual_amount_paise"),
+                note=str(component.get("concrete_action") or component.get("explanation") or "") or None,
+            )
+        )
+    return facts
+
+
+def _debt_leak_detail_summary(v: dict, m: dict) -> str:
+    return "How each figure above was worked out."
+
+
+def _debt_leak_detail_facts(v: dict, m: dict) -> list[Fact]:
+    idle = v.get("idle_cash") or {}
+    return [
+        fact("Buffer you should keep", L.rupees(idle.get("required_buffer_paise")), raw=idle.get("required_buffer_paise")),
+        fact("Cash sitting above that", L.rupees(idle.get("idle_cash_paise")), raw=idle.get("idle_cash_paise")),
+        fact(
+            "What that idle cash costs you",
+            f"{L.rupees(idle.get('opportunity_cost_annual_paise'))} a year",
+            raw=idle.get("opportunity_cost_annual_paise"),
+            note=f"Compared against a {L.percent(idle.get('reference_rate_annual_pct'))} savings rate.",
+        ),
+        fact("Recurring fees", f"{L.rupees(v.get('fee_drag_total_annual_paise'))} a year", raw=v.get("fee_drag_total_annual_paise")),
+        fact("Recurring expenses spotted", L.count(v.get("recurring_candidate_count"), "expense"), raw=v.get("recurring_candidate_count")),
+    ]
+
+
+def _debt_leak_provenance_summary(v: dict, m: dict) -> str:
+    return "Where these numbers came from, and what they can't see."
+
+
+def _debt_leak_provenance_facts(v: dict, m: dict) -> list[Fact]:
+    return [
+        fact("Based on", L.enum_label("expense_source_mode", m["expense_source_mode"]), raw=m["expense_source_mode"]),
+        fact(
+            "What this can't see",
+            "Only what you've typed in. We don't read your bank statements, so a recurring "
+            "charge you haven't entered as an expense won't show up here.",
+            raw=str(v["data_source_note"]),
+        ),
+    ]
+
+
+# --- Module 7: personalization offset --------------------------------------
+
+
+def _personalization_headline(v: dict, m: dict) -> str:
+    if not _nonzero(v["offset_pct_points"]):
+        return "We haven't adjusted your plan — you haven't edited it in a way we can learn from yet."
+    return (
+        f"We've nudged your displayed plan by {L.number(v['offset_pct_points'])} percentage points, "
+        f"based on {L.count(v['edits_considered'], 'edit')} you made."
+    )
+
+
+def _personalization_inputs_summary(v: dict, m: dict) -> str:
+    return (
+        "We watch what you actually change and lean your plan slightly that way. "
+        "Your most recent edits count for more than older ones."
+    )
+
+
+def _personalization_inputs_facts(v: dict, m: dict) -> list[Fact]:
+    return [
+        fact("Edits we learned from", L.count(v["edits_considered"], "edit"), raw=v["edits_considered"]),
+        fact(
+            "How much recent edits count",
+            f"{L.number(v['alpha'])} — the higher this is, the more your latest edit matters",
+            raw=v["alpha"],
+        ),
+    ]
+
+
+def _personalization_trace_summary(v: dict, m: dict) -> str:
+    steps = m.get("trace") or []
+    if not steps:
+        return "No edits have fed into this yet."
+    return f"Each of your {L.count(len(steps), 'edit')}, in order, and what it moved."
+
+
+def _personalization_trace_facts(v: dict, m: dict) -> list[Fact]:
+    if not (m.get("trace") or []):
+        return [
+            fact(
+                "Nothing to show yet",
+                "You haven't edited your plan, so there's nothing for us to learn from.",
+            )
+        ]
+    facts = []
+    for i, step in enumerate(m["trace"] or [], start=1):
+        facts.append(
+            fact(
+                f"Edit {i}",
+                f"You moved it by {L.number(step.get('delta_pct'))} percentage points",
+                note=(
+                    f"Counted at weight {L.number(step.get('weight'))} · "
+                    f"running adjustment {L.number(step.get('offset_before'))} → {L.number(step.get('offset_after'))}"
+                ),
+            )
+        )
+    return facts
+
+
+def _personalization_effect_summary(v: dict, m: dict) -> str:
+    return "What you'd have been shown without this, and what you're being shown now."
+
+
+def _personalization_effect_facts(v: dict, m: dict) -> list[Fact]:
+    facts = []
+    base, shown = v["base_target_pct"] or {}, v["displayed_target_pct"] or {}
+    for asset_class in {**base, **shown}:
+        before, after = base.get(asset_class), shown.get(asset_class)
+        label = L.ASSET_CLASS_LABEL.get(asset_class, L.field_label(asset_class))
+        if before == after:
+            facts.append(fact(label, f"{L.percent(after)} — unchanged", raw=after))
+        else:
+            facts.append(fact(label, f"{L.percent(before)} → {L.percent(after)}", raw=f"{before} -> {after}"))
+    if v.get("capacity_ceiling") is not None:
+        facts.append(
+            fact(
+                "We never push you past",
+                L.tier(v["capacity_ceiling"]),
+                raw=v["capacity_ceiling"],
+                note="Learning from your edits can nudge the mix, but never past what your finances support.",
+            )
+        )
+    return facts
+
+
+# --- Module 10: milestones -------------------------------------------------
+
+
+def _gamification_headline(v: dict, m: dict) -> str:
+    return L.plural_marker(str(v["headline"]))
+
+
+def _gamification_summary(v: dict, m: dict) -> str:
+    return (
+        f"You earned this under {L.enum_label('category', v['category'])}. "
+        "Milestones here are only ever for something you did with your money — never for market moves or for opening the app."
+    )
+
+
+def _gamification_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [
+        fact("What you earned", L.plural_marker(str(v["headline"]))),
+        fact("Category", L.enum_label("category", v["category"]), raw=v["category"]),
+    ]
+    details = v.get("details") or {}
+    for key, value in details.items():
+        facts.append(fact(L.field_label(key), _format_by_hint(key, value), raw=value))
+    facts.append(fact("Milestone rules", f"Version {m['config_version']}", raw=m["config_version"]))
+    return facts
+
+
+# --- Module 5: n8n workflow path -------------------------------------------
+
+
+def _rumour_headline(v: dict, m: dict) -> str:
+    verdict = L.enum_label("status", v["status"]) if v["status"] else "No verdict reached"
+    matched = v.get("matched_filing")
+    if matched:
+        return f"{verdict}, based on a filing from {matched.get('company_name', 'the company')}."
+    return f"{verdict}. No specific filing was identified."
+
+
+def _rumour_claim_summary(v: dict, m: dict) -> str:
+    return "What you asked us to check, and what came back."
+
+
+def _rumour_claim_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [
+        fact("What you asked about", str(v["query_text"])),
+        fact("Verdict", L.enum_label("status", v["status"]) if v["status"] else "No verdict reached", raw=v["status"]),
+    ]
+    if v.get("rumour_date"):
+        facts.append(fact("You heard it on", str(v["rumour_date"])))
+    matched = v.get("matched_filing")
+    if matched:
+        facts.append(fact("Company", str(matched.get("company_name", "")), raw=matched.get("filing_id")))
+        facts.append(fact("Filed on", str(matched.get("filing_date", ""))))
+        if matched.get("determination"):
+            facts.append(fact("What the filing says", L.enum_label("determination", matched["determination"]), raw=matched["determination"]))
+    return facts
+
+
+def _rumour_evidence_summary(v: dict, m: dict) -> str:
+    return f"The workflow returned {L.count(v['candidates_considered'], 'piece')} of evidence in total."
+
+
+def _rumour_evidence_facts(v: dict, m: dict) -> list[Fact]:
+    return [
+        fact("Official filings returned", L.count(m["official_evidence_count"], "filing"), raw=m["official_evidence_count"]),
+        fact("News articles returned", L.count(m["news_evidence_count"], "article"), raw=m["news_evidence_count"]),
+        fact("Evidence in total", L.count(v["candidates_considered"], "piece"), raw=v["candidates_considered"]),
+    ]
+
+
+def _rumour_workflow_summary(v: dict, m: dict) -> str:
+    return (
+        "This came from an outside service. The wording below is that service explaining "
+        "itself — we can show it to you, but we didn't work it out and can't verify it."
+    )
+
+
+def _rumour_workflow_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [
+        fact(
+            "Can we show you what was ruled out?",
+            "No — this engine doesn't return the options it rejected",
+            note="Use “show the working” on the Verify screen for the engine that can.",
+        )
+    ]
+    for i, reason in enumerate(v["top_candidate_reasons"] or [], start=1):
+        facts.append(fact(f"What it said ({i})", str(reason)))
+    return facts
+
+
+# --- Module 5: local explainable path --------------------------------------
+
+
+def _rumour_local_headline(v: dict, m: dict) -> str:
+    verdict = L.enum_label("status", v["status"]) if v["status"] else "No match found"
+    return (
+        f"{verdict}. We checked {L.count(v['candidates_considered'], 'filing')} and ruled out "
+        f"{v['candidates_eliminated']} of them."
+    )
+
+
+def _rumour_local_claim_summary(v: dict, m: dict) -> str:
+    return "What you asked us to check, and what we found."
+
+
+def _rumour_local_claim_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [
+        fact("What you asked about", str(v["query_text"])),
+        fact("Verdict", L.enum_label("status", v["status"]) if v["status"] else "No match found", raw=v["status"]),
+    ]
+    if v.get("rumour_date"):
+        facts.append(fact("You heard it on", str(v["rumour_date"])))
+    matched = v.get("matched_filing")
+    if matched:
+        facts.append(fact("Company", str(matched.get("company_name", ""))))
+        facts.append(fact("Filed on", str(matched.get("filing_date", ""))))
+        facts.append(fact("Where it came from", L.enum_label("source_authority", matched.get("source_authority")), raw=matched.get("source_authority")))
+        if matched.get("determination"):
+            facts.append(fact("What the filing says", L.enum_label("determination", matched["determination"]), raw=matched["determination"]))
+    if v.get("matched_score") is not None:
+        facts.append(fact("How closely it matched", f"{float(v['matched_score']):.0%} similar wording", raw=v["matched_score"]))
+    return facts
+
+
+def _rumour_local_winner_summary(v: dict, m: dict) -> str:
+    return str(v["why_ranked_first"])
+
+
+def _rumour_local_winner_facts(v: dict, m: dict) -> list[Fact]:
+    return [
+        fact("Filings we checked", L.count(v["candidates_considered"], "filing"), raw=v["candidates_considered"]),
+        fact("Filings that passed every check", L.count(v["candidates_passing"], "filing"), raw=v["candidates_passing"]),
+        fact("Filings we ruled out", L.count(v["candidates_eliminated"], "filing"), raw=v["candidates_eliminated"]),
+    ]
+
+
+def _rumour_local_elimination_summary(v: dict, m: dict) -> str:
+    return (
+        "Every filing we rejected, and the reason we rejected it. Showing the ones that "
+        "lost is what makes this an explanation rather than a justification."
+    )
+
+
+def _rumour_local_elimination_facts(v: dict, m: dict) -> list[Fact]:
+    facts = []
+    for check, n in (v["eliminated_by_constraint"] or {}).items():
+        facts.append(
+            fact(
+                L.RETRIEVAL_CHECK_LABEL.get(check, L.field_label(check)),
+                f"ruled out {L.count(n, 'filing')}",
+                raw=check,
+            )
+        )
+    for candidate in v["candidate_explanations"] or []:
+        if candidate.get("is_winner"):
+            continue
+        reasons = [L.RETRIEVAL_CHECK_LABEL.get(c, c) for c in candidate.get("failed_constraints") or []]
+        facts.append(
+            fact(
+                str(candidate.get("company_name", "")),
+                L.joined(reasons, empty="Ruled out"),
+                raw=candidate.get("filing_id"),
+                note=f"Filed {candidate.get('filing_date')} · {float(candidate.get('score', 0)):.0%} similar wording",
+            )
+        )
+    return facts
+
+
+def _rumour_local_engine_summary(v: dict, m: dict) -> str:
+    return (
+        f"Searched {L.count(m['corpus_size'], 'filing')} in our records, using four checks in order. "
+        "This is a word-matching search plus fixed rules — there is no model involved."
+    )
+
+
+def _rumour_local_engine_facts(v: dict, m: dict) -> list[Fact]:
+    facts = [fact("Filings in our records", L.count(m["corpus_size"], "filing"), raw=m["corpus_size"])]
+    for i, check in enumerate(m.get("constraints_applied") or [], start=1):
+        facts.append(
+            fact(
+                f"Check {i}",
+                L.RETRIEVAL_CHECK_QUESTION.get(check, L.field_label(check)),
+                raw=check,
+                note=f"Fails as: {L.RETRIEVAL_CHECK_LABEL.get(check, check)}",
+            )
+        )
+    return facts
+
+
 DECISION_TYPES: dict[str, DecisionTypeSpec] = {
     "risk_profile": DecisionTypeSpec(
         module_source="risk_profile",
@@ -603,12 +1189,16 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="questionnaire",
                 title="What you told us (willingness)",
                 build=_risk_questionnaire_section,
+                facts=_risk_questionnaire_facts,
+                summary=_risk_questionnaire_summary,
                 requires_value=("questionnaire_version", "answers", "stated_score", "stated_tier"),
             ),
             ReasoningSection(
                 key="capacity_layer",
                 title="What your finances allow (ability)",
                 build=_risk_capacity_section,
+                facts=_risk_capacity_facts,
+                summary=_risk_capacity_summary,
                 requires_value=("rule_table_version", "capacity_components", "capacity_ceiling"),
                 requires_context=(
                     "buffer_coverage_months", "emi_to_income_ratio", "income_stability",
@@ -619,6 +1209,8 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="outcome",
                 title="The tier you got, and how to lift it",
                 build=_risk_outcome_section,
+                facts=_risk_outcome_facts,
+                summary=_risk_outcome_summary,
                 requires_value=("final_tier", "capped", "binding_constraints", "unlock_conditions"),
             ),
         ),
@@ -633,25 +1225,31 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="rule_lookup",
                 title="Which tier, which rule table",
                 build=_allocation_rule_section,
+                facts=_allocation_rule_facts,
+                summary=_allocation_rule_summary,
                 requires_value=("final_tier", "rule_table_version", "reasoning", "target_pct"),
             ),
             ReasoningSection(
                 key="current_position",
                 title="Where your portfolio stands today",
                 build=_allocation_position_section,
+                facts=_allocation_position_facts,
+                summary=_allocation_position_summary,
                 requires_value=("current_exposure_pct", "concentration", "holdings"),
             ),
             ReasoningSection(
                 key="config_versions",
                 title="Which config versions applied",
                 build=_allocation_config_section,
+                facts=_allocation_config_facts,
+                summary=_allocation_config_summary,
                 requires_context=("asset_classification_config_version", "allocation_config_version"),
             ),
         ),
     ),
     "debt_leak_engine": DecisionTypeSpec(
         module_source="debt_leak_engine",
-        display_name="Recoverable Rs/year",
+        display_name="Recoverable ₹/year",
         headline=_debt_leak_headline,
         headline_requires_value=("total_recoverable_annual_paise", "leak_components"),
         sections=(
@@ -659,18 +1257,24 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="recoverable_total",
                 title="The headline figure, itemized",
                 build=_debt_leak_total_section,
+                facts=_debt_leak_total_facts,
+                summary=_debt_leak_total_summary,
                 requires_value=("total_recoverable_annual_paise", "leak_components"),
             ),
             ReasoningSection(
                 key="component_detail",
                 title="How each component was computed",
                 build=_debt_leak_detail_section,
+                facts=_debt_leak_detail_facts,
+                summary=_debt_leak_detail_summary,
                 requires_value=("idle_cash", "fee_drag_total_annual_paise", "recurring_candidate_count"),
             ),
             ReasoningSection(
                 key="data_provenance",
                 title="Where the expense data came from",
                 build=_debt_leak_provenance_section,
+                facts=_debt_leak_provenance_facts,
+                summary=_debt_leak_provenance_summary,
                 requires_value=("data_source_note",),
                 requires_context=("expense_source_mode",),
             ),
@@ -686,18 +1290,24 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="inputs",
                 title="Learning rate and edits considered",
                 build=_personalization_inputs_section,
+                facts=_personalization_inputs_facts,
+                summary=_personalization_inputs_summary,
                 requires_value=("alpha", "edits_considered"),
             ),
             ReasoningSection(
                 key="step_by_step_trace",
                 title="Each edit's contribution, in order",
                 build=_personalization_trace_section,
+                facts=_personalization_trace_facts,
+                summary=_personalization_trace_summary,
                 requires_context=("trace",),
             ),
             ReasoningSection(
                 key="effect",
                 title="What the offset changed",
                 build=_personalization_effect_section,
+                facts=_personalization_effect_facts,
+                summary=_personalization_effect_summary,
                 requires_value=("base_target_pct", "displayed_target_pct"),
             ),
         ),
@@ -712,6 +1322,8 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="threshold_rule",
                 title="Which threshold was crossed",
                 build=_gamification_rule_section,
+                facts=_gamification_facts,
+                summary=_gamification_summary,
                 requires_value=("milestone_id", "category", "headline", "details"),
                 requires_context=("config_version",),
             ),
@@ -729,12 +1341,16 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="claim",
                 title="The claim and what it matched",
                 build=_rumour_claim_section,
+                facts=_rumour_claim_facts,
+                summary=_rumour_claim_summary,
                 requires_value=("query_text", "status"),
             ),
             ReasoningSection(
                 key="evidence_counts",
                 title="How much evidence was returned",
                 build=_rumour_evidence_section,
+                facts=_rumour_evidence_facts,
+                summary=_rumour_evidence_summary,
                 requires_value=("candidates_considered", "candidates_passing"),
                 requires_context=("official_evidence_count", "news_evidence_count"),
             ),
@@ -742,6 +1358,8 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="workflow_output",
                 title="What the external workflow reported",
                 build=_rumour_workflow_section,
+                facts=_rumour_workflow_facts,
+                summary=_rumour_workflow_summary,
                 requires_value=("top_candidate_reasons",),
                 requires_context=("engine",),
             ),
@@ -759,12 +1377,16 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="claim",
                 title="The claim and what it matched",
                 build=_rumour_local_claim_section,
+                facts=_rumour_local_claim_facts,
+                summary=_rumour_local_claim_summary,
                 requires_value=("query_text", "status"),
             ),
             ReasoningSection(
                 key="why_this_filing_won",
                 title="Why the returned filing ranked first",
                 build=_rumour_local_winner_section,
+                facts=_rumour_local_winner_facts,
+                summary=_rumour_local_winner_summary,
                 requires_value=(
                     "why_ranked_first", "candidates_considered",
                     "candidates_passing", "candidates_eliminated",
@@ -774,6 +1396,8 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="eliminations",
                 title="Which constraint eliminated which candidate",
                 build=_rumour_local_elimination_section,
+                facts=_rumour_local_elimination_facts,
+                summary=_rumour_local_elimination_summary,
                 requires_value=("eliminated_by_constraint", "candidate_explanations"),
                 requires_context=("constraints_applied",),
             ),
@@ -781,6 +1405,8 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 key="engine",
                 title="Engine and corpus",
                 build=_rumour_local_engine_section,
+                facts=_rumour_local_engine_facts,
+                summary=_rumour_local_engine_summary,
                 requires_value=("full_trace_text",),
                 requires_context=("engine", "corpus_size"),
             ),
@@ -872,12 +1498,27 @@ def build_trace(event: SuggestionEvent, spec: DecisionTypeSpec | None = None) ->
             reasoning[section.key] = _unavailable_section(section, missing, v, m)
         else:
             reasoning[section.key] = section.build(v, m)
+        # Readable rows are only produced for a section whose inputs are all
+        # present -- a half-recorded section degrades to its raw
+        # `recorded_values` rather than to a confidently-worded sentence
+        # built over gaps.
+        section_facts: tuple[Fact, ...] = ()
+        section_summary: str | None = None
+        if not missing:
+            if section.facts is not None:
+                section_facts = tuple(section.facts(v, m))
+            if section.summary is not None:
+                section_summary = section.summary(v, m)
+
         section_results.append(
             SectionResult(
                 key=section.key,
                 title=section.title,
                 available=not missing,
                 missing_fields=missing,
+                missing_field_labels=tuple(L.field_label(f) for f in missing),
+                summary=section_summary,
+                facts=section_facts,
             )
         )
 
@@ -893,6 +1534,7 @@ def build_trace(event: SuggestionEvent, spec: DecisionTypeSpec | None = None) ->
         reasoning=reasoning,
         gap_detected=bool(missing_fields),
         missing_fields=missing_fields,
+        missing_field_labels=tuple(L.field_label(f) for f in missing_fields),
         sections=tuple(section_results),
         value_hints=build_value_hints(reasoning),
         value_hint_rules_version=VALUE_HINT_RULES_VERSION,

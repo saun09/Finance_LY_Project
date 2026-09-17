@@ -2,16 +2,17 @@ import { asUnavailableSection, formatTraceValue, humanizeKey } from '../traceVal
 
 /**
  * The property under test throughout: a trace value may be made *readable*,
- * but never merely *paraphrased*. Where formatting changes what the reader
- * sees, the stored value must still be reachable, because this is an audit
- * trace and a number the user cannot check is not transparency.
+ * but the stored form must still be reachable on the returned object, so a
+ * caller (or a test) can always compare the two. The stored value is no
+ * longer printed beneath every row -- that restated things the reader could
+ * already see -- but it is never discarded.
  */
 
 describe('formatTraceValue', () => {
   it('leaves a value untouched when the server declared no unit', () => {
     const out = formatTraceValue(4560000, undefined);
     expect(out.display).toBe('4560000');
-    expect(out.showRaw).toBe(false);
+    expect(out.raw).toBe('4560000');
   });
 
   it('never guesses a unit from the value alone', () => {
@@ -20,11 +21,10 @@ describe('formatTraceValue', () => {
     expect(formatTraceValue(4560000, undefined).display).toBe('4560000');
   });
 
-  it('formats paise as rupees and keeps the stored paise visible', () => {
+  it('formats paise as rupees while keeping the stored paise reachable', () => {
     const out = formatTraceValue(4560000, 'paise');
     expect(out.display).toBe('₹45,600');
     expect(out.raw).toBe('4560000');
-    expect(out.showRaw).toBe(true);
   });
 
   it('uses Indian digit grouping, matching the backend', () => {
@@ -57,7 +57,7 @@ describe('formatTraceValue', () => {
   it('falls back to the raw string when a hinted value is not numeric', () => {
     const out = formatTraceValue('not a number', 'paise');
     expect(out.display).toBe('not a number');
-    expect(out.showRaw).toBe(false);
+    expect(out.raw).toBe('not a number');
   });
 
   it('renders booleans readably', () => {

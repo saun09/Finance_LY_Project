@@ -1047,6 +1047,46 @@ outcome fields (`action_taken=REJECTED`, a `reason_code` from the closed
 parallel store — so the objection lands where Module 7's feedback loop
 already reads, instead of dying on a read-only screen.
 
+### Plain language, and why it isn't a loss of rigour
+
+The trace was originally rendered verbatim from storage, on the argument
+that reformatting a stored value would be a reinterpretation the backend
+never sanctioned. That produced screens reading `horizon: gt_15y`,
+`drawdown_reaction: buy_a_lot` and `emi_to_income_ratio: 0.3` — faithful
+and unreadable at the same time. Transparency a person cannot read is not
+transparency.
+
+Readability and auditability are only in tension if you pick one. They
+are now layered instead. Each `ReasoningSection` declares a `facts`
+builder and a `summary` builder alongside `build`:
+
+- `summary` — one plain-English sentence for the block.
+- `facts` — `Fact(label, value, raw, note)` rows. `value` is the sentence
+  a person would say; `raw` is what was stored, carried **only where the
+  two differ**, so nothing is paraphrased beyond checking and plain values
+  aren't cluttered with "recorded as".
+- `build` — unchanged, still the machine-readable payload, now shown
+  behind a "Show the stored record" toggle in the app.
+
+Facts are only produced for a section whose inputs are all present. A
+half-recorded section degrades to its raw `recorded_values`, never to a
+confidently-worded sentence written over gaps.
+
+The vocabulary lives in `transparency_labels.py`, on the server rather
+than the client, so it is versioned alongside the configs it describes.
+**Questionnaire answers are translated with the version recorded on the
+event**, not today's: rendering an old event's answers with a newer
+questionnaire would put words in the user's mouth that they were never
+shown — the module's own failure mode, relocated into the display layer.
+An unknown version or option falls back to the raw code rather than
+guessing.
+
+`tests/test_transparency_readability.py` is the regression guard: it
+asserts no raw enum code and no snake_case identifier reaches any
+user-facing label or value across every decision type, that every
+registered spec declares readable builders, and that a partially-recorded
+section produces no sentence at all.
+
 ### Value hints: readable without being paraphrased
 
 `total_recoverable_annual_paise: 4560000` is faithful and useless at the

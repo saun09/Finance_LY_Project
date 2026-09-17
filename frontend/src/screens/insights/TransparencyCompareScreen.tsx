@@ -92,7 +92,7 @@ export function TransparencyCompareScreen() {
         <Text variant="bodyMedium">{comparison.after_headline}</Text>
       </Card>
 
-      {comparison.changes.length === 0 ? (
+      {(comparison.changes ?? []).length === 0 ? (
         <EmptyState
           title="Nothing changed"
           message={`All ${comparison.unchanged_field_count} recorded fields are identical across these two decisions.`}
@@ -100,10 +100,10 @@ export function TransparencyCompareScreen() {
       ) : (
         <Card>
           <SectionHeader
-            title={`${comparison.changes.length} field${comparison.changes.length === 1 ? '' : 's'} moved`}
+            title={`${(comparison.changes ?? []).length} field${(comparison.changes ?? []).length === 1 ? '' : 's'} moved`}
             subtitle={`${comparison.unchanged_field_count} stayed the same`}
           />
-          {comparison.changes.map((change) => {
+          {(comparison.changes ?? []).map((change) => {
             const { leaf, context } = readablePath(change.path);
             const before = formatTraceValue(change.before, change.hint ?? undefined);
             const after = formatTraceValue(change.after, change.hint ?? undefined);

@@ -21,11 +21,14 @@ export type ValueHints = Record<string, ValueHint>;
  * reader looking at `total recoverable annual paise 4560000`, which is
  * faithful and useless at the same time.
  *
- * So the unit now comes from the server (`value_hints`, keyed by leaf name
- * and versioned), and this component formats only leaves it was explicitly
- * told the unit of. Where a value is reformatted, the stored value is
- * printed underneath it -- the readable form is an addition, never a
- * replacement, so this remains an audit trace rather than a summary of one.
+ * So the unit comes from the server (`value_hints`, keyed by leaf name and
+ * versioned), and this component formats only leaves it was explicitly told
+ * the unit of -- it never infers a unit from a key name.
+ *
+ * It no longer prints the stored value beneath each formatted one. This IS
+ * the stored record, reached through "Show the stored record"; annotating
+ * every line with "stored as ..." inside the stored record was noise
+ * restating its own context.
  */
 export function ReasoningTree({
   data,
@@ -112,16 +115,7 @@ function PrimitiveValue({ value, hint }: { value: unknown; hint?: ValueHint }) {
   }
 
   const formatted = formatTraceValue(value, hint);
-  return (
-    <View>
-      <Text variant="figure">{formatted.display}</Text>
-      {formatted.showRaw ? (
-        <Text variant="caption" tone="faint">
-          stored as {formatted.raw}
-        </Text>
-      ) : null}
-    </View>
-  );
+  return <Text variant="figure">{formatted.display}</Text>;
 }
 
 const styles = StyleSheet.create({

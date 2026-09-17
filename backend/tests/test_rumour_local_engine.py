@@ -88,10 +88,12 @@ def test_the_winner_passed_every_constraint_and_the_trace_says_why_it_ranked_fir
     assert len(winners) == 1
     assert winners[0]["passed"] is True
     assert winners[0]["failed_constraints"] == []
-    assert winners[0]["filing_id"] in payload["why_ranked_first"]
-    # a comparative claim, not just an assertion that it won
+    # The justification must make a comparative claim, not merely assert a
+    # win. The filing's own id is carried as its own labelled row rather
+    # than embedded in the prose, so this checks the claim, not the id.
     why = payload["why_ranked_first"]
     assert "highest" in why or "only eligible candidate" in why
+    assert "every check" in why or "only filing" in why
 
 
 def test_eliminated_counts_are_broken_down_by_constraint(result):

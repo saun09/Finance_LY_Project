@@ -20,11 +20,9 @@ import { formatPaise } from './currency';
 export interface FormattedTraceValue {
   /** What to show prominently. Equals `raw` when there is no usable hint. */
   display: string;
-  /** The stored value, verbatim. Shown as a secondary line whenever it
-   * differs from `display`, so nothing is ever only paraphrased. */
+  /** The stored value, verbatim. Not rendered -- kept so callers and tests
+   * can compare the readable form against what was actually stored. */
   raw: string;
-  /** True when `raw` should be shown alongside `display`. */
-  showRaw: boolean;
 }
 
 function asNumber(value: unknown): number | null {
@@ -46,35 +44,35 @@ function rawString(value: unknown): string {
 export function formatTraceValue(value: unknown, hint: ValueHint | undefined): FormattedTraceValue {
   const raw = rawString(value);
   if (value === null || value === undefined || hint === undefined) {
-    return { display: raw, raw, showRaw: false };
+    return { display: raw, raw };
   }
 
   const n = asNumber(value);
-  if (n === null) return { display: raw, raw, showRaw: false };
+  if (n === null) return { display: raw, raw };
 
   switch (hint) {
     case 'paise':
       // The only paise -> rupee conversion path, same as everywhere else.
-      return { display: formatPaise(n), raw, showRaw: true };
+      return { display: formatPaise(n), raw };
     case 'percent':
-      return { display: `${trimZeros(n)}%`, raw, showRaw: false };
+      return { display: `${trimZeros(n)}%`, raw };
     case 'percent_points':
-      return { display: `${trimZeros(n)} pct points`, raw, showRaw: false };
+      return { display: `${trimZeros(n)} pct points`, raw };
     case 'basis_points':
-      return { display: `${trimZeros(n / 100)}% (${n} bps)`, raw, showRaw: false };
+      return { display: `${trimZeros(n / 100)}% (${n} bps)`, raw };
     case 'months':
-      return { display: `${trimZeros(n)} month${n === 1 ? '' : 's'}`, raw, showRaw: false };
+      return { display: `${trimZeros(n)} month${n === 1 ? '' : 's'}`, raw };
     case 'count':
-      return { display: String(n), raw, showRaw: false };
+      return { display: String(n), raw };
     case 'tier':
-      return { display: `Tier ${n}`, raw, showRaw: false };
+      return { display: `Tier ${n}`, raw };
     case 'score':
     case 'ratio':
-      return { display: trimZeros(n), raw, showRaw: false };
+      return { display: trimZeros(n), raw };
     case 'version':
     case 'date':
     default:
-      return { display: raw, raw, showRaw: false };
+      return { display: raw, raw };
   }
 }
 

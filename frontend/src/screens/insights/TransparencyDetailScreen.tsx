@@ -5,8 +5,8 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { ErrorState } from '../../components/ErrorState';
+import { FactList } from '../../components/FactList';
 import { InlineError } from '../../components/InlineError';
-import { ReasoningTree } from '../../components/ReasoningTree';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
 import { SkeletonCard } from '../../components/Skeleton';
@@ -16,8 +16,16 @@ import { useAppTheme } from '../../theme/ThemeContext';
 import { useContestDecision, useContestReasons, useTransparencyTrace } from '../../hooks/useTransparency';
 import { SPACE } from '../../theme/tokens';
 import { CONTEST_REASON_LABEL } from '../../utils/labels';
-import { asUnavailableSection } from '../../utils/traceValues';
 import type { InsightsStackParamList } from '../../navigation/types';
+
+/** "a, b and c" — reads as a sentence, since these labels are now words
+ * rather than field names. */
+function joinLabels(labels: string[]): string {
+  if (labels.length === 0) return 'part of this';
+  if (labels.length === 1) return labels[0].toLowerCase();
+  const lower = labels.map((l) => l.toLowerCase());
+  return `${lower.slice(0, -1).join(', ')} and ${lower[lower.length - 1]}`;
+}
 
 type Props = NativeStackScreenProps<InsightsStackParamList, 'TransparencyDetail'>;
 type Nav = NativeStackNavigationProp<InsightsStackParamList, 'TransparencyDetail'>;
@@ -85,10 +93,9 @@ export function TransparencyDetailScreen() {
       {trace.gap_detected ? (
         <Card style={{ backgroundColor: colors.warningSoft, borderColor: colors.warningSoft }}>
           <Text variant="bodyMedium" tone="warning">
-            Part of this trace is incomplete — the stored decision is missing:{' '}
-            {trace.missing_fields.join(', ')}. The sections that were recorded properly are shown in
-            full below; only the affected ones are held back, rather than filling the gap with a
-            freshly computed value.
+            Part of this decision wasn’t recorded at the time, so part of the reasoning below is
+            missing. Everything that was recorded properly is shown in full — we don’t fill a gap by
+            recalculating it now, because that would show you a decision we never actually made.
           </Text>
         </Card>
       ) : null}
@@ -104,36 +111,31 @@ export function TransparencyDetailScreen() {
       ) : null}
 
       {/* One card per reasoning section, so a single missing field costs the
-          reader that block and not the whole trace. */}
-      {trace.sections.map((section) => {
-        const payload = (trace.reasoning as Record<string, unknown>)[section.key];
-        const unavailable = asUnavailableSection(payload);
-        return (
-          <Card key={section.key}>
-            <SectionHeader
-              title={section.title}
-              subtitle={
-                section.available
-                  ? 'Exactly what was stored when this decision was made'
-                  : `Not fully recorded: ${section.missing_fields.join(', ')}`
-              }
-            />
-            <View style={styles.treeWrap}>
-              {unavailable ? (
-                <>
-                  <Text variant="caption" tone="warning">
-                    This part of the decision wasn’t recorded in full, so it isn’t reconstructed
-                    here. What was recorded:
-                  </Text>
-                  <ReasoningTree data={unavailable.recorded_values} hints={trace.value_hints} />
-                </>
-              ) : (
-                <ReasoningTree data={payload} hints={trace.value_hints} />
-              )}
-            </View>
-          </Card>
-        );
-      })}
+          reader that block and not the whole trace. Every row is the server's
+          own plain-English rendering — the underlying record is still on the
+          payload and in the event log for anyone auditing it, but a screen a
+          person reads is not the place to dump it. */}
+      {(trace.sections ?? []).map((section) => (
+        <Card key={section.key}>
+          <SectionHeader
+            title={section.title}
+            subtitle={
+              section.available
+                ? section.summary ?? undefined
+                : 'Some of this wasn’t recorded, so we’re not writing it up as if it were'
+            }
+          />
+          {section.available ? (
+            <FactList facts={section.facts} />
+          ) : (
+            <Text variant="body" tone="warning" style={styles.missing}>
+              We didn’t record {joinLabels(section.missing_field_labels ?? section.missing_fields ?? [])}{' '}
+              for this decision, so we can’t show you this part of the reasoning. We’d rather leave a
+              gap than fill it in after the fact.
+            </Text>
+          )}
+        </Card>
+      ))}
 
       <Card>
         <SectionHeader
@@ -246,7 +248,7 @@ function ContestCard({
 const styles = StyleSheet.create({
   badge: { alignSelf: 'flex-start', paddingHorizontal: SPACE.sm, paddingVertical: 4, borderRadius: 6, marginBottom: SPACE.sm },
   title: { marginTop: 2 },
-  treeWrap: { marginTop: SPACE.sm },
+  missing: { marginTop: SPACE.sm },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, marginTop: SPACE.sm },
   reasons: { gap: SPACE.xs, marginTop: SPACE.sm, marginBottom: SPACE.sm },
 });

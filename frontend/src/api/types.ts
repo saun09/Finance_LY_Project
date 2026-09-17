@@ -339,11 +339,28 @@ export type ValueHint =
   | 'version'
   | 'date';
 
+/** One readable line of a trace. `value` is what the user reads; `raw` is
+ * the stored value, present only where the two differ — so the plain-English
+ * translation can always be checked against the record. */
+export interface FactOut {
+  label: string;
+  value: string;
+  raw: string | null;
+  note: string | null;
+}
+
 export interface SectionResultOut {
   key: string;
   title: string;
   available: boolean;
   missing_fields: string[];
+  /** The same fields, named the way a person would say them. */
+  missing_field_labels: string[];
+  /** One plain-English sentence for this block. */
+  summary: string | null;
+  /** The rows the user actually reads. Empty when the section could not be
+   * honestly rendered — readable prose is never written over gaps. */
+  facts: FactOut[];
 }
 
 export interface TraceResultOut {
@@ -360,6 +377,7 @@ export interface TraceResultOut {
   reasoning: Record<string, unknown>;
   gap_detected: boolean;
   missing_fields: string[];
+  missing_field_labels: string[];
   sections: SectionResultOut[];
   value_hints: Record<string, ValueHint>;
   value_hint_rules_version: string;

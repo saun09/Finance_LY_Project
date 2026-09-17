@@ -4,6 +4,17 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
+class FactOut(BaseModel):
+    """One readable line. `value` is what the user reads; `raw` is what was
+    stored, present only where the two differ so the translation can always
+    be checked without cluttering plain values."""
+
+    label: str
+    value: str
+    raw: str | None = None
+    note: str | None = None
+
+
 class SectionResultOut(BaseModel):
     """Per-section availability, so the UI can render three good blocks and
     one flagged-as-incomplete block instead of failing the whole trace."""
@@ -12,6 +23,13 @@ class SectionResultOut(BaseModel):
     title: str
     available: bool
     missing_fields: tuple[str, ...]
+    #: The same fields, named the way a person would say them.
+    missing_field_labels: tuple[str, ...] = ()
+    #: One plain-English sentence for this block.
+    summary: str | None = None
+    #: The rows the user actually reads. Empty for a section that could not
+    #: be honestly rendered -- readable prose is never written over gaps.
+    facts: tuple[FactOut, ...] = ()
 
 
 class TraceResultOut(BaseModel):
@@ -24,6 +42,7 @@ class TraceResultOut(BaseModel):
     reasoning: dict
     gap_detected: bool
     missing_fields: tuple[str, ...]
+    missing_field_labels: tuple[str, ...] = ()
     sections: tuple[SectionResultOut, ...] = ()
     #: {leaf_key: unit} declared by the server, so the client never has to
     #: guess whether a raw integer is paise, a percentage or a count.

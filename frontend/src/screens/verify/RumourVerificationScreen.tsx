@@ -19,11 +19,27 @@ import { useDemoUser } from '../../context/DemoUserContext';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { SPACE } from '../../theme/tokens';
 
+/** Mirrors backend/app/services/transparency_labels.py::RUMOUR_STATUS_LABEL.
+ * The badge stays short; the fuller sentence is in STATUS_MEANING below,
+ * because "Unaddressed" alone doesn't tell a reader what it means for them. */
 const STATUS_LABEL: Record<RumourStatus, string> = {
   confirmed: 'Confirmed',
   denied: 'Denied',
-  unaddressed: 'Unaddressed',
-  not_yet_due: 'Not yet due',
+  unaddressed: 'No response',
+  not_yet_due: 'Too soon',
+};
+
+const STATUS_MEANING: Record<RumourStatus, string> = {
+  confirmed: 'The company confirmed this in an official filing.',
+  denied: 'The company denied this in an official filing.',
+  unaddressed: 'The company has had time to respond and has not addressed it.',
+  not_yet_due: 'The company still has time to respond, so no conclusion yet.',
+};
+
+const DETERMINATION_LABEL: Record<string, string> = {
+  confirms: 'It confirms the rumour',
+  denies: 'It denies the rumour',
+  non_committal: 'It neither confirms nor denies',
 };
 
 const STATUS_TONE: Record<RumourStatus, 'petrol' | 'warning' | 'muted'> = {
@@ -166,9 +182,12 @@ export function RumourVerificationScreen() {
   );
 }
 
+/** Mirrors backend/app/services/transparency_labels.py::RETRIEVAL_CHECK_LABEL
+ * exactly, so a reason reads identically here and on the transparency trace
+ * for the same verification. */
 const CONSTRAINT_LABEL: Record<string, string> = {
-  entity: 'Wrong company',
-  temporal: 'Outside the response window',
+  entity: 'Different company',
+  temporal: 'Filed outside the response window',
   source_authority: 'Not an official exchange filing',
   score_floor: 'Too dissimilar to the rumour',
 };
@@ -322,6 +341,10 @@ function ResultCard({ result }: { result: RumourVerificationOut }) {
         <StatusBadge status={result.status} />
       </View>
 
+      <Text variant="body" tone="muted" style={styles.spaced}>
+        {STATUS_MEANING[result.status]}
+      </Text>
+
       <View style={styles.metricRow}>
         <Text variant="caption" tone="muted">
           Filing date
@@ -338,21 +361,27 @@ function ResultCard({ result }: { result: RumourVerificationOut }) {
         <Text variant="caption" tone="muted">
           Source
         </Text>
-        <Text variant="figure">{filing.source_authority}</Text>
+        <Text variant="figure">
+          {filing.source_authority === 'official_exchange_filing'
+            ? 'Official exchange filing'
+            : 'News article'}
+        </Text>
       </View>
       {filing.determination ? (
         <View style={styles.metricRow}>
           <Text variant="caption" tone="muted">
             Filing says
           </Text>
-          <Text variant="figure">{filing.determination.replace('_', ' ')}</Text>
+          <Text variant="figure">{DETERMINATION_LABEL[filing.determination] ?? filing.determination}</Text>
         </View>
       ) : null}
       <View style={styles.metricRow}>
         <Text variant="caption" tone="muted">
-          Match similarity
+          How closely it matched
         </Text>
-        <Text variant="figure">{result.matched_score?.toFixed(3)}</Text>
+        <Text variant="figure">
+          {result.matched_score != null ? `${Math.round(result.matched_score * 100)}% similar wording` : '—'}
+        </Text>
       </View>
 
       {filing.source_url ? (

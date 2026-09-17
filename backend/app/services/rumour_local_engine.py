@@ -158,19 +158,22 @@ def explanation_payload(result) -> dict[str, Any]:
             runner_up = {"filing_id": others[0]["filing_id"], "score": others[0]["score"]}
 
     if winner is None:
-        why_first = "No candidate passed all three constraints, so no filing was returned."
+        why_first = (
+            "No filing passed every check, so we're not claiming a match rather than "
+            "showing you a weak one."
+        )
     elif runner_up is not None:
         why_first = (
-            f"{winner['filing_id']} ranked first because its similarity score "
-            f"({winner['score']:.3f}) was the highest among the {len(passing)} candidates that "
-            f"passed all three constraints and cleared the similarity floor "
-            f"(next best: {runner_up['filing_id']} at "
-            f"{runner_up['score']:.3f})."
+            f"Its wording was the highest match of the {len(passing)} filings that passed "
+            f"every check — from the right company, filed within the response window, "
+            f"officially published, and close enough in wording. The next closest was "
+            f"{runner_up['filing_id']}."
         )
     else:
         why_first = (
-            f"{winner['filing_id']} was the only eligible candidate: it passed all three "
-            "constraints (entity, temporal, source-authority) and cleared the similarity floor."
+            "It was the only eligible candidate — the only filing that was from the right "
+            "company, filed within the response window, officially published, and close "
+            "enough in wording to the rumour."
         )
 
     by_constraint: dict[str, int] = {}
