@@ -1,0 +1,41 @@
+{
+  "full_7items": {
+    "features_in_order": [
+      "horizon",
+      "drawdown",
+      "experience",
+      "goal",
+      "windfall",
+      "sure_gain",
+      "friend"
+    ],
+    "target": "stated_tier (1-5, derived from the static weighted-sum formula)",
+    "n_train": 347,
+    "n_test": 87,
+    "gb_model_file": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\models\\gb_classifier_full_7items.pkl",
+    "gb_held_out_accuracy": 0.8506,
+    "mlp_model_file": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\models\\mlp_classifier_full_7items.pkl",
+    "mlp_scaler_file": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\models\\mlp_scaler_full_7items.pkl",
+    "mlp_held_out_accuracy": 0.9425,
+    "sklearn_gb_version_note": "GradientBoostingClassifier from sklearn.ensemble",
+    "sklearn_mlp_version_note": "MLPClassifier (NOT Keras/TensorFlow) from sklearn.neural_network -- load with joblib, not keras.models.load_model"
+  },
+  "reduced_4items": {
+    "features_in_order": [
+      "windfall",
+      "friend",
+      "drawdown",
+      "sure_gain"
+    ],
+    "target": "stated_tier (1-5, derived from the static weighted-sum formula)",
+    "n_train": 347,
+    "n_test": 87,
+    "gb_model_file": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\models\\gb_classifier_reduced_4items.pkl",
+    "gb_held_out_accuracy": 0.7471,
+    "mlp_model_file": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\models\\mlp_classifier_reduced_4items.pkl",
+    "mlp_scaler_file": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\models\\mlp_scaler_reduced_4items.pkl",
+    "mlp_held_out_accuracy": 0.7586,
+    "sklearn_gb_version_note": "GradientBoostingClassifier from sklearn.ensemble",
+    "sklearn_mlp_version_note": "MLPClassifier (NOT Keras/TensorFlow) from sklearn.neural_network -- load with joblib, not keras.models.load_model"
+  }
+}

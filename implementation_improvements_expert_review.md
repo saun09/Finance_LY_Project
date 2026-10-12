@@ -35,6 +35,65 @@ Each entry below is scoped to a module and records: what the guide/reviewer flag
 
 ---
 
+## Module: Spending "Leaks" / Budgeting Nudges
+
+**Trigger**: Reviewer raised a concern that budgeting/"leak" nudges could tell a user to cut spending on things that are actually a basic need (the example given: telling someone to stop ordering food), which would be tone-deaf and could undermine trust in the platform's recommendations.
+
+**Files checked**: `backend/app/services/leak_engine.py` (detection logic), `backend/app/services/debt_leak_config.py` (keyword configuration), `frontend/src/screens/insights/LeaksScreen.tsx` (display only, no category logic).
+
+### Issue raised and current status
+
+| # | Issue raised | Status |
+|---|---|---|
+| 1 | Leak/budgeting nudges could target basic-needs spending (e.g. food) rather than genuinely wasteful spending. | **Confirmed already out of scope, not a live bug.** The leak engine only ever flags three things: (a) idle cash sitting above the emergency-buffer target, (b) bank/account **fees** matched against an explicit fee-keyword list (`bank charge, account maintenance, amc, atm fee, late fee, forex markup, overdraft fee, ...`), and (c) recurring **subscriptions** matched against a separate keyword list (`subscription, streaming, membership, gym, ott, saas, vpn, ...`) plus near-duplicate detection. Food, groceries, and delivery are not in either keyword list and are never targeted by category name. In addition, the subscription check explicitly skips any expense the user has marked `is_essential` (`leak_engine.py`: "essential-flagged items are the user's own judgment call, not ours") — so even a borderline category the user considers a basic need is respected and excluded. |
+
+### Re-validation status
+
+- No code change was required for this item — the review surfaced a legitimate design risk, and checking the implementation confirmed the leak engine was already scoped narrowly enough (fees + subscriptions + idle cash only) to avoid it.
+- Documented here so the scope decision is explicit and traceable, rather than looking like an oversight that happened to not manifest.
+- Future-proofing note: if new leak categories are ever added, the same constraint should apply — no category that could plausibly be a basic need (food, transport to work, medical) should be added without an explicit essential-goods exclusion, mirroring the existing `is_essential` check.
+
+---
+
+## Module: Asset Allocation Granularity
+
+**Trigger**: Reviewer feedback that the platform's asset allocation should be performed at a more detailed level than three broad buckets (gold/equity/debt), i.e. it should distinguish sub-categories within each class rather than treating each asset class as a single lump.
+
+**Files checked**: `backend/app/services/asset_classification_config.py` (asset class + holding-type definitions), `backend/app/services/allocation.py` / `allocation_service.py` / `allocation_config.py` (target allocation computation), `frontend/src/theme/tokens.ts` (`ASSET_CLASS_COLOR_KEY`).
+
+### Issue raised and current status
+
+| # | Issue raised | Status |
+|---|---|---|
+| 1 | Target allocation and recommendations are expressed only at 5 top-level classes (`cash, debt, equity, real_assets, alternatives`) — no breakdown within a class (e.g. gold vs. REITs within real assets, government vs. corporate bonds within debt, large-cap vs. small-cap within equity). | **Not yet implemented — flagged as an open gap, not corrected.** The finer-grained data actually already exists in the codebase but is only used one layer removed from where the reviewer's concern applies: `HoldingType` (24 values, e.g. `GOLD_ETF`, `SOVEREIGN_GOLD_BOND`, `PHYSICAL_GOLD`, `REIT_INVIT`, `DEBT_MUTUAL_FUND`, `PPF`, `NPS`) each carry a `decomposition` fraction into the 5 broad classes, but this is used only to compute a user's *current* exposure from their actual holdings — not to set a more granular *target* allocation or to structure recommendations. The target allocation, risk-ladder bounds, and capital market assumptions (`allocation_config.py`) are all still keyed on just the 5 broad classes. |
+
+### Re-validation status
+
+- **Not yet implemented.** This is recorded as a known limitation/planned improvement rather than a completed correction.
+- Suggested path forward (not yet built): extend `RISK_LADDER_BOUNDS_V1` and `CAPITAL_MARKET_ASSUMPTIONS_V1` to operate on a sub-category level (e.g. split `real_assets` into gold vs. REIT/InvIT, split `debt` into government vs. corporate/credit-risk debt), reusing the `HoldingType` decomposition data that already exists for exposure tracking, so the same taxonomy drives both current exposure and target allocation instead of two different levels of granularity.
+- Until this is built, this should be listed explicitly as a limitation in the dissertation (e.g. under "Threats to Validity" or "Future Work"), since it was directly raised by a reviewer and not yet resolved.
+
+---
+
+## Module: Financial Literacy Onboarding / Accessibility
+
+**Trigger**: Reviewer feedback that the platform should be more accessible to people with no financial literacy background, rather than assuming the user already understands investing concepts.
+
+**Files checked**: `backend/app/services/gamification_config.py` (`ROADMAP`, `CHECKLIST`), `frontend/src/screens/progress/ProgressScreen.tsx` (rendering).
+
+### Issue raised and correction implemented
+
+| # | Issue raised | Correction implemented |
+|---|---|---|
+| 1 | The platform assumed financial literacy and didn't give non-expert users a foundation before pointing them at investing features. | Added a structured, ordered learning path rather than a single static page: the gamification `ROADMAP` runs Level 1 "Financial Basics" (income vs. expenses, needs vs. wants, budgeting, **emergency funds**, inflation/interest) → Level 2 "Financial Safety" (buffers, **insurance**, paying off high-interest debt, credit scores) → Level 3 "Banking & Saving" → Level 4 "Investing Basics" (asset classes, diversification, SIPs) → Level 5 "Taxes & Retirement". A parallel `CHECKLIST` groups the same idea under explicit section labels — "Financial foundation" (track income/expenses, budget, pay off/plan high-interest debt, build an emergency fund, get adequate insurance) is placed and rendered *before* "Savings" and "Investing" sections. |
+
+### Re-validation status
+
+- Live in the frontend today: `ProgressScreen.tsx` renders this as the "Financial literacy roadmap" ("Learn with purpose") with section order `Financial foundation → Savings → Investing → Financial literacy`, and copy stating progress "reflects learning, never wealth or returns" — reinforcing that this is educational, not a performance/investment metric.
+- Worth noting for the dissertation: there isn't a single page literally titled "basics you need before investing" — the accessibility fix is structural/sequencing (foundation topics gated before investing topics in the roadmap and checklist) rather than one dedicated static page. If a reviewer expects a single consolidated "start here" page rather than a roadmap, that would be a follow-up UX change, not yet done.
+
+---
+
 ## How to extend this document
 
 Add a new `## Module: <name>` section per review cycle, following the same shape: trigger, files affected, a table of issue → correction, and a re-validation status line. Keep entries scoped to changes that were actually driven by external (guide/reviewer/panel) feedback, not general feature work — that distinction is what makes this document useful as evidence of responsiveness to review, rather than a general changelog.
