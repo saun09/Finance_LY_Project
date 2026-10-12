@@ -294,7 +294,7 @@ def test_list_available_decision_types_reflects_what_has_been_computed(session):
     assert list_available_decision_types(session, USER) == {}
     _full_onboarding(session)
     available = list_available_decision_types(session, USER)
-    assert set(available) == {"risk_profile", "allocation", "debt_leak_engine", "personalization"}
+    assert set(available) == {"risk_profile", "risk_profile_ml", "allocation", "debt_leak_engine", "personalization"}
     assert all(count >= 1 for count in available.values())
 
 

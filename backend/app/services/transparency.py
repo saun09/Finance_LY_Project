@@ -32,7 +32,20 @@ made through this module, and they are deliberately NOT the same claim:
   `framing_label` lives on the spec rather than being one module-level
   constant.
 
-This module makes no model calls and never will; see Module 1's original
+  "model explanation" -- Module 3b's `risk_profile_ml` only: a genuinely
+  trained scikit-learn model (not a weighted sum, not a rule table), whose
+  individual predictions are explained with per-feature SHAP values. This
+  is the one decision type where "which input moved the output, and by
+  how much" is answered by a model's actual learned behaviour rather than
+  a hardcoded formula a person already wrote down -- which is exactly why
+  it cannot share the "transparent reasoning" claim above, and gets its
+  own distinct, honestly-scoped label instead.
+
+This module itself still makes no model calls and never will, and still
+never recomputes a decision to explain it -- Module 3b's model runs once,
+at submission time, in app/services/risk_profile_ml.py; the SHAP values it
+produces are logged like any other suggestion_event, and this module only
+ever reads them back. Every other decision type keeps Module 1's original
 convention that scoring/cap logic stays pure and deterministic, with no
 hidden state.
 """
@@ -57,13 +70,17 @@ from app.services.event_log import (
 FRAMING_LABEL = "transparent reasoning"
 RETRIEVAL_EXPLANATION_LABEL = "retrieval explanation"
 THIRD_PARTY_OUTPUT_LABEL = "third-party workflow output"
+#: Module 3b (`risk_profile_ml`) only -- see the docstring above. Named to
+#: avoid "AI"/"explainable", same as every other label here (see the
+#: import-time assertion at the bottom of this file).
+MODEL_EXPLANATION_LABEL = "model explanation"
 
 #: Labels this module is permitted to stamp on a response. Guarded at
 #: import time (see the assertion at the bottom of this file) so that
 #: "explainable AI" / "AI-powered" can never appear by accident; a new
 #: label has to be added here deliberately.
 ALLOWED_FRAMING_LABELS = frozenset(
-    {FRAMING_LABEL, RETRIEVAL_EXPLANATION_LABEL, THIRD_PARTY_OUTPUT_LABEL}
+    {FRAMING_LABEL, RETRIEVAL_EXPLANATION_LABEL, THIRD_PARTY_OUTPUT_LABEL, MODEL_EXPLANATION_LABEL}
 )
 
 #: Marker written in place of a reasoning section that cannot be honestly
@@ -767,6 +784,64 @@ def _risk_outcome_facts(v: dict, m: dict) -> list[Fact]:
     return facts
 
 
+# --- Module 3b: ML risk-tier prediction (model explanation) ----------------
+
+
+def _risk_ml_headline(v: dict, m: dict) -> str:
+    predicted, static = L.tier(v["predicted_tier"]), L.tier(v["static_final_tier"])
+    if v["predicted_tier"] == v["static_final_tier"]:
+        return f"Our trained model independently agrees: {predicted}."
+    return f"Our trained model would have put you on {predicted}, versus {static} from your answers and finances."
+
+
+def _risk_ml_summary(v: dict, m: dict) -> str:
+    top = max(v["feature_contributions"], key=lambda c: abs(c["shap_value"]))
+    top_label = L.question_text(v.get("questionnaire_version"), top["question_id"])
+    verb = "pushed this up the most" if top["direction"] == "increases" else "pulled this down the most"
+    confidence = v["class_probabilities"].get(str(v["predicted_tier"]))
+    confidence_text = f" ({L.ratio_as_percent(confidence)} confidence)" if confidence is not None else ""
+    return f"Trained on real survey responses, not hand-set weights{confidence_text}. Your answer to “{top_label}” {verb}."
+
+
+def _risk_ml_facts(v: dict, m: dict) -> list[Fact]:
+    version = v.get("questionnaire_version")
+    facts = [
+        fact(
+            "Model's predicted tier",
+            L.tier(v["predicted_tier"]),
+            raw=v["predicted_tier"],
+        ),
+        fact(
+            "How confident the model is",
+            L.ratio_as_percent(v["class_probabilities"].get(str(v["predicted_tier"]))),
+            raw=v["class_probabilities"],
+        ),
+        fact(
+            "Did the rule-based tier agree?",
+            "Yes" if v["predicted_tier"] == v["static_final_tier"] else "No",
+            raw=v["static_final_tier"],
+        ),
+    ]
+    ranked = sorted(v["feature_contributions"], key=lambda c: abs(c["shap_value"]), reverse=True)
+    for c in ranked:
+        question_label = L.question_text(version, c["question_id"])
+        answer_label = L.answer_label(version, c["question_id"], c["selected_value"])
+        if c["direction"] == "increases":
+            verb = "pushed your tier up"
+        elif c["direction"] == "decreases":
+            verb = "pulled your tier down"
+        else:
+            verb = "made no real difference"
+        facts.append(
+            fact(
+                question_label,
+                f"You answered “{answer_label}” — this {verb}",
+                raw=round(c["shap_value"], 4),
+            )
+        )
+    return facts
+
+
 # --- Module 4: target allocation -------------------------------------------
 
 
@@ -1212,6 +1287,36 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 facts=_risk_outcome_facts,
                 summary=_risk_outcome_summary,
                 requires_value=("final_tier", "capped", "binding_constraints", "unlock_conditions"),
+            ),
+        ),
+    ),
+    "risk_profile_ml": DecisionTypeSpec(
+        module_source="risk_profile_ml",
+        display_name="Risk tier (trained-model prediction)",
+        headline=_risk_ml_headline,
+        framing_label=MODEL_EXPLANATION_LABEL,
+        claim_note=(
+            "This is a separate, genuinely trained model's own prediction, shown alongside -- "
+            "never instead of -- your actual rule-based risk tier above. Each factor's effect is "
+            "that factor's real, computed SHAP value for your specific answers, not an estimate."
+        ),
+        headline_requires_value=("predicted_tier", "static_final_tier"),
+        sections=(
+            ReasoningSection(
+                key="ml_prediction",
+                title="What the trained model predicts, and why",
+                build=lambda v, m: {
+                    "model_version": v["model_version"],
+                    "predicted_tier": v["predicted_tier"],
+                    "class_probabilities": v["class_probabilities"],
+                    "feature_contributions": v["feature_contributions"],
+                },
+                facts=_risk_ml_facts,
+                summary=_risk_ml_summary,
+                requires_value=(
+                    "model_version", "predicted_tier", "class_probabilities",
+                    "feature_contributions", "questionnaire_version", "static_final_tier",
+                ),
             ),
         ),
     ),

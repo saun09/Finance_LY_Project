@@ -1,7 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
+import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
@@ -13,9 +16,12 @@ import { Text } from '../../components/Text';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { useRiskProfileLatest } from '../../hooks/useRiskProfile';
 import { SPACE } from '../../theme/tokens';
-import type { PlanStackParamList } from '../../navigation/types';
+import type { MainTabParamList, PlanStackParamList } from '../../navigation/types';
 
-type Nav = NativeStackNavigationProp<PlanStackParamList, 'RiskProfile'>;
+type Nav = CompositeNavigationProp<
+  NativeStackNavigationProp<PlanStackParamList, 'RiskProfile'>,
+  BottomTabNavigationProp<MainTabParamList>
+>;
 
 function tierLabel(tier: number) {
   return `Tier ${tier} of 5`;
@@ -107,6 +113,23 @@ export function RiskProfileScreen() {
             helper={data.capped ? 'Capped by financial capacity, not by your stated tolerance' : 'Matches your stated tolerance'}
           />
 
+          <Pressable
+            style={styles.mlLink}
+            accessibilityRole="button"
+            accessibilityLabel="See what our trained model predicts, and why"
+            onPress={() =>
+              navigation.navigate('InsightsTab', {
+                screen: 'TransparencyDetail',
+                params: { moduleSource: 'risk_profile_ml' },
+              })
+            }
+          >
+            <Ionicons name="information-circle-outline" size={18} color={colors.inkFaint} />
+            <Text variant="caption" tone="muted">
+              See what our trained model predicts, and why
+            </Text>
+          </Pressable>
+
           {data.capped ? (
             <Card style={{ backgroundColor: colors.warningSoft, borderColor: colors.warningSoft }}>
               <Text variant="bodyMedium" tone="warning">
@@ -153,6 +176,7 @@ export function RiskProfileScreen() {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
+  mlLink: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, alignSelf: 'flex-start' },
   unlockSection: { gap: SPACE.md },
   unlockValues: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACE.xs },
   footer: { gap: SPACE.sm, marginTop: SPACE.md },

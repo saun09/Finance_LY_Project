@@ -7,6 +7,7 @@ tested in tests/test_risk_profile_*.py.
 """
 
 import dataclasses
+import logging
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,6 +24,9 @@ from app.services.risk_profile import (
     compute_stated_tier,
 )
 from app.services.risk_profile_config import CAPACITY_RULE_TABLE_V1, QUESTIONNAIRE_V2, CapacityRuleTable, Questionnaire
+from app.services.risk_profile_ml import MLModelUnavailableError, predict_with_explanation
+
+logger = logging.getLogger(__name__)
 
 
 def gather_capacity_inputs(session: Session, user_id: str) -> CapacityInputs:
@@ -97,5 +101,35 @@ def compute_and_log_risk_tier(
         },
         commit=commit,
     )
+
+    # Module 3b: a second, independent prediction from a trained model, on
+    # the same answers. Best-effort -- a missing/unloadable model (or a
+    # dev machine without the ML extras installed) must never break the
+    # user's actual, authoritative static risk-tier submission above.
+    try:
+        ml_result = predict_with_explanation(answers, questionnaire)
+    except (MLModelUnavailableError, ValueError):
+        logger.warning("risk_profile_ml prediction unavailable for user_id=%r", user_id, exc_info=True)
+    else:
+        log_suggestion_event(
+            session,
+            user_id=user_id,
+            module_source="risk_profile_ml",
+            tier=str(ml_result.predicted_tier),
+            suggested_value={
+                "model_version": ml_result.model_version,
+                "predicted_tier": ml_result.predicted_tier,
+                "class_probabilities": ml_result.class_probabilities,
+                "feature_contributions": [dataclasses.asdict(c) for c in ml_result.feature_contributions],
+                # carried alongside so the trace can show "what a person
+                # with these answers reads" the same way Module 3's does,
+                # without this module needing its own copy of the labels.
+                "questionnaire_version": questionnaire.version,
+                "answers": answers,
+                # so the trace can say "the rule-based engine agreed/disagreed"
+                "static_final_tier": final.final_tier,
+            },
+            commit=commit,
+        )
 
     return final

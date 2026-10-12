@@ -39,6 +39,7 @@ export const MILESTONE_CATEGORY_LABEL: Record<string, string> = {
  * detail trace itself reports. */
 export const TRANSPARENCY_DISPLAY_NAME: Record<TransparencyDecisionType, string> = {
   risk_profile: 'Risk tier',
+  risk_profile_ml: 'Risk tier (trained-model prediction)',
   allocation: 'Target allocation',
   debt_leak_engine: 'Recoverable ₹/year',
   personalization: 'Personalization offset',

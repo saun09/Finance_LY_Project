@@ -13,6 +13,10 @@ export const COLOR = {
   paper: '#F6F1E7',
   paperRaised: '#FCF9F2',
   paperSunken: '#EDE6D6',
+  // Light mode gets its lift from Card's drop shadow, not a gradient/
+  // highlight -- these exist only so Palette's shape matches DARK_COLOR.
+  cardGradientTop: '#FCF9F2',
+  cardHighlight: 'rgba(33, 29, 24, 0)',
 
   // ink -- warm near-black, not pure #000
   ink: '#211D18',
@@ -43,34 +47,47 @@ export const COLOR = {
   overlay: 'rgba(33, 29, 24, 0.55)',
 } as const;
 
+/** The app's primary identity (Section "Restyle" brief): a premium, calm,
+ * warm-dark fintech feel, forced on regardless of OS theme (see
+ * ThemeContext) rather than a system-dependent alternate palette. Built
+ * by deepening and polishing the existing warm-dark variant, not
+ * replacing it with a generic cold navy/neon dashboard -- same "Ledger"
+ * identity (warm near-black, terracotta + petrol), tuned so figures read
+ * instantly against the surface and cards feel lifted without relying on
+ * a shadow (which doesn't read on a dark ground). */
 export const DARK_COLOR = {
-  paper: '#17140F',
-  paperRaised: '#211C15',
-  paperSunken: '#0F0D09',
+  paper: '#14110C',
+  paperRaised: '#231E16',
+  paperSunken: '#0C0A07',
+  // Top-of-card sheen for the gradient Card uses in dark mode, and the
+  // hairline highlight along a card's top edge -- the "soft embossed
+  // light" a premium dark card needs instead of a drop shadow.
+  cardGradientTop: '#2B2519',
+  cardHighlight: 'rgba(247, 238, 221, 0.07)',
 
-  ink: '#F3ECDE',
-  inkMuted: '#C4B9A2',
-  inkFaint: '#8C8371',
+  ink: '#F7EEDD',
+  inkMuted: '#C7BBA1',
+  inkFaint: '#8E8570',
 
-  terracotta: '#E07A50',
-  terracottaDeep: '#F0A17C',
-  terracottaSoft: '#3A2419',
+  terracotta: '#E8835A',
+  terracottaDeep: '#F4A97E',
+  terracottaSoft: '#3D2416',
 
-  petrol: '#5FA3A1',
-  petrolDeep: '#8CC4C2',
-  petrolSoft: '#1B2E2C',
+  petrol: '#5BB3AE',
+  petrolDeep: '#8ED2CC',
+  petrolSoft: '#17302E',
 
-  positive: '#7FAE8C',
-  positiveSoft: '#1E2B22',
-  warning: '#D9AC5C',
-  warningSoft: '#332A17',
-  danger: '#D98787',
-  dangerSoft: '#341D1D',
+  positive: '#80C094',
+  positiveSoft: '#1C3024',
+  warning: '#E0B567',
+  warningSoft: '#352911',
+  danger: '#E08C8C',
+  dangerSoft: '#381C1C',
 
-  border: '#3A3226',
-  borderStrong: '#4E4534',
+  border: '#372F22',
+  borderStrong: '#4F4432',
 
-  overlay: 'rgba(0, 0, 0, 0.6)',
+  overlay: 'rgba(0, 0, 0, 0.65)',
 } as const;
 
 // Fraunces: a soft, characterful variable serif for headings -- editorial,
@@ -119,7 +136,10 @@ export const TYPE = {
   figureLarge: { fontFamily: FONT.monoBold, fontSize: 28, lineHeight: 32 },
 } as const;
 
-export type Palette = typeof COLOR;
+// A record shape (string values), not `typeof COLOR`'s exact literals --
+// DARK_COLOR has the same keys with different hex values, which a
+// literal-typed alias would reject as "insufficiently overlapping".
+export type Palette = Record<keyof typeof COLOR, string>;
 
 /** Which palette key represents each AssetClass in charts (allocation
  * donut, exposure breakdowns). Kept here, not invented per-screen, so
