@@ -129,10 +129,9 @@ export function HomeScreen() {
   return (
     <ScreenContainer onRefresh={() => position.refetch()} refreshing={position.isRefetching}>
       <View style={styles.greetingRow}>
-        <Text variant="caption" tone="muted">
-          Your financial overview
+        <Text variant="h1" style={styles.greetingText}>
+          Your financial picture
         </Text>
-        <Text variant="h1">Good to see you</Text>
       </View>
 
       <Card raised style={styles.heroCard}>
@@ -322,7 +321,8 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  greetingRow: { gap: 2 },
+  greetingRow: { alignItems: 'center' },
+  greetingText: { textAlign: 'center' },
   heroCard: { gap: 4 },
   heroMain: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
   heroFigureCol: { flex: 1 },
