@@ -4,6 +4,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import type { RecoverableComponentOut } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
@@ -22,21 +23,65 @@ import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
 import type { HomeStackParamList, MainTabParamList } from '../../navigation/types';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { SPACE } from '../../theme/tokens';
-import { formatPaise, formatPercent } from '../../utils/currency';
+import { formatPaise } from '../../utils/currency';
 
 type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, 'Home'>,
   BottomTabNavigationProp<MainTabParamList>
 >;
 
+type IconTone = 'terracotta' | 'warning' | 'petrol';
+type IconName = 'cash-outline' | 'card-outline' | 'repeat-outline';
+
 /** component_id is "idle_cash", "fee_drag:<item>", or "recurring:<item>"
  * (see backend/app/services/leak_engine.py::build_leak_report) -- an
  * icon per prefix, not per exact id, since the suffix is per-user data. */
-function iconForComponent(componentId: string): { icon: 'cash-outline' | 'card-outline' | 'repeat-outline'; tone: 'terracotta' | 'warning' | 'petrol' } {
+function iconForComponent(componentId: string): { icon: IconName; tone: IconTone } {
   if (componentId === 'idle_cash') return { icon: 'cash-outline', tone: 'terracotta' };
   if (componentId.startsWith('fee_drag:')) return { icon: 'card-outline', tone: 'warning' };
   return { icon: 'repeat-outline', tone: 'petrol' };
 }
+
+interface GroupedInsight {
+  key: string;
+  icon: IconName;
+  tone: IconTone;
+  title: string;
+  explanation: string;
+  amountPaise: number;
+  count: number;
+}
+
+/** Collapses repeat records of the same recommendation (e.g. several
+ * "Recurring charge to review: rent" rows, which happens with real
+ * duplicate-category expense entries) into one card with a combined
+ * amount and a "(x2)" count -- the underlying per-record detail is still
+ * exactly what Leaks shows; this is a display-only grouping for the
+ * dashboard preview, by `label` (same category), not a data change. */
+function groupByLabel(components: RecoverableComponentOut[]): GroupedInsight[] {
+  const byLabel = new Map<string, GroupedInsight>();
+  for (const c of components) {
+    const existing = byLabel.get(c.label);
+    if (existing) {
+      existing.amountPaise += c.annual_amount_paise;
+      existing.count += 1;
+    } else {
+      const { icon, tone } = iconForComponent(c.component_id);
+      byLabel.set(c.label, {
+        key: c.label,
+        icon,
+        tone,
+        title: c.label,
+        explanation: c.explanation,
+        amountPaise: c.annual_amount_paise,
+        count: 1,
+      });
+    }
+  }
+  return Array.from(byLabel.values()).sort((a, b) => b.amountPaise - a.amountPaise);
+}
+
+const TOP_INSIGHTS_SHOWN = 3;
 
 /**
  * The dashboard shows exactly what Module 2's /financial-position
@@ -48,11 +93,11 @@ function iconForComponent(componentId: string): { icon: 'cash-outline' | 'card-o
  * table (Module 3) already treats as its top, uncapped band -- not a
  * frontend opinion invented independently.
  *
- * "What matters now" shows every recoverable component the backend
- * found, not a slice of the first two -- total_recoverable_annual_paise
- * is exactly sum(components) (see leak_engine.py), so showing a partial
- * list while quoting the full total would look like it doesn't add up
- * even though the underlying math is correct.
+ * "What matters now" shows the top few grouped recommendations, ranked
+ * by annual amount (plain arithmetic ordering, not a judgment call), with
+ * a "View all" link to Leaks for the complete, ungrouped, per-record
+ * list -- condensing the preview never hides a number, since the full
+ * total is still stated and the full detail is one tap away.
  */
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
@@ -84,7 +129,6 @@ export function HomeScreen() {
   const surplusPositive = data.monthly_surplus_paise >= 0;
   const bufferMonths = Number(data.buffer_coverage_months);
   const bufferHealthy = bufferMonths >= 6;
-  const emiRatioPct = Number(data.emi_to_income_ratio) * 100;
   const totalOutflowPaise = data.total_monthly_expenses_paise + data.total_monthly_emi_paise;
   // Derived, not fetched separately: income isn't its own field on
   // FinancialPositionOut, but monthly_surplus = income - expenses - emi
@@ -108,12 +152,16 @@ export function HomeScreen() {
 
   const leak = debtLeak.data;
   const components = leak?.components ?? [];
+  const groupedInsights = groupByLabel(components);
+  const topInsights = groupedInsights.slice(0, TOP_INSIGHTS_SHOWN);
+  const hasMoreInsights = groupedInsights.length > topInsights.length;
   const hasRecoverable = !!leak && leak.total_recoverable_annual_paise > 0;
   const hasPrepayInsight = !!leak?.prepay_vs_invest;
   const prepay = leak?.prepay_vs_invest;
 
   const goToLeaks = () => navigation.navigate('InsightsTab', { screen: 'Leaks' });
   const goToDebt = () => navigation.navigate('InsightsTab', { screen: 'Debt' });
+  const goToInsightsHub = () => navigation.navigate('InsightsTab', { screen: 'Insights' });
 
   return (
     <ScreenContainer onRefresh={() => position.refetch()} refreshing={position.isRefetching}>
@@ -139,23 +187,27 @@ export function HomeScreen() {
           <IconChip
             name={surplusPositive ? 'trending-up-outline' : 'trending-down-outline'}
             tone={surplusPositive ? 'positive' : 'danger'}
-            size={40}
+            size={32}
           />
           <View style={styles.heroFigureCol}>
             <Text variant="label" tone="muted">
               {surplusPositive ? 'SURPLUS' : 'DEFICIT'}
             </Text>
-            <MetricFigure
-              value={Math.abs(data.monthly_surplus_paise)}
+            <Text
+              variant="figureLarge"
               tone={surplusPositive ? 'positive' : 'danger'}
-            />
+              numberOfLines={1}
+              style={styles.heroFigureText}
+            >
+              {formatPaise(Math.abs(data.monthly_surplus_paise))}
+            </Text>
           </View>
+          {surplusDeltaPaise !== null ? (
+            <Text variant="caption" tone="muted">
+              {surplusDeltaPaise >= 0 ? '▲' : '▼'} {formatPaise(Math.abs(surplusDeltaPaise))}
+            </Text>
+          ) : null}
         </View>
-        {surplusDeltaPaise !== null ? (
-          <Text variant="caption" tone="muted" style={styles.trendNote}>
-            {surplusDeltaPaise >= 0 ? '▲' : '▼'} {formatPaise(Math.abs(surplusDeltaPaise))} vs. last month
-          </Text>
-        ) : null}
 
         <View style={[styles.heroBreakdown, { borderTopColor: colors.border }]}>
           <View style={styles.heroBreakdownItem}>
@@ -195,15 +247,6 @@ export function HomeScreen() {
             description: 'Your cash balance divided by your average monthly essential expenses — how many months of essentials your cash alone could cover if income stopped today.',
           }}
         />
-        <MetricCard
-          label="EMI-to-income"
-          animated={{ target: emiRatioPct, formatter: (n) => formatPercent(n, 1) }}
-          icon="pie-chart-outline"
-          info={{
-            title: 'EMI-to-income ratio',
-            description: 'Your total monthly loan repayments (EMIs), shown as a share of your monthly income.',
-          }}
-        />
       </View>
 
       <Card>
@@ -212,7 +255,7 @@ export function HomeScreen() {
           action={
             <InfoTooltip
               title="What matters now"
-              description="Every concrete, already-computed opportunity from your own numbers — idle cash above your buffer, recurring charges worth a second look, and whether paying down a debt beats investing the same amount. Nothing here is a market prediction, and nothing is hidden: this is the full list, not a preview."
+              description="Your top recommendations from your own numbers, ranked by annual amount — idle cash above your buffer, recurring charges worth a second look, and whether paying down a debt beats investing the same amount. Nothing here is a market prediction. Repeated records of the same recommendation are combined into one card; see Leaks for every individual record."
             />
           }
         />
@@ -227,36 +270,35 @@ export function HomeScreen() {
           <View style={styles.insightList}>
             {hasRecoverable ? (
               <Text variant="caption" tone="muted">
-                Up to {formatPaise(leak!.total_recoverable_annual_paise)}/year looks recoverable, across{' '}
-                {components.length} item{components.length === 1 ? '' : 's'}:
+                Up to {formatPaise(leak!.total_recoverable_annual_paise)}/year looks recoverable.
               </Text>
             ) : null}
-            {components.map((c) => {
-              const { icon, tone } = iconForComponent(c.component_id);
-              return (
-                <View key={c.component_id} style={[styles.insightCard, { borderColor: colors.border }]}>
-                  <IconChip name={icon} tone={tone} size={32} />
-                  <View style={styles.insightCopy}>
-                    <Text variant="bodyMedium">{c.label}</Text>
-                    <Text variant="caption" tone="muted" style={styles.insightExplanation}>
-                      {c.explanation}
+            {topInsights.map((item) => (
+              <View key={item.key} style={[styles.insightCard, { borderColor: colors.border }]}>
+                <IconChip name={item.icon} tone={item.tone} size={32} />
+                <View style={styles.insightCopy}>
+                  <Text variant="bodyMedium">
+                    {item.title}
+                    {item.count > 1 ? ` (×${item.count})` : ''}
+                  </Text>
+                  <Text variant="caption" tone="muted" style={styles.insightExplanation} numberOfLines={2}>
+                    {item.explanation}
+                  </Text>
+                  <View style={styles.insightFooter}>
+                    <Text variant="figure" tone="terracotta">
+                      {formatPaise(item.amountPaise)}/yr
                     </Text>
-                    <View style={styles.insightFooter}>
-                      <Text variant="figure" tone="terracotta">
-                        {formatPaise(c.annual_amount_paise)}/yr
-                      </Text>
-                      <Button label="View breakdown" variant="ghost" onPress={goToLeaks} />
-                    </View>
+                    <Button label="View breakdown" variant="ghost" onPress={goToLeaks} />
                   </View>
                 </View>
-              );
-            })}
+              </View>
+            ))}
             {hasPrepayInsight && prepay ? (
               <View style={[styles.insightCard, { borderColor: colors.border }]}>
                 <IconChip name="trending-down-outline" tone="petrol" size={32} />
                 <View style={styles.insightCopy}>
                   <Text variant="bodyMedium">Paying off this debt early could beat investing</Text>
-                  <Text variant="caption" tone="muted" style={styles.insightExplanation}>
+                  <Text variant="caption" tone="muted" style={styles.insightExplanation} numberOfLines={2}>
                     At a guaranteed {prepay.guaranteed_annual_rate_pct}% p.a., clearing it {prepay.months_saved}{' '}
                     month{prepay.months_saved === 1 ? '' : 's'} sooner avoids interest with no market risk.
                   </Text>
@@ -268,6 +310,9 @@ export function HomeScreen() {
                   </View>
                 </View>
               </View>
+            ) : null}
+            {hasMoreInsights ? (
+              <Button label="View all" variant="ghost" onPress={goToLeaks} />
             ) : null}
           </View>
         ) : (
@@ -284,21 +329,19 @@ export function HomeScreen() {
           action={
             <InfoTooltip
               title="Financial timeline"
-              description="Your monthly surplus (income minus expenses and EMIs) over time, taken from your monthly snapshots."
+              description="Your monthly surplus (income minus expenses and EMIs) over time. The full timeline, with every month, is in Insights."
             />
           }
         />
         {snapshots.isPending ? (
-          <Skeleton height={140} style={styles.chartSkeleton} />
+          <Skeleton height={60} style={styles.chartSkeleton} />
         ) : snapshots.error ? (
           <ErrorState message={snapshots.error.message} onRetry={() => snapshots.refetch()} />
         ) : chartPoints.length >= 2 ? (
-          <View style={styles.chartWrap}>
-            <Text variant="caption" tone="faint">
-              MONTHLY SURPLUS
-            </Text>
-            <LineChart points={chartPoints} formatValue={formatPaise} />
-          </View>
+          <>
+            <LineChart points={chartPoints} formatValue={formatPaise} height={60} />
+            <Button label="View full timeline" variant="ghost" onPress={goToInsightsHub} />
+          </>
         ) : (
           <EmptyState
             title="No history yet"
@@ -310,28 +353,16 @@ export function HomeScreen() {
   );
 }
 
-/** The hero figure specifically: larger than MetricCard's figureLarge, so
- * the cash-flow number is unambiguously the dashboard's one focal point
- * rather than competing evenly with the supporting metrics below it. */
-function MetricFigure({ value, tone }: { value: number; tone: 'positive' | 'danger' }) {
-  return (
-    <Text variant="hero" tone={tone} numberOfLines={1} style={styles.heroFigureText}>
-      {formatPaise(value)}
-    </Text>
-  );
-}
-
 const styles = StyleSheet.create({
   greetingRow: { gap: 2 },
-  heroCard: { gap: SPACE.sm },
-  heroMain: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, marginTop: SPACE.xs },
+  heroCard: { gap: 4 },
+  heroMain: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
   heroFigureCol: { flex: 1 },
   heroFigureText: { marginTop: 2 },
-  trendNote: { marginTop: -SPACE.xs },
   heroBreakdown: {
     flexDirection: 'row',
-    marginTop: SPACE.sm,
-    paddingTop: SPACE.md,
+    marginTop: SPACE.xs,
+    paddingTop: SPACE.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   heroBreakdownItem: { flex: 1, gap: 2 },
@@ -349,6 +380,5 @@ const styles = StyleSheet.create({
   insightCopy: { flex: 1, gap: 2 },
   insightExplanation: { marginBottom: SPACE.xs },
   insightFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: SPACE.xs },
-  chartWrap: { marginTop: SPACE.sm, gap: SPACE.xs },
   chartSkeleton: { marginTop: SPACE.sm },
 });
