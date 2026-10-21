@@ -3,13 +3,13 @@ import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { AnimatedFigure } from '../../components/AnimatedFigure';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
-import { MetricCard } from '../../components/MetricCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
@@ -35,30 +35,45 @@ const TIER_LEGEND: { tier: number; name: string; description: string }[] = [
   { tier: 5, name: 'Aggressive', description: 'Highest equity exposure, minimal cash held back.' },
 ];
 
-function TierLegend() {
+/** Collapsed by default -- same disclosure pattern as Progress's roadmap
+ * levels (Pressable header + chevron + accessibilityState), reused here
+ * rather than invented fresh. Tiers are a *spectrum* of risk/return
+ * trade-offs, not a ladder where higher is "better" -- the copy avoids
+ * any "unlock more" framing. */
+function TierLegendDisclosure() {
   const { colors } = useAppTheme();
+  const [open, setOpen] = useState(false);
   return (
     <Card>
-      <Text variant="label" tone="muted">
-        TIER LEGEND
-      </Text>
-      <View style={styles.legendList}>
-        {TIER_LEGEND.map((t) => (
-          <View key={t.tier} style={styles.legendRow}>
-            <View style={[styles.legendBadge, { backgroundColor: colors.petrolSoft }]}>
-              <Text variant="bodyMedium" tone="petrol">
-                {t.tier}
-              </Text>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        style={styles.legendHeader}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel="How risk tiers work"
+      >
+        <Text variant="bodyMedium">How risk tiers work</Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={20} color={colors.inkFaint} />
+      </Pressable>
+      {open ? (
+        <View style={styles.legendList}>
+          {TIER_LEGEND.map((t) => (
+            <View key={t.tier} style={styles.legendRow}>
+              <View style={[styles.legendBadge, { backgroundColor: colors.petrolSoft }]}>
+                <Text variant="bodyMedium" tone="petrol">
+                  {t.tier}
+                </Text>
+              </View>
+              <View style={styles.legendCopy}>
+                <Text variant="bodyMedium">{t.name}</Text>
+                <Text variant="caption" tone="muted">
+                  {t.description}
+                </Text>
+              </View>
             </View>
-            <View style={styles.legendCopy}>
-              <Text variant="bodyMedium">{t.name}</Text>
-              <Text variant="caption" tone="muted">
-                {t.description}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      ) : null}
     </Card>
   );
 }
@@ -70,14 +85,15 @@ export function RiskProfileScreen() {
 
   return (
     <ScreenContainer>
-      <View>
+      <View style={styles.header}>
         <Text variant="caption" tone="muted">
           Risk profile
         </Text>
-        <Text variant="display">Your risk tier</Text>
+        <Text variant="display">Your risk profile</Text>
+        <Text variant="caption" tone="muted" style={styles.headerSubtitle}>
+          What you're comfortable with, checked against what your finances currently support.
+        </Text>
       </View>
-
-      <TierLegend />
 
       {isPending ? (
         <>
@@ -90,65 +106,69 @@ export function RiskProfileScreen() {
         <Card>
           <EmptyState
             title="You haven't taken the risk questionnaire yet"
-            message="Four short questions determine your stated risk tolerance, which is then checked against your financial capacity."
+            message="A few short questions determine your stated risk preference, which is then checked against your financial capacity."
             actionLabel="Take the questionnaire"
             onAction={() => navigation.navigate('RiskQuestionnaire')}
           />
         </Card>
       ) : (
         <>
-          <View style={styles.grid}>
-            <MetricCard label="Stated tier" value={tierLabel(data.stated_tier)} helper="From your questionnaire answers" />
-            <MetricCard
-              label="Capacity ceiling"
-              value={tierLabel(data.capacity_ceiling)}
-              helper="What your finances can currently support"
-            />
-          </View>
-
-          <MetricCard
-            label="Final tier"
-            value={tierLabel(data.final_tier)}
-            tone={data.capped ? 'warning' : 'positive'}
-            helper={data.capped ? 'Capped by financial capacity, not by your stated tolerance' : 'Matches your stated tolerance'}
-          />
-
-          <Pressable
-            style={styles.mlLink}
-            accessibilityRole="button"
-            accessibilityLabel="See what our trained model predicts, and why"
-            onPress={() =>
-              navigation.navigate('InsightsTab', {
-                screen: 'TransparencyDetail',
-                params: { moduleSource: 'risk_profile_ml' },
-              })
-            }
-          >
-            <Ionicons name="information-circle-outline" size={18} color={colors.inkFaint} />
-            <Text variant="caption" tone="muted">
-              See what our trained model predicts, and why
+          <Card raised style={styles.resultCard}>
+            <Text variant="label" tone="muted">
+              YOUR RECOMMENDED STARTING TIER
             </Text>
-          </Pressable>
+            <AnimatedFigure
+              target={data.final_tier}
+              formatter={(n) => tierLabel(Math.round(n))}
+              variant="hero"
+              style={styles.resultFigure}
+            />
 
-          {data.capped ? (
-            <Card style={{ backgroundColor: colors.warningSoft, borderColor: colors.warningSoft }}>
-              <Text variant="bodyMedium" tone="warning">
-                Your final tier is lower than your stated tier because your current financial capacity doesn't
-                support it yet — not because of anything about your risk tolerance itself.
-              </Text>
-            </Card>
-          ) : (
-            <Card style={{ backgroundColor: colors.positiveSoft, borderColor: colors.positiveSoft }}>
-              <Text variant="bodyMedium" tone="positive">
-                No financial-capacity constraint is currently limiting your tier.
-              </Text>
-            </Card>
-          )}
+            <Text variant="caption" tone="muted" style={styles.resultNote}>
+              {data.capped
+                ? 'This considers both your stated risk preference and your current financial capacity — right now, your financial capacity is the limiting factor, not your risk preference.'
+                : 'This considers both your stated risk preference and your current financial capacity — both currently point to the same tier.'}
+            </Text>
+
+            <View style={[styles.supportingRow, { borderTopColor: colors.border }]}>
+              <View style={styles.supportingItem}>
+                <Text variant="caption" tone="faint">
+                  Your stated risk preference
+                </Text>
+                <Text variant="bodyMedium">{tierLabel(data.stated_tier)}</Text>
+              </View>
+              <View style={[styles.supportingDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.supportingItem}>
+                <Text variant="caption" tone="faint">
+                  Your current capacity limit
+                </Text>
+                <Text variant="bodyMedium">{tierLabel(data.capacity_ceiling)}</Text>
+              </View>
+            </View>
+          </Card>
+
+          <TierLegendDisclosure />
 
           {data.unlock_conditions.length > 0 ? (
             <View style={styles.unlockSection}>
-              <Text variant="h2">What would raise your tier</Text>
-              {data.unlock_conditions.map((u) => (
+              <Text variant="h2">Steps to strengthen your financial position</Text>
+              <Card style={[styles.nextStepCard, { borderColor: colors.borderStrong }]}>
+                <Text variant="label" tone="petrol">
+                  YOUR NEXT STEP
+                </Text>
+                <Text variant="bodyMedium" style={styles.nextStepMessage}>
+                  {data.unlock_conditions[0].message}
+                </Text>
+                <View style={styles.unlockValues}>
+                  <Text variant="caption" tone="muted">
+                    Current: {data.unlock_conditions[0].current_value}
+                  </Text>
+                  <Text variant="caption" tone="terracotta">
+                    Target: {data.unlock_conditions[0].target_value}
+                  </Text>
+                </View>
+              </Card>
+              {data.unlock_conditions.slice(1).map((u) => (
                 <Card key={u.constraint}>
                   <Text variant="bodyMedium">{u.message}</Text>
                   <View style={styles.unlockValues}>
@@ -164,9 +184,26 @@ export function RiskProfileScreen() {
             </View>
           ) : null}
 
+          <Pressable
+            style={styles.mlLink}
+            accessibilityRole="button"
+            accessibilityLabel="How your risk profile is assessed"
+            onPress={() =>
+              navigation.navigate('InsightsTab', {
+                screen: 'TransparencyDetail',
+                params: { moduleSource: 'risk_profile_ml' },
+              })
+            }
+          >
+            <Ionicons name="information-circle-outline" size={18} color={colors.inkFaint} />
+            <Text variant="caption" tone="muted">
+              How your risk profile is assessed
+            </Text>
+          </Pressable>
+
           <View style={styles.footer}>
-            <Button label="See your target allocation" fullWidth onPress={() => navigation.navigate('Allocation')} />
-            <Button label="Retake the questionnaire" variant="ghost" fullWidth onPress={() => navigation.navigate('RiskQuestionnaire')} />
+            <Button label="Explore your target allocation" fullWidth onPress={() => navigation.navigate('Allocation')} />
+            <Button label="Retake questionnaire" variant="ghost" fullWidth onPress={() => navigation.navigate('RiskQuestionnaire')} />
           </View>
         </>
       )}
@@ -175,13 +212,29 @@ export function RiskProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
-  mlLink: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, alignSelf: 'flex-start' },
-  unlockSection: { gap: SPACE.md },
-  unlockValues: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACE.xs },
-  footer: { gap: SPACE.sm, marginTop: SPACE.md },
-  legendList: { gap: SPACE.sm, marginTop: SPACE.sm },
+  header: { gap: 2 },
+  headerSubtitle: { marginTop: SPACE.xs },
+  resultCard: { gap: SPACE.xs, alignItems: 'center' },
+  resultFigure: { marginTop: SPACE.xs },
+  resultNote: { textAlign: 'center', marginTop: SPACE.xs },
+  supportingRow: {
+    flexDirection: 'row',
+    alignSelf: 'stretch',
+    marginTop: SPACE.md,
+    paddingTop: SPACE.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  supportingItem: { flex: 1, alignItems: 'center', gap: 2 },
+  supportingDivider: { width: StyleSheet.hairlineWidth, marginHorizontal: SPACE.md },
+  legendHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  legendList: { gap: SPACE.sm, marginTop: SPACE.md },
   legendRow: { flexDirection: 'row', gap: SPACE.sm, alignItems: 'flex-start' },
   legendBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   legendCopy: { flex: 1 },
+  mlLink: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs, alignSelf: 'flex-start' },
+  unlockSection: { gap: SPACE.md },
+  nextStepCard: { borderWidth: StyleSheet.hairlineWidth * 2 },
+  nextStepMessage: { marginTop: SPACE.xs },
+  unlockValues: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACE.xs },
+  footer: { gap: SPACE.sm, marginTop: SPACE.md },
 });
