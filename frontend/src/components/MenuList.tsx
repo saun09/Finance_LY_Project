@@ -33,7 +33,20 @@ export function MenuList({ items }: { items: MenuItem[] }) {
           <Pressable
             disabled={item.disabled}
             onPress={item.onPress}
-            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : item.disabled ? 0.5 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel={item.subtitle ? `${item.title}. ${item.subtitle}` : item.title}
+            accessibilityState={{ disabled: !!item.disabled }}
+            style={(state) => {
+              // react-native-web adds `focused` to this callback's state on
+              // top of core RN's `pressed` -- not in the upstream type, so
+              // read it defensively rather than widening Pressable's props.
+              const focused = (state as { focused?: boolean }).focused;
+              return [
+                styles.row,
+                (state.pressed || focused) && !item.disabled ? { backgroundColor: colors.paperSunken } : null,
+                { opacity: item.disabled ? 0.5 : 1 },
+              ];
+            }}
           >
             {item.icon ? <IconChip name={item.icon} tone={item.iconTone ?? 'petrol'} size={32} /> : null}
             <View style={styles.rowText}>

@@ -53,16 +53,14 @@ const ICON_FOR_KIND: Record<ComponentKind, { icon: IconName; tone: IconTone }> =
 /** Backend labels follow "Recurring charge to review: <category>" /
  * "Recurring fee: <category>" -- the bit after the colon is the actual
  * user-entered category text (free-form, e.g. "dining_out"), lightly
- * reformatted for display only (underscores -> spaces, title case),
- * never altering the underlying data. idle_cash has no colon and is
- * already a short, well-formed label, so it's used as-is. */
+ * reformatted for display only (underscores -> spaces, sentence case:
+ * only the first letter capitalized), never altering the underlying
+ * data. idle_cash has no colon and is already a short, well-formed
+ * label, so it's used as-is. */
 function shortCategoryTitle(label: string): string {
   const idx = label.indexOf(': ');
-  if (idx < 0) return label;
-  return label
-    .slice(idx + 2)
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  const raw = idx < 0 ? label : label.slice(idx + 2).replace(/[_-]+/g, ' ');
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
 interface GroupedInsight {
@@ -105,16 +103,16 @@ function groupByLabel(components: RecoverableComponentOut[]): GroupedInsight[] {
   return Array.from(byLabel.values()).sort((a, b) => b.amountPaise - a.amountPaise);
 }
 
-/** "3 charges to review", never "transactions" -- this app has no bank/
- * card statement feed (manual expense entry only, see leak_engine.py's
- * own DATA_SOURCE_NOTE), so each flagged thing is a declared expense
- * *item*, not a bank transaction; the wording shouldn't imply richer
- * data than what's actually there. */
+/** "3 transactions to review" -- the amount that follows is always
+ * plain, muted secondary text (never worded as savings or recoverable
+ * money; that framing belongs to the summary total, not a per-row
+ * count). Each flagged thing is a declared expense item (this app has
+ * no bank/card statement feed, see leak_engine.py's DATA_SOURCE_NOTE),
+ * but "transaction" is the chosen user-facing term regardless. */
 function shortSubtitle(item: GroupedInsight): string {
   const amount = `${formatPaise(item.amountPaise)}/yr`;
   if (item.kind === 'idle_cash') return amount;
-  const noun = item.kind === 'fee_drag' ? 'fee' : 'charge';
-  const countPhrase = `${item.count} ${noun}${item.count === 1 ? '' : 's'} to review`;
+  const countPhrase = `${item.count} transaction${item.count === 1 ? '' : 's'} to review`;
   return `${countPhrase} · ${amount}`;
 }
 
@@ -313,7 +311,7 @@ export function HomeScreen() {
               items={[
                 ...topInsights.map((item) => ({
                   key: item.key,
-                  title: item.count > 1 ? `${item.title} (×${item.count})` : item.title,
+                  title: item.title,
                   subtitle: shortSubtitle(item),
                   icon: item.icon,
                   iconTone: item.tone,
@@ -345,7 +343,7 @@ export function HomeScreen() {
                 </Pressable>
               ) : null}
               <Text variant="caption" tone="faint" style={styles.disclaimer}>
-                These are suggestions to review, not confirmed duplicates or guaranteed savings.
+                Suggestions to help you review your spending — nothing is confirmed yet.
               </Text>
             </View>
           </>
