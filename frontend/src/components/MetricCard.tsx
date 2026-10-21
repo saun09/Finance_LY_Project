@@ -7,6 +7,7 @@ import { AnimatedFigure } from './AnimatedFigure';
 import { Card } from './Card';
 import { IconChip } from './IconChip';
 import { InfoTooltip } from './InfoTooltip';
+import { ProgressBar } from './ProgressBar';
 import { Text } from './Text';
 
 interface Props {
@@ -27,6 +28,10 @@ interface Props {
    * holdings - what you owe". Keeps the card itself free of paragraph
    * text while the explanation stays one tap away, never invented copy. */
   info?: { title: string; description: string };
+  /** 0-1. When given, renders a thin progress track under the figure --
+   * the exact same fraction as the displayed value, never a separate or
+   * rescaled number. */
+  progressFraction?: number;
 }
 
 const TONE_ICON: Record<NonNullable<Props['tone']>, string> = {
@@ -51,7 +56,7 @@ function figureSizeStyle(value: string) {
  * labeled dot (never color alone), matching Section 31's "do not rely
  * solely on colour" rule. Money always renders in the monospace figure
  * type. */
-export function MetricCard({ label, value, animated, tone = 'neutral', helper, icon, info }: Props) {
+export function MetricCard({ label, value, animated, tone = 'neutral', helper, icon, info, progressFraction }: Props) {
   const { colors } = useAppTheme();
   const toneColor = tone === 'neutral' ? colors.inkFaint : colors[tone];
   const chipTone = tone === 'neutral' ? 'petrol' : tone;
@@ -79,6 +84,11 @@ export function MetricCard({ label, value, animated, tone = 'neutral', helper, i
           {value}
         </Text>
       )}
+      {progressFraction !== undefined ? (
+        <View style={styles.progressWrap}>
+          <ProgressBar fraction={progressFraction} tone={chipTone} duration={900} />
+        </View>
+      ) : null}
       {helper ? (
         <Text variant="caption" tone="muted" style={styles.helper}>
           {helper}
@@ -93,5 +103,6 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs },
   label: { marginTop: SPACE.xs },
+  progressWrap: { marginTop: SPACE.xs },
   helper: { marginTop: SPACE.xs },
 });

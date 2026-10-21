@@ -4,6 +4,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { AnimatedFigure } from '../../components/AnimatedFigure';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
@@ -130,7 +131,7 @@ export function HomeScreen() {
     <ScreenContainer onRefresh={() => position.refetch()} refreshing={position.isRefetching}>
       <View style={styles.greetingRow}>
         <Text variant="h1" style={styles.greetingText}>
-          Your financial picture
+          Your money, in focus.
         </Text>
       </View>
 
@@ -155,14 +156,12 @@ export function HomeScreen() {
             <Text variant="label" tone="muted">
               {surplusPositive ? 'SURPLUS' : 'DEFICIT'}
             </Text>
-            <Text
-              variant="figureLarge"
+            <AnimatedFigure
+              target={Math.abs(data.monthly_surplus_paise)}
+              formatter={formatPaise}
               tone={surplusPositive ? 'positive' : 'danger'}
-              numberOfLines={1}
               style={styles.heroFigureText}
-            >
-              {formatPaise(Math.abs(data.monthly_surplus_paise))}
-            </Text>
+            />
           </View>
           {surplusDeltaPaise !== null ? (
             <Text variant="caption" tone="muted">

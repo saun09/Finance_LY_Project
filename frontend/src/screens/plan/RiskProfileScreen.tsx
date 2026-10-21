@@ -3,16 +3,19 @@ import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { AnimatedFigure } from '../../components/AnimatedFigure';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { ProgressBar } from '../../components/ProgressBar';
+import { Reveal } from '../../components/Reveal';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { useRiskProfileLatest } from '../../hooks/useRiskProfile';
 import { SPACE } from '../../theme/tokens';
@@ -43,36 +46,55 @@ const TIER_LEGEND: { tier: number; name: string; description: string }[] = [
 function TierLegendDisclosure() {
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const rotation = useRef(new Animated.Value(0)).current;
+
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    Animated.timing(rotation, {
+      toValue: next ? 1 : 0,
+      duration: reducedMotion ? 0 : 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const chevronRotation = rotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
+
   return (
     <Card>
       <Pressable
-        onPress={() => setOpen((v) => !v)}
+        onPress={toggle}
         style={styles.legendHeader}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         accessibilityLabel="How risk tiers work"
       >
         <Text variant="bodyMedium">How risk tiers work</Text>
-        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={20} color={colors.inkFaint} />
+        <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
+          <Ionicons name="chevron-down" size={20} color={colors.inkFaint} />
+        </Animated.View>
       </Pressable>
       {open ? (
-        <View style={styles.legendList}>
-          {TIER_LEGEND.map((t) => (
-            <View key={t.tier} style={styles.legendRow}>
-              <View style={[styles.legendBadge, { backgroundColor: colors.petrolSoft }]}>
-                <Text variant="bodyMedium" tone="petrol">
-                  {t.tier}
-                </Text>
+        <Reveal>
+          <View style={styles.legendList}>
+            {TIER_LEGEND.map((t) => (
+              <View key={t.tier} style={styles.legendRow}>
+                <View style={[styles.legendBadge, { backgroundColor: colors.petrolSoft }]}>
+                  <Text variant="bodyMedium" tone="petrol">
+                    {t.tier}
+                  </Text>
+                </View>
+                <View style={styles.legendCopy}>
+                  <Text variant="bodyMedium">{t.name}</Text>
+                  <Text variant="caption" tone="muted">
+                    {t.description}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.legendCopy}>
-                <Text variant="bodyMedium">{t.name}</Text>
-                <Text variant="caption" tone="muted">
-                  {t.description}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        </Reveal>
       ) : null}
     </Card>
   );
@@ -113,75 +135,84 @@ export function RiskProfileScreen() {
         </Card>
       ) : (
         <>
-          <Card raised style={styles.resultCard}>
-            <Text variant="label" tone="muted">
-              YOUR RECOMMENDED STARTING TIER
-            </Text>
-            <AnimatedFigure
-              target={data.final_tier}
-              formatter={(n) => tierLabel(Math.round(n))}
-              variant="hero"
-              style={styles.resultFigure}
-            />
-
-            <Text variant="caption" tone="muted" style={styles.resultNote}>
-              {data.capped
-                ? 'This considers both your stated risk preference and your current financial capacity — right now, your financial capacity is the limiting factor, not your risk preference.'
-                : 'This considers both your stated risk preference and your current financial capacity — both currently point to the same tier.'}
-            </Text>
-
-            <View style={[styles.supportingRow, { borderTopColor: colors.border }]}>
-              <View style={styles.supportingItem}>
-                <Text variant="caption" tone="faint">
-                  Your stated risk preference
-                </Text>
-                <Text variant="bodyMedium">{tierLabel(data.stated_tier)}</Text>
+          <Reveal index={0}>
+            <Card raised style={styles.resultCard}>
+              <Text variant="label" tone="muted">
+                YOUR RECOMMENDED STARTING TIER
+              </Text>
+              <AnimatedFigure
+                target={data.final_tier}
+                formatter={(n) => tierLabel(Math.round(n))}
+                variant="hero"
+                style={styles.resultFigure}
+              />
+              <View style={styles.tierBarWrap}>
+                <ProgressBar fraction={data.final_tier / 5} tone="petrol" duration={700} />
               </View>
-              <View style={[styles.supportingDivider, { backgroundColor: colors.border }]} />
-              <View style={styles.supportingItem}>
-                <Text variant="caption" tone="faint">
-                  Your current capacity limit
-                </Text>
-                <Text variant="bodyMedium">{tierLabel(data.capacity_ceiling)}</Text>
-              </View>
-            </View>
-          </Card>
 
-          <TierLegendDisclosure />
+              <Text variant="caption" tone="muted" style={styles.resultNote}>
+                {data.capped
+                  ? 'This considers both your stated risk preference and your current financial capacity — right now, your financial capacity is the limiting factor, not your risk preference.'
+                  : 'This considers both your stated risk preference and your current financial capacity — both currently point to the same tier.'}
+              </Text>
+
+              <View style={[styles.supportingRow, { borderTopColor: colors.border }]}>
+                <View style={styles.supportingItem}>
+                  <Text variant="caption" tone="faint">
+                    Your stated risk preference
+                  </Text>
+                  <Text variant="bodyMedium">{tierLabel(data.stated_tier)}</Text>
+                </View>
+                <View style={[styles.supportingDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.supportingItem}>
+                  <Text variant="caption" tone="faint">
+                    Your current capacity limit
+                  </Text>
+                  <Text variant="bodyMedium">{tierLabel(data.capacity_ceiling)}</Text>
+                </View>
+              </View>
+            </Card>
+          </Reveal>
+
+          <Reveal index={1}>
+            <TierLegendDisclosure />
+          </Reveal>
 
           {data.unlock_conditions.length > 0 ? (
-            <View style={styles.unlockSection}>
-              <Text variant="h2">Steps to strengthen your financial position</Text>
-              <Card style={[styles.nextStepCard, { borderColor: colors.borderStrong }]}>
-                <Text variant="label" tone="petrol">
-                  YOUR NEXT STEP
-                </Text>
-                <Text variant="bodyMedium" style={styles.nextStepMessage}>
-                  {data.unlock_conditions[0].message}
-                </Text>
-                <View style={styles.unlockValues}>
-                  <Text variant="caption" tone="muted">
-                    Current: {data.unlock_conditions[0].current_value}
+            <Reveal index={2}>
+              <View style={styles.unlockSection}>
+                <Text variant="h2">Steps to strengthen your financial position</Text>
+                <Card style={[styles.nextStepCard, { borderColor: colors.borderStrong }]}>
+                  <Text variant="label" tone="petrol">
+                    YOUR NEXT STEP
                   </Text>
-                  <Text variant="caption" tone="terracotta">
-                    Target: {data.unlock_conditions[0].target_value}
+                  <Text variant="bodyMedium" style={styles.nextStepMessage}>
+                    {data.unlock_conditions[0].message}
                   </Text>
-                </View>
-              </Card>
-              {data.unlock_conditions.slice(1).map((u) => (
-                <Card key={u.constraint}>
-                  <Text variant="bodyMedium">{u.message}</Text>
                   <View style={styles.unlockValues}>
                     <Text variant="caption" tone="muted">
-                      Current: {u.current_value}
+                      Current: {data.unlock_conditions[0].current_value}
                     </Text>
                     <Text variant="caption" tone="terracotta">
-                      Target: {u.target_value}
+                      Target: {data.unlock_conditions[0].target_value}
                     </Text>
                   </View>
                 </Card>
-              ))}
-            </View>
+                {data.unlock_conditions.slice(1).map((u) => (
+                  <Card key={u.constraint}>
+                    <Text variant="bodyMedium">{u.message}</Text>
+                    <View style={styles.unlockValues}>
+                      <Text variant="caption" tone="muted">
+                        Current: {u.current_value}
+                      </Text>
+                      <Text variant="caption" tone="terracotta">
+                        Target: {u.target_value}
+                      </Text>
+                    </View>
+                  </Card>
+                ))}
+              </View>
+            </Reveal>
           ) : null}
 
           <Pressable
@@ -216,6 +247,7 @@ const styles = StyleSheet.create({
   headerSubtitle: { marginTop: SPACE.xs },
   resultCard: { gap: SPACE.xs, alignItems: 'center' },
   resultFigure: { marginTop: SPACE.xs },
+  tierBarWrap: { alignSelf: 'stretch', marginTop: SPACE.sm, paddingHorizontal: SPACE.lg },
   resultNote: { textAlign: 'center', marginTop: SPACE.xs },
   supportingRow: {
     flexDirection: 'row',

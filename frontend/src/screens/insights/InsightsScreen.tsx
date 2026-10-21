@@ -67,6 +67,10 @@ export function InsightsScreen() {
           label="EMI-to-income"
           animated={{ target: Number(position.data.emi_to_income_ratio) * 100, formatter: (n) => formatPercent(n, 1) }}
           icon="pie-chart-outline"
+          // Same ratio as the figure, just as a bar -- not a different
+          // metric, and not rescaled: a ratio of 0.75 fills 75% of the
+          // track, full stop.
+          progressFraction={Number(position.data.emi_to_income_ratio)}
           info={{
             title: 'EMI-to-income ratio',
             description: 'Your total monthly loan repayments (EMIs), shown as a share of your monthly income.',
