@@ -4,7 +4,6 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import type { RecoverableComponentOut } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
@@ -24,95 +23,23 @@ import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
 import type { HomeStackParamList, MainTabParamList } from '../../navigation/types';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { SPACE } from '../../theme/tokens';
-import { formatPaise } from '../../utils/currency';
+import { formatPaise, formatPaiseCompact } from '../../utils/currency';
+import { groupByLabel, type GroupedInsight } from '../../utils/recoverableInsights';
 
 type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, 'Home'>,
   BottomTabNavigationProp<MainTabParamList>
 >;
 
-type IconTone = 'terracotta' | 'warning' | 'petrol';
-type IconName = 'cash-outline' | 'card-outline' | 'repeat-outline';
-type ComponentKind = 'idle_cash' | 'fee_drag' | 'recurring';
-
-/** component_id is "idle_cash", "fee_drag:<item>", or "recurring:<item>"
- * (see backend/app/services/leak_engine.py::build_leak_report) -- an
- * icon per prefix, not per exact id, since the suffix is per-user data. */
-function kindOfComponent(componentId: string): ComponentKind {
-  if (componentId === 'idle_cash') return 'idle_cash';
-  if (componentId.startsWith('fee_drag:')) return 'fee_drag';
-  return 'recurring';
-}
-
-const ICON_FOR_KIND: Record<ComponentKind, { icon: IconName; tone: IconTone }> = {
-  idle_cash: { icon: 'cash-outline', tone: 'terracotta' },
-  fee_drag: { icon: 'card-outline', tone: 'warning' },
-  recurring: { icon: 'repeat-outline', tone: 'petrol' },
-};
-
-/** Backend labels follow "Recurring charge to review: <category>" /
- * "Recurring fee: <category>" -- the bit after the colon is the actual
- * user-entered category text (free-form, e.g. "dining_out"), lightly
- * reformatted for display only (underscores -> spaces, sentence case:
- * only the first letter capitalized), never altering the underlying
- * data. idle_cash has no colon and is already a short, well-formed
- * label, so it's used as-is. */
-function shortCategoryTitle(label: string): string {
-  const idx = label.indexOf(': ');
-  const raw = idx < 0 ? label : label.slice(idx + 2).replace(/[_-]+/g, ' ');
-  return raw.charAt(0).toUpperCase() + raw.slice(1);
-}
-
-interface GroupedInsight {
-  key: string;
-  icon: IconName;
-  tone: IconTone;
-  kind: ComponentKind;
-  title: string;
-  amountPaise: number;
-  count: number;
-}
-
-/** Collapses repeat records of the same recommendation (e.g. several
- * "Recurring charge to review: rent" rows, which happens with real
- * duplicate-category expense entries) into one row with a combined
- * amount and a real count -- the underlying per-record detail is still
- * exactly what Leaks shows; this is a display-only grouping for the
- * dashboard preview, by `label` (same category), not a data change. */
-function groupByLabel(components: RecoverableComponentOut[]): GroupedInsight[] {
-  const byLabel = new Map<string, GroupedInsight>();
-  for (const c of components) {
-    const existing = byLabel.get(c.label);
-    if (existing) {
-      existing.amountPaise += c.annual_amount_paise;
-      existing.count += 1;
-    } else {
-      const kind = kindOfComponent(c.component_id);
-      const { icon, tone } = ICON_FOR_KIND[kind];
-      byLabel.set(c.label, {
-        key: c.label,
-        icon,
-        tone,
-        kind,
-        title: shortCategoryTitle(c.label),
-        amountPaise: c.annual_amount_paise,
-        count: 1,
-      });
-    }
-  }
-  return Array.from(byLabel.values()).sort((a, b) => b.amountPaise - a.amountPaise);
-}
-
-/** "3 transactions to review" -- the amount that follows is always
- * plain, muted secondary text (never worded as savings or recoverable
- * money; that framing belongs to the summary total, not a per-row
- * count). Each flagged thing is a declared expense item (this app has
- * no bank/card statement feed, see leak_engine.py's DATA_SOURCE_NOTE),
- * but "transaction" is the chosen user-facing term regardless. */
+/** "3 entries · ₹3L/year" -- the amount is always plain, muted secondary
+ * text (never worded as savings or recoverable money). Each flagged
+ * thing is a declared expense *entry* (this app has no bank/card
+ * statement feed, see leak_engine.py's DATA_SOURCE_NOTE) -- "entries",
+ * not "transactions", matches what the data actually is. */
 function shortSubtitle(item: GroupedInsight): string {
-  const amount = `${formatPaise(item.amountPaise)}/yr`;
+  const amount = `${formatPaiseCompact(item.amountPaise)}/year`;
   if (item.kind === 'idle_cash') return amount;
-  const countPhrase = `${item.count} transaction${item.count === 1 ? '' : 's'} to review`;
+  const countPhrase = `${item.count} entr${item.count === 1 ? 'y' : 'ies'}`;
   return `${countPhrase} · ${amount}`;
 }
 
@@ -128,11 +55,12 @@ const TOP_INSIGHTS_SHOWN = 3;
  * table (Module 3) already treats as its top, uncapped band -- not a
  * frontend opinion invented independently.
  *
- * "What matters now" shows the top few grouped recommendations, ranked
+ * "Spending to review" shows the top few grouped recommendations, ranked
  * by annual amount (plain arithmetic ordering, not a judgment call), with
- * a "View all" link to Leaks for the complete, ungrouped, per-record
- * list -- condensing the preview never hides a number, since the full
- * total is still stated and the full detail is one tap away.
+ * a "See all recommendations" link to Leaks for the complete, per-record
+ * list. Grouping only ever sums and counts real stored rows for display;
+ * it never claims same-category entries are confirmed duplicate
+ * payments, and the count shown always matches what Leaks lists.
  */
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
@@ -272,13 +200,13 @@ export function HomeScreen() {
           }}
         />
         <MetricCard
-          label="Emergency buffer"
+          label="Emergency savings"
           animated={{ target: bufferMonths, formatter: (n) => `${n.toFixed(1)} mo` }}
           tone={bufferHealthy ? 'positive' : 'warning'}
           helper="Liquid cash vs. essential expenses"
           icon="shield-checkmark-outline"
           info={{
-            title: 'Emergency buffer',
+            title: 'Emergency savings',
             description: 'Your cash balance divided by your average monthly essential expenses — how many months of essentials your cash alone could cover if income stopped today.',
           }}
         />
@@ -286,11 +214,11 @@ export function HomeScreen() {
 
       <View style={styles.checkSection}>
         <SectionHeader
-          title="A few things to check"
+          title="Spending to review"
           action={
             <InfoTooltip
-              title="A few things to check"
-              description="Suggestions from your own numbers, ranked by annual amount — idle cash above your buffer, recurring charges worth a second look, and whether paying down a debt beats investing the same amount. These are starting points to review, not confirmed duplicates or guaranteed savings, and nothing here is a market prediction."
+              title="Spending to review"
+              description="Patterns from your own declared expenses, ranked by annual amount — idle cash above your buffer, recurring entries worth a second look, and whether paying down a debt beats investing the same amount. These are starting points to review, not confirmed duplicate payments, and nothing here is a market prediction."
             />
           }
         />
@@ -333,9 +261,15 @@ export function HomeScreen() {
             />
             <View style={styles.checkFooter}>
               {hasMoreInsights ? (
-                <Pressable onPress={goToLeaks} hitSlop={8} style={styles.seeAllLink}>
+                <Pressable
+                  onPress={goToLeaks}
+                  hitSlop={8}
+                  style={styles.seeAllLink}
+                  accessibilityRole="button"
+                  accessibilityLabel="See all recommendations"
+                >
                   <Text variant="caption" tone="terracotta">
-                    See all suggestions
+                    See all recommendations
                   </Text>
                   <Text variant="caption" tone="terracotta">
                     ›
@@ -343,7 +277,7 @@ export function HomeScreen() {
                 </Pressable>
               ) : null}
               <Text variant="caption" tone="faint" style={styles.disclaimer}>
-                Suggestions to help you review your spending — nothing is confirmed yet.
+                Flagged patterns, not confirmed duplicate payments.
               </Text>
             </View>
           </>
@@ -359,10 +293,10 @@ export function HomeScreen() {
 
       <Card>
         <SectionHeader
-          title="Financial timeline"
+          title="Cash-flow trend"
           action={
             <InfoTooltip
-              title="Financial timeline"
+              title="Cash-flow trend"
               description="Your monthly surplus (income minus expenses and EMIs) over time. The full timeline, with every month, is in Insights."
             />
           }

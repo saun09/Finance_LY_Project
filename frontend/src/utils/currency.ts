@@ -66,6 +66,24 @@ export function rupeeInputToPaise(input: string): number | null {
   return Math.round(rupees * 100);
 }
 
+function trimDecimal(n: number): string {
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/** Compact Indian-style abbreviation for a tight label context (e.g. "3
+ * entries · ₹3L/year") -- lakh (L, 10^5) and crore (Cr, 10^7). Below one
+ * lakh it falls back to formatPaise's full grouped form, since e.g.
+ * "₹96,000" is already short -- this is for shortening large figures
+ * specifically, not a universal replacement for formatPaise. */
+export function formatPaiseCompact(paise: number): string {
+  const sign = paise < 0 ? '-' : '';
+  const rupees = Math.floor(Math.abs(paise) / 100);
+  if (rupees >= 1_00_00_000) return `${sign}₹${trimDecimal(rupees / 1_00_00_000)}Cr`;
+  if (rupees >= 1_00_000) return `${sign}₹${trimDecimal(rupees / 1_00_000)}L`;
+  return formatPaise(paise);
+}
+
 /** A Decimal-string percentage from the backend (e.g. "35.00") -> "35%" */
 export function formatPercent(value: string | number, fractionDigits = 0): string {
   const n = typeof value === 'string' ? Number(value) : value;

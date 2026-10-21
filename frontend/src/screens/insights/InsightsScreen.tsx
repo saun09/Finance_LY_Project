@@ -31,9 +31,9 @@ export function InsightsScreen() {
 
   const leaksSubtitle = debtLeak.data
     ? debtLeak.data.total_recoverable_annual_paise > 0
-      ? `${formatPaise(debtLeak.data.total_recoverable_annual_paise)}/year recoverable`
+      ? `${formatPaise(debtLeak.data.total_recoverable_annual_paise)}/year flagged`
       : 'Nothing flagged right now'
-    : 'Recoverable costs and idle cash';
+    : 'Spending patterns and idle cash';
 
   const debtSubtitle = debtLeak.data?.avalanche_snowball
     ? `${debtLeak.data.avalanche_snowball.avalanche.months_to_clear_all} months to clear all loans`
@@ -76,7 +76,7 @@ export function InsightsScreen() {
 
       <MenuList
         items={[
-          { key: 'leaks', title: 'Recoverable costs', subtitle: leaksSubtitle, onPress: () => navigation.navigate('Leaks') },
+          { key: 'leaks', title: 'Spending to review', subtitle: leaksSubtitle, onPress: () => navigation.navigate('Leaks') },
           { key: 'debt', title: 'Debt payoff', subtitle: debtSubtitle, onPress: () => navigation.navigate('Debt') },
           {
             key: 'personalization',
@@ -94,7 +94,7 @@ export function InsightsScreen() {
       />
 
       <Card>
-        <SectionHeader title="Financial timeline" subtitle="Monthly surplus, every month on record" />
+        <SectionHeader title="Cash-flow trend" subtitle="Monthly surplus, every month on record" />
         {snapshots.isPending ? (
           <Skeleton height={140} style={{ marginTop: SPACE.sm }} />
         ) : snapshots.error ? (
