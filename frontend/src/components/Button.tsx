@@ -42,7 +42,11 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
             styles.base,
             {
               backgroundColor: bg,
-              borderColor: focused && !isDisabled ? colors.terracotta : border,
+              // `ink` (near-white in this dark theme) rather than a brand
+              // accent -- the primary variant's own background IS
+              // terracotta, so a terracotta ring would be invisible
+              // exactly where focus visibility matters most.
+              borderColor: focused && !isDisabled ? colors.ink : border,
               opacity: isDisabled ? 0.55 : state.pressed ? 0.85 : 1,
             },
             fullWidth && styles.fullWidth,
