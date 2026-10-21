@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import type { RecoverableComponentOut } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
@@ -12,6 +12,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { IconChip } from '../../components/IconChip';
 import { InfoTooltip } from '../../components/InfoTooltip';
 import { LineChart } from '../../components/LineChart';
+import { MenuList } from '../../components/MenuList';
 import { MetricCard } from '../../components/MetricCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
@@ -32,30 +33,52 @@ type Nav = CompositeNavigationProp<
 
 type IconTone = 'terracotta' | 'warning' | 'petrol';
 type IconName = 'cash-outline' | 'card-outline' | 'repeat-outline';
+type ComponentKind = 'idle_cash' | 'fee_drag' | 'recurring';
 
 /** component_id is "idle_cash", "fee_drag:<item>", or "recurring:<item>"
  * (see backend/app/services/leak_engine.py::build_leak_report) -- an
  * icon per prefix, not per exact id, since the suffix is per-user data. */
-function iconForComponent(componentId: string): { icon: IconName; tone: IconTone } {
-  if (componentId === 'idle_cash') return { icon: 'cash-outline', tone: 'terracotta' };
-  if (componentId.startsWith('fee_drag:')) return { icon: 'card-outline', tone: 'warning' };
-  return { icon: 'repeat-outline', tone: 'petrol' };
+function kindOfComponent(componentId: string): ComponentKind {
+  if (componentId === 'idle_cash') return 'idle_cash';
+  if (componentId.startsWith('fee_drag:')) return 'fee_drag';
+  return 'recurring';
+}
+
+const ICON_FOR_KIND: Record<ComponentKind, { icon: IconName; tone: IconTone }> = {
+  idle_cash: { icon: 'cash-outline', tone: 'terracotta' },
+  fee_drag: { icon: 'card-outline', tone: 'warning' },
+  recurring: { icon: 'repeat-outline', tone: 'petrol' },
+};
+
+/** Backend labels follow "Recurring charge to review: <category>" /
+ * "Recurring fee: <category>" -- the bit after the colon is the actual
+ * user-entered category text (free-form, e.g. "dining_out"), lightly
+ * reformatted for display only (underscores -> spaces, title case),
+ * never altering the underlying data. idle_cash has no colon and is
+ * already a short, well-formed label, so it's used as-is. */
+function shortCategoryTitle(label: string): string {
+  const idx = label.indexOf(': ');
+  if (idx < 0) return label;
+  return label
+    .slice(idx + 2)
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 interface GroupedInsight {
   key: string;
   icon: IconName;
   tone: IconTone;
+  kind: ComponentKind;
   title: string;
-  explanation: string;
   amountPaise: number;
   count: number;
 }
 
 /** Collapses repeat records of the same recommendation (e.g. several
  * "Recurring charge to review: rent" rows, which happens with real
- * duplicate-category expense entries) into one card with a combined
- * amount and a "(x2)" count -- the underlying per-record detail is still
+ * duplicate-category expense entries) into one row with a combined
+ * amount and a real count -- the underlying per-record detail is still
  * exactly what Leaks shows; this is a display-only grouping for the
  * dashboard preview, by `label` (same category), not a data change. */
 function groupByLabel(components: RecoverableComponentOut[]): GroupedInsight[] {
@@ -66,19 +89,33 @@ function groupByLabel(components: RecoverableComponentOut[]): GroupedInsight[] {
       existing.amountPaise += c.annual_amount_paise;
       existing.count += 1;
     } else {
-      const { icon, tone } = iconForComponent(c.component_id);
+      const kind = kindOfComponent(c.component_id);
+      const { icon, tone } = ICON_FOR_KIND[kind];
       byLabel.set(c.label, {
         key: c.label,
         icon,
         tone,
-        title: c.label,
-        explanation: c.explanation,
+        kind,
+        title: shortCategoryTitle(c.label),
         amountPaise: c.annual_amount_paise,
         count: 1,
       });
     }
   }
   return Array.from(byLabel.values()).sort((a, b) => b.amountPaise - a.amountPaise);
+}
+
+/** "3 charges to review", never "transactions" -- this app has no bank/
+ * card statement feed (manual expense entry only, see leak_engine.py's
+ * own DATA_SOURCE_NOTE), so each flagged thing is a declared expense
+ * *item*, not a bank transaction; the wording shouldn't imply richer
+ * data than what's actually there. */
+function shortSubtitle(item: GroupedInsight): string {
+  const amount = `${formatPaise(item.amountPaise)}/yr`;
+  if (item.kind === 'idle_cash') return amount;
+  const noun = item.kind === 'fee_drag' ? 'fee' : 'charge';
+  const countPhrase = `${item.count} ${noun}${item.count === 1 ? '' : 's'} to review`;
+  return `${countPhrase} · ${amount}`;
 }
 
 const TOP_INSIGHTS_SHOWN = 3;
@@ -249,79 +286,78 @@ export function HomeScreen() {
         />
       </View>
 
-      <Card>
+      <View style={styles.checkSection}>
         <SectionHeader
-          title="What matters now"
+          title="A few things to check"
           action={
             <InfoTooltip
-              title="What matters now"
-              description="Your top recommendations from your own numbers, ranked by annual amount — idle cash above your buffer, recurring charges worth a second look, and whether paying down a debt beats investing the same amount. Nothing here is a market prediction. Repeated records of the same recommendation are combined into one card; see Leaks for every individual record."
+              title="A few things to check"
+              description="Suggestions from your own numbers, ranked by annual amount — idle cash above your buffer, recurring charges worth a second look, and whether paying down a debt beats investing the same amount. These are starting points to review, not confirmed duplicates or guaranteed savings, and nothing here is a market prediction."
             />
           }
         />
         {debtLeak.isPending ? (
-          <View style={styles.leakSkeleton}>
-            <Skeleton width="80%" height={14} />
-            <Skeleton width="60%" height={14} />
-          </View>
+          <Card>
+            <View style={styles.leakSkeleton}>
+              <Skeleton width="80%" height={14} />
+              <Skeleton width="60%" height={14} />
+            </View>
+          </Card>
         ) : debtLeak.error ? (
-          <ErrorState message={debtLeak.error.message} onRetry={() => debtLeak.refetch()} />
+          <Card>
+            <ErrorState message={debtLeak.error.message} onRetry={() => debtLeak.refetch()} />
+          </Card>
         ) : hasRecoverable || hasPrepayInsight ? (
-          <View style={styles.insightList}>
-            {hasRecoverable ? (
-              <Text variant="caption" tone="muted">
-                Up to {formatPaise(leak!.total_recoverable_annual_paise)}/year looks recoverable.
+          <>
+            <MenuList
+              items={[
+                ...topInsights.map((item) => ({
+                  key: item.key,
+                  title: item.count > 1 ? `${item.title} (×${item.count})` : item.title,
+                  subtitle: shortSubtitle(item),
+                  icon: item.icon,
+                  iconTone: item.tone,
+                  onPress: goToLeaks,
+                })),
+                ...(hasPrepayInsight && prepay
+                  ? [
+                      {
+                        key: 'prepay',
+                        title: 'Debt payoff opportunity',
+                        subtitle: `Could save ${formatPaise(prepay.interest_saved_paise)}`,
+                        icon: 'trending-down-outline' as const,
+                        iconTone: 'petrol' as const,
+                        onPress: goToDebt,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+            <View style={styles.checkFooter}>
+              {hasMoreInsights ? (
+                <Pressable onPress={goToLeaks} hitSlop={8} style={styles.seeAllLink}>
+                  <Text variant="caption" tone="terracotta">
+                    See all suggestions
+                  </Text>
+                  <Text variant="caption" tone="terracotta">
+                    ›
+                  </Text>
+                </Pressable>
+              ) : null}
+              <Text variant="caption" tone="faint" style={styles.disclaimer}>
+                These are suggestions to review, not confirmed duplicates or guaranteed savings.
               </Text>
-            ) : null}
-            {topInsights.map((item) => (
-              <View key={item.key} style={[styles.insightCard, { borderColor: colors.border }]}>
-                <IconChip name={item.icon} tone={item.tone} size={32} />
-                <View style={styles.insightCopy}>
-                  <Text variant="bodyMedium">
-                    {item.title}
-                    {item.count > 1 ? ` (×${item.count})` : ''}
-                  </Text>
-                  <Text variant="caption" tone="muted" style={styles.insightExplanation} numberOfLines={2}>
-                    {item.explanation}
-                  </Text>
-                  <View style={styles.insightFooter}>
-                    <Text variant="figure" tone="terracotta">
-                      {formatPaise(item.amountPaise)}/yr
-                    </Text>
-                    <Button label="View breakdown" variant="ghost" onPress={goToLeaks} />
-                  </View>
-                </View>
-              </View>
-            ))}
-            {hasPrepayInsight && prepay ? (
-              <View style={[styles.insightCard, { borderColor: colors.border }]}>
-                <IconChip name="trending-down-outline" tone="petrol" size={32} />
-                <View style={styles.insightCopy}>
-                  <Text variant="bodyMedium">Paying off this debt early could beat investing</Text>
-                  <Text variant="caption" tone="muted" style={styles.insightExplanation} numberOfLines={2}>
-                    At a guaranteed {prepay.guaranteed_annual_rate_pct}% p.a., clearing it {prepay.months_saved}{' '}
-                    month{prepay.months_saved === 1 ? '' : 's'} sooner avoids interest with no market risk.
-                  </Text>
-                  <View style={styles.insightFooter}>
-                    <Text variant="figure" tone="terracotta">
-                      {formatPaise(prepay.interest_saved_paise)} saved
-                    </Text>
-                    <Button label="View breakdown" variant="ghost" onPress={goToDebt} />
-                  </View>
-                </View>
-              </View>
-            ) : null}
-            {hasMoreInsights ? (
-              <Button label="View all" variant="ghost" onPress={goToLeaks} />
-            ) : null}
-          </View>
+            </View>
+          </>
         ) : (
-          <EmptyState
-            title="Nothing urgent right now"
-            message="No recoverable costs or debt-payoff opportunities were found from what you've entered."
-          />
+          <Card>
+            <EmptyState
+              title="Nothing to check right now"
+              message="No recoverable costs or debt-payoff opportunities were found from what you've entered."
+            />
+          </Card>
         )}
-      </Card>
+      </View>
 
       <Card>
         <SectionHeader
@@ -368,17 +404,10 @@ const styles = StyleSheet.create({
   heroBreakdownItem: { flex: 1, gap: 2 },
   heroBreakdownDivider: { width: StyleSheet.hairlineWidth, marginHorizontal: SPACE.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
+  checkSection: { gap: SPACE.sm },
   leakSkeleton: { gap: SPACE.sm, marginTop: SPACE.sm },
-  insightList: { gap: SPACE.sm, marginTop: SPACE.sm },
-  insightCard: {
-    flexDirection: 'row',
-    gap: SPACE.sm,
-    padding: SPACE.md,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  insightCopy: { flex: 1, gap: 2 },
-  insightExplanation: { marginBottom: SPACE.xs },
-  insightFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: SPACE.xs },
+  checkFooter: { gap: SPACE.xs, paddingHorizontal: SPACE.xs },
+  seeAllLink: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
+  disclaimer: { fontStyle: 'italic' },
   chartSkeleton: { marginTop: SPACE.sm },
 });
