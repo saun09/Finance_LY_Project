@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Children, isValidElement } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
+import { Reveal } from './Reveal';
 
 interface Props {
   children: React.ReactNode;
@@ -10,13 +11,38 @@ interface Props {
   onRefresh?: () => void;
   refreshing?: boolean;
   contentStyle?: ViewStyle;
+  /** Every scrolling screen staggers its top-level sections in on mount
+   * by default (the app's one consistent motion language) -- set false
+   * for a screen where that reads as noise (e.g. one already mid-flow). */
+  animate?: boolean;
 }
 
 /** Consistent safe-area handling + background across every screen
  * (Section 25: SafeAreaView/insets, no clipped content under the status
  * bar or nav bar). Pull-to-refresh is opt-in via onRefresh so any
- * API-driven screen gets it for free. */
-export function ScreenContainer({ children, scroll = true, onRefresh, refreshing, contentStyle }: Props) {
+ * API-driven screen gets it for free.
+ *
+ * `scrollContent`'s bottom padding (TAB_BAR_CLEARANCE) is deliberately
+ * larger than the tab bar's own 64px height: MainTabs sets a fixed
+ * numeric `tabBarStyle.height`, which suppresses React Navigation's
+ * automatic safe-area bottom inset on the bar itself, so the bar can
+ * occupy more than 64px on a device with a home indicator/gesture area.
+ * Reserving only 64px of scroll padding would let the last card's bottom
+ * edge sit behind the bar on exactly those devices -- the generous flat
+ * value here is the simple, crash-proof fix (vs. reading the live bar
+ * height via useBottomTabBarHeight(), which throws when a screen using
+ * ScreenContainer isn't nested under the tab navigator, e.g. Auth/Onboarding).
+ *
+ * Scrolling screens also get the staggered Reveal entrance for free here,
+ * one wrap per top-level child -- so every screen picks up the app's
+ * signature motion without hand-wrapping each section itself. Only
+ * applied when `scroll` (direct children stack top-to-bottom with no
+ * flex-grow expectations); a `scroll={false}` screen often has a child
+ * that needs to flex-fill the remaining space, which an extra wrapper
+ * View would break, so those opt out automatically. */
+const TAB_BAR_CLEARANCE = 112;
+
+export function ScreenContainer({ children, scroll = true, onRefresh, refreshing, contentStyle, animate = true }: Props) {
   const { colors } = useAppTheme();
   const Wrapper = scroll ? ScrollView : View;
   const wrapperProps = scroll
@@ -29,15 +55,24 @@ export function ScreenContainer({ children, scroll = true, onRefresh, refreshing
       }
     : { style: [styles.flexContent, contentStyle] };
 
+  const content =
+    scroll && animate
+      ? Children.map(children, (child, i) => (
+          <Reveal index={i} key={isValidElement(child) && child.key != null ? child.key : i}>
+            {child}
+          </Reveal>
+        ))
+      : children;
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.paper }]} edges={['top', 'left', 'right']}>
-      <Wrapper {...(wrapperProps as any)}>{children}</Wrapper>
+      <Wrapper {...(wrapperProps as any)}>{content}</Wrapper>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  scrollContent: { padding: SPACE.lg, paddingBottom: SPACE.xxxl, gap: SPACE.lg },
+  scrollContent: { padding: SPACE.lg, paddingBottom: TAB_BAR_CLEARANCE, gap: SPACE.lg },
   flexContent: { flex: 1, padding: SPACE.lg, gap: SPACE.lg },
 });

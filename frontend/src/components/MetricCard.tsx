@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
+import { AnimatedFigure } from './AnimatedFigure';
 import { Card } from './Card';
 import { IconChip } from './IconChip';
 import { InfoTooltip } from './InfoTooltip';
@@ -10,7 +11,12 @@ import { Text } from './Text';
 
 interface Props {
   label: string;
-  value: string;
+  /** A ready-made string ("Tier 3 of 5") -- used as-is, no animation.
+   * Prefer `animated` instead whenever the underlying value is a plain
+   * number (money, a percent, a count): it gets the app's signature
+   * count-up motion for free. Exactly one of `value`/`animated` is used. */
+  value?: string;
+  animated?: { target: number; formatter: (n: number) => string };
   tone?: 'positive' | 'warning' | 'danger' | 'neutral';
   helper?: string;
   /** Glyph shown in a small colored chip above the label -- the "what this
@@ -45,10 +51,14 @@ function figureSizeStyle(value: string) {
  * labeled dot (never color alone), matching Section 31's "do not rely
  * solely on colour" rule. Money always renders in the monospace figure
  * type. */
-export function MetricCard({ label, value, tone = 'neutral', helper, icon, info }: Props) {
+export function MetricCard({ label, value, animated, tone = 'neutral', helper, icon, info }: Props) {
   const { colors } = useAppTheme();
   const toneColor = tone === 'neutral' ? colors.inkFaint : colors[tone];
   const chipTone = tone === 'neutral' ? 'petrol' : tone;
+  // Sized off the *final* text, not the mid-animation one, so the count-up
+  // never jitters in font size as digits come in.
+  const finalText = animated ? animated.formatter(animated.target) : value ?? '';
+  const sizeStyle = figureSizeStyle(finalText);
 
   return (
     <Card style={styles.card}>
@@ -62,9 +72,13 @@ export function MetricCard({ label, value, tone = 'neutral', helper, icon, info 
       <Text variant="label" tone="muted" style={styles.label}>
         {label.toUpperCase()}
       </Text>
-      <Text variant="figureLarge" numberOfLines={1} style={figureSizeStyle(value)}>
-        {value}
-      </Text>
+      {animated ? (
+        <AnimatedFigure target={animated.target} formatter={animated.formatter} style={sizeStyle} />
+      ) : (
+        <Text variant="figureLarge" numberOfLines={1} style={sizeStyle}>
+          {value}
+        </Text>
+      )}
       {helper ? (
         <Text variant="caption" tone="muted" style={styles.helper}>
           {helper}
