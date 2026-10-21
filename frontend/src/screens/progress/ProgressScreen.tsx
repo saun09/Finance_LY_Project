@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import type {
   AwardedMilestoneOut,
   ChecklistItemOut,
@@ -124,15 +125,162 @@ function QuizOption({
   );
 }
 
-function TopicRow({
-  topic,
+/** Smooths a sequence of points into a single cubic-bezier path (the
+ * standard Catmull-Rom -> bezier conversion) so the roadmap reads as one
+ * continuous winding road through every topic node, however irregular the
+ * vertical spacing between them (a level banner's gap included). */
+function smoothPath(points: { x: number; y: number }[]): string {
+  if (points.length === 0) return '';
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] ?? points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] ?? p2;
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function findTopicById(roadmap: RoadmapLevelOut[], topicId: string): { level: RoadmapLevelOut; topic: RoadmapTopicOut } | null {
+  for (const level of roadmap) {
+    const topic = level.topics.find((t) => t.topic_id === topicId);
+    if (topic) return { level, topic };
+  }
+  return null;
+}
+
+const NODE_SIZE = 56;
+const ROAD_V_SPACING = 84;
+// Vertical space reserved before each level's first node: the banner
+// pill's own height (~56px, centered 30px into the slot) plus a clear
+// 24px gap so it never overlaps the node sitting right below it.
+const ROAD_BANNER_SLOT = 110;
+const ROAD_BANNER_CENTER_OFFSET = 30;
+const ROAD_PAD_TOP = 28;
+const ROAD_PAD_BOTTOM = 36;
+
+/** The whole beginner roadmap as one winding road (an SVG path smoothed
+ * through every topic's node), banners marking each level like mile-
+ * markers, and a node per topic the user taps to open its lesson + quiz --
+ * the "actual roadmap" visual metaphor, in place of 26 topics' worth of
+ * always-visible description text. */
+function RoadmapPath({
+  roadmap,
+  currentTopicId,
+  onSelectTopic,
+}: {
+  roadmap: RoadmapLevelOut[];
+  currentTopicId: string | null;
+  onSelectTopic: (topicId: string) => void;
+}) {
+  const { colors } = useAppTheme();
+  const [width, setWidth] = useState(0);
+  const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
+
+  const flat = roadmap.flatMap((level) => level.topics.map((topic) => ({ level, topic })));
+
+  const yPositions: number[] = [];
+  const bannerYByLevel: Record<number, number> = {};
+  let cursor = ROAD_PAD_TOP;
+  roadmap.forEach((level) => {
+    bannerYByLevel[level.level] = cursor + ROAD_BANNER_CENTER_OFFSET;
+    cursor += ROAD_BANNER_SLOT;
+    level.topics.forEach(() => {
+      yPositions.push(cursor);
+      cursor += ROAD_V_SPACING;
+    });
+  });
+  const totalHeight = cursor - ROAD_V_SPACING + NODE_SIZE / 2 + 36 + ROAD_PAD_BOTTOM;
+
+  if (width === 0) {
+    return <View style={{ height: totalHeight }} onLayout={onLayout} />;
+  }
+
+  const centerX = width / 2;
+  const amplitude = Math.min(width * 0.3, centerX - NODE_SIZE / 2 - 20);
+  const roadPoints = flat.map((_, i) => ({ x: centerX + amplitude * Math.sin(i * 0.65 + 0.3), y: yPositions[i] }));
+  const roadD = smoothPath(roadPoints);
+  const firstIncompleteIndex = flat.findIndex((f) => !f.topic.completed);
+
+  return (
+    <View onLayout={onLayout} style={{ height: totalHeight }}>
+      <View style={styles.roadmapSvgWrap} pointerEvents="none">
+        <Svg width={width} height={totalHeight}>
+          <Path d={roadD} stroke={colors.paperSunken} strokeWidth={18} strokeLinecap="round" fill="none" />
+          <Path d={roadD} stroke={colors.borderStrong} strokeWidth={2.5} strokeDasharray="10 12" strokeLinecap="round" fill="none" />
+        </Svg>
+      </View>
+
+      {roadmap.map((level) => {
+        const allComplete = level.topics.every((t) => t.completed);
+        return (
+          <View key={level.level} style={[styles.levelBanner, { top: bannerYByLevel[level.level] - 26 }]} pointerEvents="none">
+            <View style={[styles.levelBannerPill, { backgroundColor: colors.paperRaised, borderColor: colors.borderStrong }]}>
+              <IconChip name={LEVEL_ICON[level.level] ?? 'book-outline'} tone={allComplete ? 'positive' : 'petrol'} size={28} />
+              <View>
+                <Text variant="label" tone="muted">
+                  LEVEL {level.level}
+                </Text>
+                <Text variant="bodyMedium">{level.title}</Text>
+              </View>
+            </View>
+          </View>
+        );
+      })}
+
+      {flat.map(({ topic }, i) => {
+        const { x, y } = roadPoints[i];
+        const isCurrent = i === firstIncompleteIndex || topic.topic_id === currentTopicId;
+        const state = topic.completed ? 'complete' : isCurrent ? 'current' : 'upcoming';
+        const tone = {
+          complete: { bg: colors.positiveSoft, border: colors.positive, icon: colors.positive },
+          current: { bg: colors.terracottaSoft, border: colors.terracotta, icon: colors.terracotta },
+          upcoming: { bg: colors.paperRaised, border: colors.border, icon: colors.inkFaint },
+        }[state];
+        const iconName = topic.completed ? 'checkmark' : isCurrent ? 'flag' : 'ellipse-outline';
+
+        return (
+          <View key={topic.topic_id} style={[styles.roadmapNodeWrap, { left: x - 54, top: y - NODE_SIZE / 2 }]}>
+            <Pressable
+              onPress={() => onSelectTopic(topic.topic_id)}
+              accessibilityRole="button"
+              accessibilityLabel={topic.title}
+              style={[styles.roadmapNode, { backgroundColor: tone.bg, borderColor: tone.border }]}
+            >
+              <Ionicons name={iconName} size={24} color={tone.icon} />
+            </Pressable>
+            <Text variant="caption" tone={isCurrent ? 'terracotta' : 'muted'} style={styles.roadmapNodeLabel} numberOfLines={2}>
+              {topic.title}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** The lesson + quiz for a single tapped roadmap node, in a modal -- the
+ * content every topic used to show inline (keeping the roadmap itself
+ * compact) and the thing "Continue" now opens directly, so the button
+ * always has something visible to jump to instead of relying on scroll
+ * position. */
+function TopicModal({
+  active,
+  onClose,
   completeItem,
   isPending,
   selectedAnswer,
   onSelectAnswer,
   feedback,
 }: {
-  topic: RoadmapTopicOut;
+  active: { level: RoadmapLevelOut; topic: RoadmapTopicOut } | null;
+  onClose: () => void;
   completeItem: CompleteFn;
   isPending: boolean;
   selectedAnswer?: number;
@@ -140,175 +288,117 @@ function TopicRow({
   feedback?: { correct: boolean; explanation: string };
 }) {
   const { colors } = useAppTheme();
-  const passed = !!topic.quiz_question?.passed;
+  const topic = active?.topic;
+  const level = active?.level;
+  const passed = !!topic?.quiz_question?.passed;
 
   return (
-    <View style={[styles.topicRow, { borderTopColor: colors.border }]}>
-      <View style={styles.topicHeaderRow}>
-        <Ionicons
-          name={topic.completed ? 'checkmark-circle' : 'ellipse-outline'}
-          size={20}
-          color={topic.completed ? colors.positive : colors.inkFaint}
-        />
-        <View style={styles.topicCopy}>
-          <Text variant="bodyMedium">{topic.title}</Text>
-          <Text variant="caption" tone="muted">
-            {topic.description}
-          </Text>
-        </View>
-        <Button
-          label={topic.completed ? 'Done' : 'Learn'}
-          variant={topic.completed ? 'secondary' : 'ghost'}
-          disabled={topic.completed || isPending}
-          onPress={() => completeItem(topic.topic_id, 'lesson')}
-        />
-      </View>
-
-      {topic.completed && topic.quiz_question ? (
-        <View style={[styles.quizCard, { backgroundColor: colors.paperSunken }]}>
-          <View style={styles.quizHeader}>
-            <IconChip name="help-circle-outline" tone="petrol" size={28} />
-            <Text variant="label" tone="petrol">
-              QUICK CHECK
-            </Text>
-          </View>
-          <Text variant="bodyMedium" style={styles.quizPrompt}>
-            {topic.quiz_question.prompt}
-          </Text>
-          <View style={styles.quizOptions}>
-            {topic.quiz_question.options.map((option, index) => {
-              const isSelected = selectedAnswer === index;
-              const state: 'default' | 'selected' | 'correct' | 'incorrect' = !isSelected
-                ? 'default'
-                : passed
-                  ? 'correct'
-                  : feedback
-                    ? feedback.correct
-                      ? 'correct'
-                      : 'incorrect'
-                    : 'selected';
-              return (
-                <QuizOption
-                  key={option}
-                  letter={String.fromCharCode(65 + index)}
-                  label={option}
-                  state={state}
-                  disabled={passed || isPending}
-                  onPress={() => onSelectAnswer(index)}
-                />
-              );
-            })}
-          </View>
-          {!passed ? (
-            <Button
-              label="Check answer"
-              disabled={selectedAnswer === undefined || isPending}
-              loading={isPending}
-              onPress={() => completeItem(topic.topic_id, 'quiz')}
-              fullWidth
-            />
-          ) : (
-            <View style={styles.quizPassedRow}>
-              <Ionicons name="trophy-outline" size={16} color={colors.positive} />
-              <Text variant="caption" tone="positive">
-                Passed — knowledge milestone recorded
-              </Text>
-            </View>
-          )}
-          {feedback && !passed ? (
-            <Reveal>
-              <View style={styles.quizFeedbackRow}>
-                <Ionicons
-                  name={feedback.correct ? 'checkmark-circle-outline' : 'information-circle-outline'}
-                  size={16}
-                  color={feedback.correct ? colors.positive : colors.warning}
-                />
-                <Text variant="caption" tone={feedback.correct ? 'positive' : 'warning'} style={styles.quizFeedbackText}>
-                  {feedback.explanation}
+    <Modal visible={!!active} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.modalBackdrop} onPress={onClose}>
+        <Pressable onPress={(e) => e.stopPropagation()} style={styles.modalSheetWrap}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {topic && level ? (
+              <Card style={{ backgroundColor: colors.paperRaised }}>
+                <View style={styles.modalHeaderRow}>
+                  <Ionicons
+                    name={topic.completed ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={20}
+                    color={topic.completed ? colors.positive : colors.inkFaint}
+                  />
+                  <Text variant="label" tone="muted" style={styles.modalHeaderLabel}>
+                    LEVEL {level.level} · {level.title}
+                  </Text>
+                  <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close">
+                    <Ionicons name="close" size={22} color={colors.inkFaint} />
+                  </Pressable>
+                </View>
+                <Text variant="h2" style={styles.modalTitle}>
+                  {topic.title}
                 </Text>
-              </View>
-            </Reveal>
-          ) : null}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-function LevelCard({
-  level,
-  index,
-  isOpen,
-  onToggle,
-  completeItem,
-  isPending,
-  selectedAnswers,
-  onSelectAnswer,
-  quizFeedback,
-}: {
-  level: RoadmapLevelOut;
-  index: number;
-  isOpen: boolean;
-  onToggle: () => void;
-  completeItem: CompleteFn;
-  isPending: boolean;
-  selectedAnswers: Record<string, number>;
-  onSelectAnswer: (topicId: string, index: number) => void;
-  quizFeedback: QuizFeedbackMap;
-}) {
-  const { colors } = useAppTheme();
-  const chevronRotation = useChevronRotation(isOpen);
-  const completedCount = level.topics.filter((t) => t.completed).length;
-  const allComplete = completedCount === level.topics.length;
-
-  return (
-    <Reveal index={index}>
-      <Card>
-        <Pressable
-          onPress={onToggle}
-          style={styles.levelHeader}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: isOpen }}
-          accessibilityLabel={`Level ${level.level}: ${level.title}`}
-        >
-          <IconChip name={LEVEL_ICON[level.level] ?? 'book-outline'} tone={allComplete ? 'positive' : 'petrol'} size={40} />
-          <View style={styles.levelHeaderCopy}>
-            <Text variant="label" tone="muted">
-              LEVEL {level.level}
-            </Text>
-            <Text variant="h2">{level.title}</Text>
-            <View style={styles.levelProgressRow}>
-              <View style={styles.levelProgressBar}>
-                <ProgressBar fraction={completedCount / level.topics.length} tone={allComplete ? 'positive' : 'petrol'} height={6} duration={600} />
-              </View>
-              <Text variant="caption" tone="muted">
-                {completedCount}/{level.topics.length}
-              </Text>
-            </View>
-          </View>
-          <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
-            <Ionicons name="chevron-down" size={22} color={colors.inkFaint} />
-          </Animated.View>
-        </Pressable>
-        {isOpen ? (
-          <Reveal>
-            <View style={styles.topicList}>
-              {level.topics.map((topic) => (
-                <TopicRow
-                  key={topic.topic_id}
-                  topic={topic}
-                  completeItem={completeItem}
-                  isPending={isPending}
-                  selectedAnswer={selectedAnswers[topic.topic_id]}
-                  onSelectAnswer={(i) => onSelectAnswer(topic.topic_id, i)}
-                  feedback={quizFeedback[topic.topic_id]}
+                <Text variant="body" tone="muted" style={styles.modalDescription}>
+                  {topic.description}
+                </Text>
+                <Button
+                  label={topic.completed ? 'Done' : 'Learn'}
+                  variant={topic.completed ? 'secondary' : 'primary'}
+                  disabled={topic.completed || isPending}
+                  onPress={() => completeItem(topic.topic_id, 'lesson')}
+                  fullWidth
                 />
-              ))}
-            </View>
-          </Reveal>
-        ) : null}
-      </Card>
-    </Reveal>
+
+                {topic.completed && topic.quiz_question ? (
+                  <View style={[styles.quizCard, { backgroundColor: colors.paperSunken }]}>
+                    <View style={styles.quizHeader}>
+                      <IconChip name="help-circle-outline" tone="petrol" size={28} />
+                      <Text variant="label" tone="petrol">
+                        QUICK CHECK
+                      </Text>
+                    </View>
+                    <Text variant="bodyMedium" style={styles.quizPrompt}>
+                      {topic.quiz_question.prompt}
+                    </Text>
+                    <View style={styles.quizOptions}>
+                      {topic.quiz_question.options.map((option, index) => {
+                        const isSelected = selectedAnswer === index;
+                        const state: 'default' | 'selected' | 'correct' | 'incorrect' = !isSelected
+                          ? 'default'
+                          : passed
+                            ? 'correct'
+                            : feedback
+                              ? feedback.correct
+                                ? 'correct'
+                                : 'incorrect'
+                              : 'selected';
+                        return (
+                          <QuizOption
+                            key={option}
+                            letter={String.fromCharCode(65 + index)}
+                            label={option}
+                            state={state}
+                            disabled={passed || isPending}
+                            onPress={() => onSelectAnswer(index)}
+                          />
+                        );
+                      })}
+                    </View>
+                    {!passed ? (
+                      <Button
+                        label="Check answer"
+                        disabled={selectedAnswer === undefined || isPending}
+                        loading={isPending}
+                        onPress={() => completeItem(topic.topic_id, 'quiz')}
+                        fullWidth
+                      />
+                    ) : (
+                      <View style={styles.quizPassedRow}>
+                        <Ionicons name="trophy-outline" size={16} color={colors.positive} />
+                        <Text variant="caption" tone="positive">
+                          Passed — knowledge milestone recorded
+                        </Text>
+                      </View>
+                    )}
+                    {feedback && !passed ? (
+                      <Reveal>
+                        <View style={styles.quizFeedbackRow}>
+                          <Ionicons
+                            name={feedback.correct ? 'checkmark-circle-outline' : 'information-circle-outline'}
+                            size={16}
+                            color={feedback.correct ? colors.positive : colors.warning}
+                          />
+                          <Text variant="caption" tone={feedback.correct ? 'positive' : 'warning'} style={styles.quizFeedbackText}>
+                            {feedback.explanation}
+                          </Text>
+                        </View>
+                      </Reveal>
+                    ) : null}
+                  </View>
+                ) : null}
+              </Card>
+            ) : null}
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -431,13 +521,10 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
   const complete = useCompleteEducation();
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [quizFeedback, setQuizFeedback] = useState<QuizFeedbackMap>({});
-  // Collapsed by default, one level open at a time -- opens on the first
-  // level with unfinished topics so there's still something to act on
-  // without having to tap through every level first.
-  const [expandedLevel, setExpandedLevel] = useState<number | null>(() => {
-    const firstIncomplete = education.roadmap.find((lvl) => lvl.topics.some((t) => !t.completed));
-    return firstIncomplete ? firstIncomplete.level : null;
-  });
+  // Which roadmap node's lesson + quiz is open in the modal -- null means
+  // closed. Resolved by id (not a stored snapshot) so the modal always
+  // reflects the latest `education` data after a completion mutation.
+  const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [expandedChecklistSection, setExpandedChecklistSection] = useState<string | null>(() => {
     const firstIncomplete = CHECKLIST_SECTIONS.find((section) =>
       education.checklist.some((item) => item.section === section && !item.completed)
@@ -535,7 +622,7 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
                 </Text>
               </View>
             </View>
-            <Button label="Continue" fullWidth onPress={() => setExpandedLevel(nextUp.level.level)} />
+            <Button label="Continue" fullWidth onPress={() => setActiveTopicId(nextUp.topic.topic_id)} />
           </Card>
         ) : (
           <Card raised style={styles.celebrateCard}>
@@ -549,22 +636,27 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
       </Reveal>
 
       <View style={styles.subsection}>
-        <SectionHeader title="Your learning path" subtitle="Five short levels, one topic at a time" />
-        {education.roadmap.map((level, index) => (
-          <LevelCard
-            key={level.level}
-            level={level}
-            index={index}
-            isOpen={expandedLevel === level.level}
-            onToggle={() => setExpandedLevel(expandedLevel === level.level ? null : level.level)}
-            completeItem={completeItem}
-            isPending={complete.isPending}
-            selectedAnswers={selectedAnswers}
-            onSelectAnswer={selectAnswer}
-            quizFeedback={quizFeedback}
-          />
-        ))}
+        <SectionHeader title="Your learning path" subtitle="Follow the road — tap a stop to learn and quiz" />
+        <Reveal index={2}>
+          <Card>
+            <RoadmapPath
+              roadmap={education.roadmap}
+              currentTopicId={nextUp?.topic.topic_id ?? null}
+              onSelectTopic={(topicId) => setActiveTopicId(topicId)}
+            />
+          </Card>
+        </Reveal>
       </View>
+
+      <TopicModal
+        active={activeTopicId ? findTopicById(education.roadmap, activeTopicId) : null}
+        onClose={() => setActiveTopicId(null)}
+        completeItem={completeItem}
+        isPending={complete.isPending}
+        selectedAnswer={activeTopicId ? selectedAnswers[activeTopicId] : undefined}
+        onSelectAnswer={(i) => activeTopicId && selectAnswer(activeTopicId, i)}
+        feedback={activeTopicId ? quizFeedback[activeTopicId] : undefined}
+      />
 
       <View style={styles.subsection}>
         <SectionHeader title="Getting started checklist" subtitle="Everyday habits, ticked off at your own pace" />
@@ -715,13 +807,30 @@ const styles = StyleSheet.create({
 
   levelHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
   levelHeaderCopy: { flex: 1, gap: 2 },
-  levelProgressRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, marginTop: 2 },
-  levelProgressBar: { flex: 1 },
 
   topicList: { marginTop: SPACE.sm },
-  topicRow: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: SPACE.md, marginTop: SPACE.md },
-  topicHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.sm },
-  topicCopy: { flex: 1, gap: 2 },
+
+  roadmapSvgWrap: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 },
+  levelBanner: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  levelBannerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: SPACE.sm,
+    borderRadius: RADIUS.pill,
+    borderWidth: StyleSheet.hairlineWidth * 1.5,
+  },
+  roadmapNodeWrap: { position: 'absolute', width: 108, alignItems: 'center' },
+  roadmapNode: { width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
+  roadmapNodeLabel: { marginTop: SPACE.xs, textAlign: 'center', width: 100 },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(20, 15, 8, 0.55)', justifyContent: 'center', padding: SPACE.lg },
+  modalSheetWrap: { maxHeight: '85%', borderRadius: RADIUS.lg },
+  modalHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
+  modalHeaderLabel: { flex: 1 },
+  modalTitle: { marginTop: SPACE.sm },
+  modalDescription: { marginTop: SPACE.xs, marginBottom: SPACE.md },
 
   quizCard: { marginTop: SPACE.sm, padding: SPACE.md, borderRadius: RADIUS.md, gap: SPACE.sm },
   quizHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
