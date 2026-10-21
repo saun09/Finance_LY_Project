@@ -63,6 +63,23 @@ def _annual_equivalent_paise(amount_paise: int, frequency: ExpenseFrequency) -> 
     return 0  # ONE_TIME isn't a recurring drag
 
 
+def _humanize_reason(reason: str, category_by_id: dict[str, str]) -> str:
+    """`candidate.reasons` (below) stays the raw, structured
+    "subscription_keyword:x" / "possible_duplicate_of:<item_id>" tokens
+    tests assert on (test_leak_engine.py) -- this is the one place they
+    get turned into something a user should actually read, kept separate
+    so the tested machine-readable contract never has to change for a
+    wording tweak."""
+    if reason.startswith("subscription_keyword:"):
+        keyword = reason.split(":", 1)[1]
+        return f"matches a known subscription pattern (“{keyword}”)"
+    if reason.startswith("possible_duplicate_of:"):
+        other_id = reason.split(":", 1)[1]
+        other_category = category_by_id.get(other_id, "another recurring charge")
+        return f"looks similar to your other “{other_category}” charge"
+    return reason
+
+
 # --- recurring-charge candidates ---
 
 
@@ -240,13 +257,15 @@ def build_leak_report(
             )
         )
 
+    category_by_id = {e.item_id: e.category for e in expenses}
     for candidate in recurring_candidates:
+        humanized_reasons = [_humanize_reason(r, category_by_id) for r in candidate.reasons]
         components.append(
             RecoverableComponent(
                 component_id=f"recurring:{candidate.item_id}",
                 label=f"Recurring charge to review: {candidate.category}",
                 annual_amount_paise=candidate.annual_amount_paise,
-                explanation=f"Flagged as worth reviewing: {', '.join(candidate.reasons)}.",
+                explanation=f"Flagged as worth reviewing: {'; '.join(humanized_reasons)}.",
                 concrete_action="Confirm you still use this; cancel or consolidate it if not.",
             )
         )
