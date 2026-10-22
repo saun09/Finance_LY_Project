@@ -259,7 +259,6 @@ export function TransparencyScreen() {
   return (
     <ScreenContainer>
       <View>
-        <BackHeader label="Insights" />
         <Text variant="display" style={styles.title}>Transparency</Text>
       </View>
 

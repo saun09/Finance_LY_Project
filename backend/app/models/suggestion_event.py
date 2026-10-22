@@ -1,8 +1,9 @@
 import enum
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, Integer, String
+from sqlalchemy import JSON, Boolean, DateTime, Enum, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -51,6 +52,13 @@ class SuggestionEvent(Base):
     # position/sequence of this suggestion within the set shown for this
     # module_source + tier (module-defined semantics, e.g. rank in a list)
     offset: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # Module 7's personalization offset, in equity percentage points, that
+    # was in effect when this suggestion was shown. Kept as its own column
+    # (not just inside suggested_value) because it is the one number every
+    # later model or drift analysis will want to filter and aggregate on.
+    # Distinct from `offset` above, which is a list position.
+    offset_pct_points: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
 
     suggested_value: Mapped[dict] = mapped_column(JSON, nullable=False)
     chosen_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)

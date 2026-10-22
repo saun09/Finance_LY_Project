@@ -43,6 +43,7 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "module_source",
         "tier",
         "offset",
+        "offset_pct_points",
         "suggested_value",
         "chosen_value",
         "delta",

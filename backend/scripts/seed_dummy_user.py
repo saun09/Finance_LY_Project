@@ -148,13 +148,20 @@ def main() -> None:
         print(f"target_pct = {alloc_body['target_pct']}")
 
         _print_step("Personalization (simulate an edited allocation outcome)")
-        events = client.get(f"{u}/events", params={"module_source": "allocation"}).json()
-        if events:
-            event_id = events[0]["event_id"]
-            chosen = {k: v for k, v in alloc_body["target_pct"].items()}
-            # nudge equity up a little relative to the suggestion, funded=True,
-            # so the personalization EWMA has real evidence to show.
-            chosen["equity"] = str(float(chosen["equity"]) + 5)
+        if alloc_body.get("event_id"):
+            event_id = alloc_body["event_id"]
+            # nudge equity up 5 points relative to the plan, funded=True, so
+            # the personalization EWMA has real evidence to show. The other
+            # classes give up those 5 points in proportion, so the mix still
+            # adds up to 100 (the outcome endpoint rejects one that doesn't).
+            shown = {k: float(v) for k, v in alloc_body["displayed_target_pct"].items()}
+            others = [k for k in shown if k != "equity"]
+            others_total = sum(shown[k] for k in others)
+            chosen = {k: round(shown[k] * (others_total - 5) / others_total, 2) for k in others}
+            chosen["equity"] = shown["equity"] + 5
+            largest = max(others, key=lambda k: chosen[k])
+            chosen[largest] = round(chosen[largest] + 100 - sum(chosen.values()), 2)
+            chosen = {k: str(v) for k, v in chosen.items()}
             client.post(
                 f"{u}/allocation/{event_id}/outcome",
                 json={"action_taken": "edited", "chosen_target_pct": chosen, "funded": True},

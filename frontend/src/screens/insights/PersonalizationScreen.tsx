@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { ASSET_CLASSES, EditActionTaken, OffsetStepOut } from '../../api/types';
+import { ASSET_CLASSES, EditActionTaken, OffsetStepOut, PersonalizationOut } from '../../api/types';
 import { AnimatedFigure } from '../../components/AnimatedFigure';
 import { BackHeader } from '../../components/BackHeader';
 import { Card } from '../../components/Card';
@@ -16,7 +16,7 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { usePersonalization } from '../../hooks/usePersonalization';
-import { ASSET_CLASS_LABEL } from '../../utils/labels';
+import { ASSET_CLASS_LABEL, CAPACITY_CONSTRAINT_LABEL, REJECT_REASON_LABEL } from '../../utils/labels';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { ASSET_CLASS_COLOR_KEY, Palette, RADIUS, SPACE } from '../../theme/tokens';
 
@@ -39,6 +39,27 @@ const ACTION_VERB: Record<EditActionTaken, string> = {
   ignored: "Didn't act on the suggested mix",
 };
 
+function formatPct(value: number): string {
+  return `${Math.round(value * 10) / 10}%`;
+}
+
+/** The cap, surfaced rather than silent: what the user's choices asked
+ * for, what actually reached their plan, and what would lift the limit. */
+function capMessage(data: PersonalizationOut): string | null {
+  if (!data.offset_capped) return null;
+  const asked = `${formatSignedPts(Number(data.offset_pct_points))} pts`;
+  if (data.cap_reason === 'zero_floor') {
+    return `Your choices lean ${asked}, but equity can't go below 0%.`;
+  }
+  const labels = data.capacity_binding_constraints.map((c) => CAPACITY_CONSTRAINT_LABEL[c] ?? 'your finances');
+  const lift = labels.length ? ` Improving ${labels.join(' and ')} would raise this limit.` : '';
+  return (
+    `Your choices lean ${asked}, but your finances currently support at most ` +
+    `${Math.round(Number(data.max_equity_pct))}% in equity, so we've applied ` +
+    `${formatSignedPts(Number(data.applied_offset_pct_points))} pts.${lift}`
+  );
+}
+
 function formatSignedPts(value: number): string {
   const rounded = Math.round(value * 10) / 10;
   return `${rounded >= 0 ? '+' : ''}${rounded.toFixed(1)}`;
@@ -57,11 +78,18 @@ function describeStep(step: OffsetStepOut): { headline: string; fundedTag: strin
     return { headline: `Allocation decision #${step.step}`, fundedTag: null };
   }
 
+  // `suggested_equity_pct` is the tier's *base* mix (what every choice is
+  // measured against), and `chosen_equity_pct` is what the user actually
+  // took -- for an accept, that's the personalized mix they were shown.
+  const tierPlan = suggested !== null ? ` (your tier's plan: ${suggested.toFixed(0)}%)` : '';
   let headline = ACTION_VERB[action];
-  if (action === 'edited' && chosen !== null && suggested !== null) {
-    headline = `Chose ${chosen.toFixed(0)}% equity instead of the suggested ${suggested.toFixed(0)}%`;
-  } else if (suggested !== null) {
-    headline = `${ACTION_VERB[action]} — ${suggested.toFixed(0)}% equity`;
+  if (action === 'edited' && chosen !== null) {
+    headline = `Set your own mix: ${formatPct(chosen)} equity${tierPlan}`;
+  } else if (action === 'accepted' && chosen !== null) {
+    headline = `Kept the plan as shown: ${formatPct(chosen)} equity${tierPlan}`;
+  } else if (action === 'rejected') {
+    const reason = (REJECT_REASON_LABEL as Record<string, string>)[step.reason_code ?? ''];
+    headline = reason ? `Turned the plan down — ${reason.toLowerCase()}` : ACTION_VERB[action];
   }
 
   const fundedTag =
@@ -256,7 +284,10 @@ export function PersonalizationScreen() {
   const { data, isPending, error, refetch } = usePersonalization();
   const { colors } = useAppTheme();
 
-  const offsetValue = data ? Number(data.offset_pct_points) : 0;
+  // what actually reached the displayed plan (after the capacity cap),
+  // not the pre-cap number the user's history asks for
+  const offsetValue = data ? Number(data.applied_offset_pct_points) : 0;
+  const cap = data ? capMessage(data) : null;
   const offsetTone: HeroCardProps['tone'] = offsetValue > 0 ? 'positive' : offsetValue < 0 ? 'danger' : 'petrol';
 
   return (
@@ -293,25 +324,34 @@ export function PersonalizationScreen() {
               <HeroCard
                 icon="locate-outline"
                 tone={offsetTone}
-                label="Offset applied"
+                label="Adjustment shown"
                 target={offsetValue}
                 formatter={(n) => `${formatSignedPts(n)} pts`}
-                helper="Shift from your base target, based on past decisions"
+                helper="Equity shift from your tier's plan, learned from your choices"
               />
               <HeroCard
                 icon="create-outline"
                 tone="petrol"
-                label="Edits considered"
+                label="Choices considered"
                 target={data!.edits_considered}
                 formatter={(n) => `${Math.round(n)}`}
-                helper="Past allocation outcomes used"
+                helper="Your responses to past plans"
               />
             </View>
           </Reveal>
 
+          {cap ? (
+            <Reveal index={1}>
+              <Card>
+                <SectionHeader title="Held back by a limit" subtitle="This changes what you're shown, never your risk tier" />
+                <Text variant="body">{cap}</Text>
+              </Card>
+            </Reveal>
+          ) : null}
+
           <Reveal index={1}>
             <Card>
-              <SectionHeader title="Base vs. personalized target" subtitle={`Tier ${data!.final_tier} of 5`} />
+              <SectionHeader title="Your tier's plan vs. what you're shown" subtitle={`Tier ${data!.final_tier} of 5 — unchanged`} />
               <Text variant="caption" tone="faint" style={styles.comparisonLegendNote}>
                 Lighter fill is your base target; the solid fill is what's actually shown to you now.
               </Text>

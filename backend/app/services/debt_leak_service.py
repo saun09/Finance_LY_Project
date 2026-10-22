@@ -32,7 +32,7 @@ from app.services.debt_engine import (
     prepay_vs_invest_analysis,
     refinance_breakeven,
 )
-from app.services.event_log import log_suggestion_event
+from app.services.event_log import log_suggestion_event_if_changed
 from app.services.financial_position import EmiInput, compute_outstanding_principal
 from app.services.leak_engine import ExpenseItemInput, LeakReport, build_leak_report
 from app.services.onboarding import ProfileNotFoundError, compute_financial_position, get_expense_source_mode, get_profile
@@ -100,7 +100,9 @@ def compute_and_log_debt_leak_report(session: Session, user_id: str, commit: boo
 
     leak = build_leak_report(profile.cash_balance_paise, position["essential_monthly_expense_paise"], expense_items)
 
-    log_suggestion_event(
+    # GET /debt-leak recomputes this on every screen load; only a changed
+    # report is a new suggestion worth a row.
+    log_suggestion_event_if_changed(
         session,
         user_id=user_id,
         module_source="debt_leak_engine",
