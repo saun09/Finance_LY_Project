@@ -134,7 +134,11 @@ export function RiskProfileScreen() {
           />
         </Card>
       ) : (
-        <>
+        // ScreenContainer only puts its own gap between ITS direct children
+        // -- this whole block is one of those (previously a bare fragment),
+        // so without an explicit gap here every card inside it rendered
+        // flush against the next with nothing but a border between them.
+        <View style={styles.resultGroup}>
           <Reveal index={0}>
             <Card raised style={styles.resultCard}>
               <Text variant="label" tone="muted">
@@ -246,7 +250,7 @@ export function RiskProfileScreen() {
             <Button label="Explore your target allocation" fullWidth onPress={() => navigation.navigate('Allocation')} />
             <Button label="Retake questionnaire" variant="ghost" fullWidth onPress={() => navigation.navigate('RiskQuestionnaire')} />
           </View>
-        </>
+        </View>
       )}
     </ScreenContainer>
   );
@@ -255,6 +259,7 @@ export function RiskProfileScreen() {
 const styles = StyleSheet.create({
   header: { gap: 2 },
   headerSubtitle: { marginTop: SPACE.xs },
+  resultGroup: { gap: SPACE.lg },
   resultCard: { alignItems: 'center' },
   resultFigure: { marginTop: SPACE.xs },
   tierBarWrap: { alignSelf: 'stretch', marginTop: SPACE.sm, paddingHorizontal: SPACE.lg },
