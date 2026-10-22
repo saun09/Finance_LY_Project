@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, LayoutChangeEvent, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import type {
@@ -22,7 +22,7 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
 import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
-import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useChevronRotation } from '../../hooks/useChevronRotation';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { useCheckMilestones, useCompleteEducation, useEducationProgress, useMilestoneHistory } from '../../hooks/useGamification';
 import { MILESTONE_CATEGORY_LABEL } from '../../utils/labels';
@@ -65,22 +65,6 @@ const MILESTONE_CATEGORY_ICON: Record<string, keyof typeof Ionicons.glyphMap> = 
 };
 
 const CHECKLIST_SECTIONS = ['Financial foundation', 'Savings', 'Investing', 'Financial literacy'];
-
-/** The chevron rotation is local to each disclosure card so every level/
- * section animates independently -- lifted out of the per-item hooks a
- * `.map()` can't call directly (same fix as Plan's TierLegendDisclosure). */
-function useChevronRotation(isOpen: boolean) {
-  const reducedMotion = useReducedMotion();
-  const rotation = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.timing(rotation, {
-      toValue: isOpen ? 1 : 0,
-      duration: reducedMotion ? 0 : 200,
-      useNativeDriver: true,
-    }).start();
-  }, [isOpen, reducedMotion, rotation]);
-  return rotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
-}
 
 function QuizOption({
   letter,
