@@ -14,6 +14,7 @@ from app.schemas.onboarding import (
     HoldingOut,
     InsurancePolicyIn,
     InsurancePolicyOut,
+    ProfileIdentityIn,
     ProfileIn,
     ProfileOut,
 )
@@ -37,6 +38,7 @@ from app.services.onboarding import (
     list_insurance_policies,
     record_expense_source_decision,
     remove_expense_item,
+    update_profile_identity,
     upsert_profile,
 )
 
@@ -61,6 +63,11 @@ def get_profile_route(user_id: str, session: Session = Depends(get_session)):
     if profile is None:
         raise HTTPException(status_code=404, detail=f"no profile for user_id={user_id!r}")
     return profile
+
+
+@router.put("/profile/identity", response_model=ProfileOut)
+def put_profile_identity(user_id: str, body: ProfileIdentityIn, session: Session = Depends(get_session)):
+    return _not_found_as_404(update_profile_identity, session, user_id, **body.model_dump())
 
 
 @router.post("/emis", response_model=EmiOut)

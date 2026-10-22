@@ -1,8 +1,8 @@
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -68,6 +68,16 @@ class UserProfile(Base):
     )
     dependents_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     cash_balance_paise: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+    # Identity fields -- distinct from the financial fields above: always
+    # user-entered and optional (nullable), never defaulted or inferred.
+    # `date_of_birth` is stored rather than a raw age number so "32 yrs
+    # old" is always computed fresh from today's date, not a figure that
+    # silently goes stale.
+    full_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     onboarding_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
     onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

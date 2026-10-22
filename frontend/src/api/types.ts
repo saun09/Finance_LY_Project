@@ -86,8 +86,19 @@ export interface ProfileIn {
 
 export interface ProfileOut extends ProfileIn {
   user_id: string;
+  full_name: string | null;
+  email: string | null;
+  date_of_birth: string | null;
+  phone_number: string | null;
   onboarding_started_at: string;
   onboarding_completed_at: string | null;
+}
+
+export interface ProfileIdentityIn {
+  full_name?: string | null;
+  email?: string | null;
+  date_of_birth?: string | null;
+  phone_number?: string | null;
 }
 
 export type EmiPurpose = 'home' | 'vehicle' | 'personal' | 'education' | 'credit_card' | 'electronics' | 'other';

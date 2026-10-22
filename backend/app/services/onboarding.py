@@ -104,6 +104,33 @@ def upsert_profile(
     return profile
 
 
+def update_profile_identity(
+    session: Session,
+    user_id: str,
+    *,
+    full_name: str | None,
+    email: str | None,
+    date_of_birth: date | None,
+    phone_number: str | None,
+    commit: bool = True,
+) -> UserProfile:
+    """Section 1 of the Profile screen: name/email/DOB/phone. Unlike
+    upsert_profile's financial fields, these have no sensible default or
+    derivation, so they're always exactly what the user typed, or None --
+    never synthesized. Doesn't touch net worth/surplus/buffer-months/EMI
+    ratio, so (unlike upsert_profile) this never re-derives a snapshot."""
+    profile = _require_profile(session, user_id)
+    profile.full_name = full_name
+    profile.email = email
+    profile.date_of_birth = date_of_birth
+    profile.phone_number = phone_number
+    session.flush()
+    if commit:
+        session.commit()
+        session.refresh(profile)
+    return profile
+
+
 def list_emis(session: Session, user_id: str) -> list[EmiEntry]:
     """All EMIs ever recorded, oldest first, active and closed alike -- a
     management screen needs to show what was closed, not just what's

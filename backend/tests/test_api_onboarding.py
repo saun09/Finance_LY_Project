@@ -66,6 +66,61 @@ def test_full_onboarding_flow_via_api(client):
     assert snapshot["income"] == 80_000_00
 
 
+def test_profile_identity_is_optional_user_entered_and_persists(client):
+    client.put(
+        f"/users/{USER}/profile",
+        json={
+            "income_paise": 80_000_00, "income_stability": "regular", "employment_type": "salaried",
+            "dependents_count": 1, "cash_balance_paise": 200_000_00,
+        },
+    )
+
+    # Before any identity edit, every identity field is None -- never
+    # defaulted or fabricated, unlike the financial fields above.
+    before = client.get(f"/users/{USER}/profile").json()
+    assert before["full_name"] is None
+    assert before["email"] is None
+    assert before["date_of_birth"] is None
+    assert before["phone_number"] is None
+
+    identity_resp = client.put(
+        f"/users/{USER}/profile/identity",
+        json={
+            "full_name": "Asha Rao", "email": "asha.rao@example.com",
+            "date_of_birth": "1993-04-12", "phone_number": "+91 98765 43210",
+        },
+    )
+    assert identity_resp.status_code == 200
+    body = identity_resp.json()
+    assert body["full_name"] == "Asha Rao"
+    assert body["email"] == "asha.rao@example.com"
+    assert body["date_of_birth"] == "1993-04-12"
+    assert body["phone_number"] == "+91 98765 43210"
+    # Updating identity must never touch the financial fields it sits
+    # alongside.
+    assert body["income_paise"] == 80_000_00
+
+    after = client.get(f"/users/{USER}/profile").json()
+    assert after["full_name"] == "Asha Rao"
+
+
+def test_profile_identity_rejects_malformed_email(client):
+    client.put(
+        f"/users/{USER}/profile",
+        json={
+            "income_paise": 80_000_00, "income_stability": "regular", "employment_type": "salaried",
+            "dependents_count": 1, "cash_balance_paise": 200_000_00,
+        },
+    )
+    resp = client.put(f"/users/{USER}/profile/identity", json={"email": "not-an-email"})
+    assert resp.status_code == 422
+
+
+def test_profile_identity_404s_without_an_existing_profile(client):
+    resp = client.put("/users/no-such-user/profile/identity", json={"full_name": "Someone"})
+    assert resp.status_code == 404
+
+
 def test_get_endpoints_list_everything_recorded(client):
     client.put(
         f"/users/{USER}/profile",

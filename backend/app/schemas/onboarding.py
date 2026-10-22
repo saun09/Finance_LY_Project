@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from app.models.onboarding import EmiPurpose, EmploymentType, IncomeStability, InsuranceType
 from app.services.asset_classification_config import HoldingType
@@ -17,6 +17,16 @@ class ProfileIn(BaseModel):
     cash_balance_paise: int = 0
 
 
+#: Kept separate from ProfileIn -- identity fields are always optional and
+#: user-entered, unlike the financial fields PUT /profile requires, and
+#: updating one should never force the caller to resend the other.
+class ProfileIdentityIn(BaseModel):
+    full_name: str | None = None
+    email: EmailStr | None = None
+    date_of_birth: date | None = None
+    phone_number: str | None = None
+
+
 class ProfileOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -26,6 +36,10 @@ class ProfileOut(BaseModel):
     employment_type: EmploymentType
     dependents_count: int
     cash_balance_paise: int
+    full_name: str | None
+    email: str | None
+    date_of_birth: date | None
+    phone_number: str | None
     onboarding_started_at: datetime
     onboarding_completed_at: datetime | None
 
