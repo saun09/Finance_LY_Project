@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
 import { FONT, RADIUS, SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
@@ -23,6 +23,12 @@ interface Props {
    * (rupeeInputToPaise, which already strips commas defensively) is
    * unaffected. Only meaningful for a whole-rupee amount field. */
   formatAsCurrency?: boolean;
+  /** Highlights the border (and, while focused, a soft tinted background)
+   * in the accent color instead of the plain neutral border -- opt-in so
+   * ordinary onboarding/profile forms keep their current look; a single
+   * "command input" style field (e.g. Rumour verification's search box)
+   * opts in instead. */
+  focusGlow?: boolean;
 }
 
 /** The one text-input primitive every onboarding form uses -- labeled,
@@ -41,10 +47,13 @@ export function TextField({
   multiline = false,
   secureTextEntry = false,
   formatAsCurrency = false,
+  focusGlow = false,
 }: Props) {
   const { colors } = useAppTheme();
+  const [focused, setFocused] = useState(false);
   const displayValue = formatAsCurrency ? formatRupeeInputDisplay(value) : value;
   const handleChangeText = (text: string) => onChangeText(formatAsCurrency ? text.replace(/\D/g, '') : text);
+  const glowing = focusGlow && focused;
 
   return (
     <View style={styles.container}>
@@ -55,7 +64,11 @@ export function TextField({
         style={[
           styles.inputRow,
           multiline && styles.inputRowMultiline,
-          { backgroundColor: colors.paper, borderColor: error ? colors.danger : colors.border },
+          {
+            backgroundColor: glowing ? colors.petrolSoft : colors.paper,
+            borderColor: error ? colors.danger : glowing ? colors.petrol : colors.border,
+            borderWidth: glowing ? StyleSheet.hairlineWidth * 2.5 : StyleSheet.hairlineWidth * 1.5,
+          },
         ]}
       >
         {prefix ? (
@@ -73,6 +86,8 @@ export function TextField({
           multiline={multiline}
           secureTextEntry={secureTextEntry}
           textAlignVertical={multiline ? 'top' : 'center'}
+          onFocus={focusGlow ? () => setFocused(true) : undefined}
+          onBlur={focusGlow ? () => setFocused(false) : undefined}
           style={[
             styles.input,
             multiline && styles.inputMultiline,
