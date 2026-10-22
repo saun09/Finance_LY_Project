@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { TRANSPARENCY_DECISION_TYPES } from '../../api/transparency';
+import { BackHeader } from '../../components/BackHeader';
 import { Card } from '../../components/Card';
 import { ErrorState } from '../../components/ErrorState';
 import { MenuList } from '../../components/MenuList';
