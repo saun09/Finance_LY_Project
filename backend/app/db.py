@@ -13,7 +13,7 @@ class Base(DeclarativeBase):
 
 def make_engine(database_url: str = DATABASE_URL):
     if not database_url.startswith("sqlite"):
-        return create_engine(database_url)
+        return create_engine(database_url, pool_pre_ping=True)
 
     connect_args = {"check_same_thread": False}
     if ":memory:" in database_url:
