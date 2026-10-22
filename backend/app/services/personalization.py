@@ -12,6 +12,7 @@ reproducible from Module 1's log.
 """
 
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 
@@ -70,6 +71,12 @@ class AllocationEdit:
     chosen_equity_pct: Decimal | None  # None when nothing was explicitly chosen (e.g. a plain accept/reject)
     action_taken: EditActionTaken
     funded: bool | None
+    # Optional provenance, only available when loaded from a real suggestion_event
+    # (not set by older/synthetic callers, e.g. tests and drift persona generation).
+    # Carried through to OffsetStep so the frontend can show *which* real decision
+    # produced each step, instead of a bare index.
+    timestamp: datetime | None = None
+    event_id: str | None = None
 
 
 def _delta_for(edit: AllocationEdit) -> Decimal:
@@ -89,6 +96,15 @@ class OffsetStep:
     delta_pct: Decimal
     offset_before: Decimal
     offset_after: Decimal
+    # Optional provenance (see AllocationEdit) -- lets the frontend describe
+    # *what actually happened* (a real past allocation decision) instead of
+    # just the raw EWMA numbers.
+    timestamp: datetime | None = None
+    event_id: str | None = None
+    action_taken: EditActionTaken | None = None
+    funded: bool | None = None
+    suggested_equity_pct: Decimal | None = None
+    chosen_equity_pct: Decimal | None = None
 
 
 def compute_offset_from_edits(
@@ -108,7 +124,21 @@ def compute_offset_from_edits(
         delta = _delta_for(edit)
         effective_alpha = alpha * weight
         new_offset = _clamp((1 - effective_alpha) * offset + effective_alpha * delta)
-        trace.append(OffsetStep(step=i, weight=weight, delta_pct=delta, offset_before=offset, offset_after=new_offset))
+        trace.append(
+            OffsetStep(
+                step=i,
+                weight=weight,
+                delta_pct=delta,
+                offset_before=offset,
+                offset_after=new_offset,
+                timestamp=edit.timestamp,
+                event_id=edit.event_id,
+                action_taken=edit.action_taken,
+                funded=edit.funded,
+                suggested_equity_pct=edit.suggested_equity_pct,
+                chosen_equity_pct=edit.chosen_equity_pct,
+            )
+        )
         offset = new_offset
     return offset, trace
 

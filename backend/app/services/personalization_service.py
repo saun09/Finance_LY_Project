@@ -93,6 +93,8 @@ def _load_allocation_edits(session: Session, user_id: str) -> list[AllocationEdi
                 chosen_equity_pct=chosen_equity,
                 action_taken=EditActionTaken(e.action_taken.value),
                 funded=e.funded,
+                timestamp=e.timestamp,
+                event_id=e.event_id,
             )
         )
     return edits
@@ -141,6 +143,12 @@ def compute_and_log_personalization(
                     "delta_pct": str(s.delta_pct),
                     "offset_before": str(s.offset_before),
                     "offset_after": str(s.offset_after),
+                    "timestamp": s.timestamp.isoformat() if s.timestamp else None,
+                    "event_id": s.event_id,
+                    "action_taken": s.action_taken.value if s.action_taken else None,
+                    "funded": s.funded,
+                    "suggested_equity_pct": str(s.suggested_equity_pct) if s.suggested_equity_pct is not None else None,
+                    "chosen_equity_pct": str(s.chosen_equity_pct) if s.chosen_equity_pct is not None else None,
                 }
                 for s in trace
             ],

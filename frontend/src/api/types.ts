@@ -346,6 +346,12 @@ export interface OffsetStepOut {
   delta_pct: string;
   offset_before: string;
   offset_after: string;
+  timestamp: string | null;
+  event_id: string | null;
+  action_taken: EditActionTaken | null;
+  funded: boolean | null;
+  suggested_equity_pct: string | null;
+  chosen_equity_pct: string | null;
 }
 
 export interface PersonalizationOut {

@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel
@@ -18,6 +19,12 @@ class OffsetStepOut(BaseModel):
     delta_pct: Decimal
     offset_before: Decimal
     offset_after: Decimal
+    timestamp: datetime | None = None
+    event_id: str | None = None
+    action_taken: EditActionTaken | None = None
+    funded: bool | None = None
+    suggested_equity_pct: Decimal | None = None
+    chosen_equity_pct: Decimal | None = None
 
 
 class PersonalizationOut(BaseModel):
