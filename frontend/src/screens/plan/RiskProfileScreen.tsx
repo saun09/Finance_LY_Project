@@ -18,7 +18,7 @@ import { Text } from '../../components/Text';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { useRiskProfileLatest } from '../../hooks/useRiskProfile';
-import { SPACE } from '../../theme/tokens';
+import { RADIUS, SPACE } from '../../theme/tokens';
 import type { MainTabParamList, PlanStackParamList } from '../../navigation/types';
 
 type Nav = CompositeNavigationProp<
@@ -150,6 +150,16 @@ export function RiskProfileScreen() {
                 <ProgressBar fraction={data.final_tier / 5} tone="petrol" duration={700} />
               </View>
 
+              {data.estimation_method !== 'deterministic' ? (
+                <View style={[styles.estimatedBanner, { backgroundColor: colors.warningSoft, borderColor: colors.warning }]}>
+                  <Ionicons name="flash-outline" size={16} color={colors.warning} />
+                  <Text variant="caption" tone="warning" style={styles.estimatedBannerText}>
+                    Estimated from your 4 main answers using a trained model — retake the questionnaire and answer
+                    all 7 for a precise, formula-based tier.
+                  </Text>
+                </View>
+              ) : null}
+
               <Text variant="caption" tone="muted" style={styles.resultNote}>
                 {data.capped
                   ? 'This considers both your stated risk preference and your current financial capacity — right now, your financial capacity is the limiting factor, not your risk preference.'
@@ -248,6 +258,17 @@ const styles = StyleSheet.create({
   resultCard: { gap: SPACE.xs, alignItems: 'center' },
   resultFigure: { marginTop: SPACE.xs },
   tierBarWrap: { alignSelf: 'stretch', marginTop: SPACE.sm, paddingHorizontal: SPACE.lg },
+  estimatedBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACE.xs,
+    alignSelf: 'stretch',
+    marginTop: SPACE.md,
+    padding: SPACE.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: StyleSheet.hairlineWidth * 1.5,
+  },
+  estimatedBannerText: { flex: 1 },
   resultNote: { textAlign: 'center', marginTop: SPACE.xs },
   supportingRow: {
     flexDirection: 'row',

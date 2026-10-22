@@ -48,6 +48,25 @@ FEATURE_ORDER: tuple[str, ...] = (
     "friend_description",
 )
 
+# Quick-mode: predicts a tier from only the 4 questions most predictive of
+# the full-7 deterministic score (see backend/scripts/
+# train_risk_tier_reduced_model.py), used when a user answers just the
+# "main" questions instead of all 7 -- this prediction becomes the stated
+# tier itself (see risk_profile_service.py), not just a logged second
+# opinion, so the questionnaire can genuinely be shorter rather than only
+# explaining a full-length answer differently. Held-out accuracy 78.16% on
+# 434 training rows (Risk_questionnaire_400.xlsx) vs. the full-7 model's
+# higher accuracy -- a real, disclosed trade-off for fewer questions, never
+# presented as equally precise as a full-7 deterministic score.
+MODEL_PATH_REDUCED = Path(__file__).resolve().parents[1] / "ml_models" / "risk_tier_rf_reduced_4items.pkl"
+MODEL_VERSION_REDUCED = "rf_classifier_reduced_4items_v1"
+FEATURE_ORDER_REDUCED: tuple[str, ...] = (
+    "windfall_allocation",
+    "friend_description",
+    "drawdown_reaction",
+    "sure_gain_tradeoff",
+)
+
 
 class MLModelUnavailableError(RuntimeError):
     """Raised when the trained model file is missing or fails to load.
@@ -55,19 +74,19 @@ class MLModelUnavailableError(RuntimeError):
     not fail the user's static risk-profile submission over it."""
 
 
-@lru_cache(maxsize=1)
-def _load_model():
-    if not MODEL_PATH.exists():
-        raise MLModelUnavailableError(f"model file not found at {MODEL_PATH}")
+@lru_cache(maxsize=2)
+def _load_model(model_path: Path):
+    if not model_path.exists():
+        raise MLModelUnavailableError(f"model file not found at {model_path}")
     try:
-        return joblib.load(MODEL_PATH)
+        return joblib.load(model_path)
     except Exception as exc:  # noqa: BLE001 -- any load failure is equally "unavailable"
-        raise MLModelUnavailableError(f"failed to load model from {MODEL_PATH}: {exc}") from exc
+        raise MLModelUnavailableError(f"failed to load model from {model_path}: {exc}") from exc
 
 
-@lru_cache(maxsize=1)
-def _get_explainer():
-    return shap.TreeExplainer(_load_model())
+@lru_cache(maxsize=2)
+def _get_explainer(model_path: Path):
+    return shap.TreeExplainer(_load_model(model_path))
 
 
 @dataclass(frozen=True)
@@ -98,19 +117,27 @@ def _direction_of(shap_value: float) -> str:
 def predict_with_explanation(
     answers: dict[str, str],
     questionnaire: Questionnaire,
+    *,
+    feature_order: tuple[str, ...] = FEATURE_ORDER,
+    model_path: Path = MODEL_PATH,
+    model_version: str = MODEL_VERSION,
 ) -> MLRiskPrediction:
-    """Predict a risk tier from the same 7 answers Module 3 scores, and
-    explain that specific prediction with per-feature SHAP values.
+    """Predict a risk tier from `answers` and explain that specific
+    prediction with per-feature SHAP values. Defaults to the full-7-item
+    model; pass feature_order=FEATURE_ORDER_REDUCED, model_path=
+    MODEL_PATH_REDUCED, model_version=MODEL_VERSION_REDUCED for a quick-
+    mode (4-question) prediction instead -- same function, same SHAP
+    explanation shape, different trained model underneath.
 
     Raises MLModelUnavailableError if the model can't be loaded, or
-    ValueError if `answers` is missing one of the 7 required questions
+    ValueError if `answers` is missing one of the required questions
     (propagated from `questionnaire.option_points`, same as Module 3's own
     validation).
     """
-    model = _load_model()
-    explainer = _get_explainer()
+    model = _load_model(model_path)
+    explainer = _get_explainer(model_path)
 
-    points = [questionnaire.option_points(qid, answers[qid]) for qid in FEATURE_ORDER]
+    points = [questionnaire.option_points(qid, answers[qid]) for qid in feature_order]
     X = np.array([points], dtype=float)
 
     predicted_tier = int(model.predict(X)[0])
@@ -139,11 +166,11 @@ def predict_with_explanation(
             shap_value=float(shap_row[i]),
             direction=_direction_of(float(shap_row[i])),
         )
-        for i, qid in enumerate(FEATURE_ORDER)
+        for i, qid in enumerate(feature_order)
     )
 
     return MLRiskPrediction(
-        model_version=MODEL_VERSION,
+        model_version=model_version,
         predicted_tier=predicted_tier,
         class_probabilities=class_probabilities,
         feature_contributions=contributions,

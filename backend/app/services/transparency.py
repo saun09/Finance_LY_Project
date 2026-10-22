@@ -246,8 +246,12 @@ class DecisionTypeSpec:
     headline_requires_value: tuple[str, ...] = ()
     headline_requires_context: tuple[str, ...] = ()
     #: Surfaced with the trace when this decision type's claim needs
-    #: qualifying (e.g. the n8n path's self-reported prose).
-    claim_note: str | None = None
+    #: qualifying (e.g. the n8n path's self-reported prose). A callable
+    #: (same (v, m) shape as headline/summary) lets the note itself depend
+    #: on the stored event -- e.g. risk_profile_ml's note differs when its
+    #: prediction was the actual tier source (quick mode) vs. a secondary
+    #: opinion alongside a separate rule-based tier (full mode).
+    claim_note: str | Callable[[dict, dict], str] | None = None
 
     @property
     def required_suggested_value_keys(self) -> tuple[str, ...]:
@@ -366,6 +370,7 @@ def _risk_questionnaire_section(v: dict, m: dict) -> dict:
         "answers": v["answers"],
         "weighted_score": v["stated_score"],
         "stated_tier": v["stated_tier"],
+        "estimation_method": v.get("estimation_method", "deterministic"),
     }
 
 
@@ -699,6 +704,11 @@ def _risk_profile_headline(v: dict, m: dict) -> str:
 
 
 def _risk_questionnaire_summary(v: dict, m: dict) -> str:
+    if v.get("estimation_method", "deterministic") != "deterministic":
+        return (
+            f"You answered 4 of 7 questions; a trained model estimated {L.tier(v['stated_tier'])} "
+            "from those — see the model-prediction trace below for how."
+        )
     return (
         f"Your answers scored {v['stated_score']} out of 100, which on its own "
         f"would put you on {L.tier(v['stated_tier'])}."
@@ -707,6 +717,7 @@ def _risk_questionnaire_summary(v: dict, m: dict) -> str:
 
 def _risk_questionnaire_facts(v: dict, m: dict) -> list[Fact]:
     version = v.get("questionnaire_version")
+    estimated = v.get("estimation_method", "deterministic") != "deterministic"
     facts = [
         fact(
             _normalize_currency(L.question_text(version, qid)),
@@ -715,8 +726,17 @@ def _risk_questionnaire_facts(v: dict, m: dict) -> list[Fact]:
         )
         for qid, answer in (v.get("answers") or {}).items()
     ]
-    facts.append(fact("Your willingness score", f"{v['stated_score']} out of 100", raw=v["stated_score"]))
-    facts.append(fact("On your answers alone", L.tier(v["stated_tier"]), raw=v["stated_tier"]))
+    if estimated:
+        facts.append(
+            fact(
+                "On your answers alone",
+                f"{L.tier(v['stated_tier'])} (model-estimated from 4 answers, not a weighted-sum score)",
+                raw=v["stated_tier"],
+            )
+        )
+    else:
+        facts.append(fact("Your willingness score", f"{v['stated_score']} out of 100", raw=v["stated_score"]))
+        facts.append(fact("On your answers alone", L.tier(v["stated_tier"]), raw=v["stated_tier"]))
     return facts
 
 
@@ -788,10 +808,28 @@ def _risk_outcome_facts(v: dict, m: dict) -> list[Fact]:
 
 
 def _risk_ml_headline(v: dict, m: dict) -> str:
-    predicted, static = L.tier(v["predicted_tier"]), L.tier(v["static_final_tier"])
+    predicted = L.tier(v["predicted_tier"])
+    if v.get("is_authoritative"):
+        return f"Estimated from your 4 main answers: {predicted}. Answer 3 more questions for a precise, deterministic tier."
+    static = L.tier(v["static_final_tier"])
     if v["predicted_tier"] == v["static_final_tier"]:
         return f"Our trained model independently agrees: {predicted}."
     return f"Our trained model would have put you on {predicted}, versus {static} from your answers and finances."
+
+
+def _risk_ml_claim_note(v: dict, m: dict) -> str:
+    if v.get("is_authoritative"):
+        return (
+            "You answered only the 4 main questions this time, so this trained model's "
+            "prediction became your stated risk tier directly -- there is no separate "
+            "rule-based weighted-sum score to compare it against. Answer the remaining 3 "
+            "questions for a precise, deterministic score instead of this estimate."
+        )
+    return (
+        "This is a separate, genuinely trained model's own prediction, shown alongside -- "
+        "never instead of -- your actual rule-based risk tier above. Each factor's effect is "
+        "that factor's real, computed SHAP value for your specific answers, not an estimate."
+    )
 
 
 def _risk_ml_summary(v: dict, m: dict) -> str:
@@ -805,6 +843,7 @@ def _risk_ml_summary(v: dict, m: dict) -> str:
 
 def _risk_ml_facts(v: dict, m: dict) -> list[Fact]:
     version = v.get("questionnaire_version")
+    is_authoritative = bool(v.get("is_authoritative"))
     facts = [
         fact(
             "Model's predicted tier",
@@ -816,12 +855,23 @@ def _risk_ml_facts(v: dict, m: dict) -> list[Fact]:
             L.ratio_as_percent(v["class_probabilities"].get(str(v["predicted_tier"]))),
             raw=v["class_probabilities"],
         ),
-        fact(
-            "Did the rule-based tier agree?",
-            "Yes" if v["predicted_tier"] == v["static_final_tier"] else "No",
-            raw=v["static_final_tier"],
-        ),
     ]
+    if is_authoritative:
+        facts.append(
+            fact(
+                "Was there a separate rule-based tier to compare?",
+                "No — only 4 of 7 questions were answered, so this prediction became your stated tier directly.",
+                raw=False,
+            )
+        )
+    else:
+        facts.append(
+            fact(
+                "Did the rule-based tier agree?",
+                "Yes" if v["predicted_tier"] == v["static_final_tier"] else "No",
+                raw=v["static_final_tier"],
+            )
+        )
     ranked = sorted(v["feature_contributions"], key=lambda c: abs(c["shap_value"]), reverse=True)
     for c in ranked:
         question_label = L.question_text(version, c["question_id"])
@@ -1295,11 +1345,7 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
         display_name="Risk tier (trained-model prediction)",
         headline=_risk_ml_headline,
         framing_label=MODEL_EXPLANATION_LABEL,
-        claim_note=(
-            "This is a separate, genuinely trained model's own prediction, shown alongside -- "
-            "never instead of -- your actual rule-based risk tier above. Each factor's effect is "
-            "that factor's real, computed SHAP value for your specific answers, not an estimate."
-        ),
+        claim_note=_risk_ml_claim_note,
         headline_requires_value=("predicted_tier", "static_final_tier"),
         sections=(
             ReasoningSection(
@@ -1643,7 +1689,7 @@ def build_trace(event: SuggestionEvent, spec: DecisionTypeSpec | None = None) ->
         sections=tuple(section_results),
         value_hints=build_value_hints(reasoning),
         value_hint_rules_version=VALUE_HINT_RULES_VERSION,
-        claim_note=spec.claim_note,
+        claim_note=spec.claim_note(v, m) if callable(spec.claim_note) else spec.claim_note,
         contested=event.action_taken == ActionTaken.REJECTED,
         contest_reason_code=event.reason_code,
     )

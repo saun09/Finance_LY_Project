@@ -43,6 +43,14 @@ class StatedTierResult:
     questionnaire_version: str
     score: int
     tier: int
+    # "deterministic" for the normal weighted-sum formula below; a model
+    # version string (e.g. "rf_classifier_reduced_4items_v1") when this
+    # tier instead came from the quick-mode ML model, because the user
+    # answered only the 4 main questions rather than all 7 -- callers use
+    # this to show an "estimated" label instead of presenting it with the
+    # same certainty as a full deterministic score. Defaulted so every
+    # existing call site is unaffected.
+    estimation_method: str = "deterministic"
 
 
 def compute_stated_tier(answers: dict[str, str], questionnaire: Questionnaire = QUESTIONNAIRE_V1) -> StatedTierResult:
@@ -57,6 +65,16 @@ def compute_stated_tier(answers: dict[str, str], questionnaire: Questionnaire = 
         if score >= breakpoint:
             tier += 1
     return StatedTierResult(questionnaire_version=questionnaire.version, score=score, tier=tier)
+
+
+def stated_tier_from_ml_estimate(predicted_tier: int, model_version: str, questionnaire_version: str) -> StatedTierResult:
+    """A stated-tier result sourced from the reduced-4-item ML model
+    instead of the deterministic weighted-sum formula above, for when a
+    user answers only the 4 main questions. `score` has no weighted-sum
+    meaning here (no formula ran over partial answers) and is kept at 0;
+    `estimation_method` carries the model version so this is never
+    mistaken for a precise score downstream."""
+    return StatedTierResult(questionnaire_version=questionnaire_version, score=0, tier=predicted_tier, estimation_method=model_version)
 
 
 # --- capacity ceiling (ability) ---
@@ -150,6 +168,9 @@ class FinalTierResult:
     capped: bool
     binding_constraints: tuple[str, ...]
     unlock_conditions: tuple[UnlockCondition, ...]
+    # Carried through from StatedTierResult.estimation_method, defaulted
+    # the same way (see StatedTierResult).
+    estimation_method: str = "deterministic"
 
 
 def _indian_grouping(n: int) -> str:
@@ -265,6 +286,7 @@ def compute_final_tier(
             capped=False,
             binding_constraints=(),
             unlock_conditions=(),
+            estimation_method=stated.estimation_method,
         )
 
     binding = tuple(
@@ -286,4 +308,5 @@ def compute_final_tier(
         capped=True,
         binding_constraints=binding,
         unlock_conditions=tuple(unlock_conditions),
+        estimation_method=stated.estimation_method,
     )

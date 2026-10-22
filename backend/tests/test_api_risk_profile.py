@@ -107,3 +107,34 @@ def test_questionnaire_endpoint_is_not_user_scoped_and_omits_points(client):
     sure_gain = next(q for q in body["questions"] if q["id"] == "sure_gain_tradeoff")
     assert sure_gain["weight"] == 4
     assert len(sure_gain["options"]) == 5
+
+    assert set(body["required_question_ids"]) == {
+        "windfall_allocation", "friend_description", "drawdown_reaction", "sure_gain_tradeoff",
+    }
+
+
+def test_quick_mode_via_api_with_4_answers_returns_estimated_tier(client):
+    _onboard_core_scenario(client)
+    quick_answers = {
+        qid: AGGRESSIVE_ANSWERS[qid]
+        for qid in ("windfall_allocation", "friend_description", "drawdown_reaction", "sure_gain_tradeoff")
+    }
+
+    resp = client.post(f"/users/{USER}/risk-profile", json={"answers": quick_answers})
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["estimation_method"] not in (None, "deterministic")
+    assert 1 <= body["stated_tier"] <= 5
+    assert body["final_tier"] == min(body["stated_tier"], body["capacity_ceiling"])
+
+    latest = client.get(f"/users/{USER}/risk-profile/latest")
+    assert latest.status_code == 200
+    assert latest.json()["estimation_method"] == body["estimation_method"]
+
+
+def test_full_answers_via_api_report_deterministic_estimation_method(client):
+    _onboard_core_scenario(client)
+    resp = client.post(f"/users/{USER}/risk-profile", json={"answers": AGGRESSIVE_ANSWERS})
+    assert resp.status_code == 200
+    assert resp.json()["estimation_method"] == "deterministic"

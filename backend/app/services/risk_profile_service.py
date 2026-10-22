@@ -22,9 +22,16 @@ from app.services.risk_profile import (
     compute_capacity_ceiling,
     compute_final_tier,
     compute_stated_tier,
+    stated_tier_from_ml_estimate,
 )
 from app.services.risk_profile_config import CAPACITY_RULE_TABLE_V1, QUESTIONNAIRE_V2, CapacityRuleTable, Questionnaire
-from app.services.risk_profile_ml import MLModelUnavailableError, predict_with_explanation
+from app.services.risk_profile_ml import (
+    FEATURE_ORDER_REDUCED,
+    MODEL_PATH_REDUCED,
+    MODEL_VERSION_REDUCED,
+    MLModelUnavailableError,
+    predict_with_explanation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +69,44 @@ def compute_and_log_risk_tier(
     rule_table: CapacityRuleTable = CAPACITY_RULE_TABLE_V1,
     commit: bool = True,
 ) -> FinalTierResult:
-    stated = compute_stated_tier(answers, questionnaire)
+    all_question_ids = {q.id for q in questionnaire.questions}
+    answered_ids = set(answers)
+    # Exactly two valid shapes: all 7 (full/deterministic), or exactly the
+    # 4 required ones and no others (quick mode). Anything in between (e.g.
+    # 6 of 7, or the 4 required plus one extra) is treated as an error
+    # rather than silently guessed at -- it's ambiguous whether the caller
+    # meant to submit quick mode and over-included an answer, or meant full
+    # mode and is missing one, and guessing wrong either way would either
+    # silently discard a real answer or silently accept an incomplete
+    # deterministic score.
+    quick_mode = answered_ids == set(FEATURE_ORDER_REDUCED)
+
+    quick_prediction = None
+    if not (all_question_ids - answered_ids):
+        stated = compute_stated_tier(answers, questionnaire)
+    elif quick_mode:
+        # Quick mode: the user answered only the 4 "main" questions this
+        # reduced model was trained on. There is no deterministic formula
+        # to fall back to over a partial answer set (compute_stated_tier
+        # requires all 7) -- this prediction *is* the stated tier, not a
+        # secondary opinion on one, which is the whole point of letting a
+        # user skip 3 questions. Deliberately not caught here: if the
+        # reduced model can't load, there is no tier to compute at all, so
+        # this must propagate (the route layer maps it to a clear error),
+        # unlike the full-mode ML call below, which is only ever a bonus
+        # explanation and must never block the user's actual submission.
+        quick_prediction = predict_with_explanation(
+            answers,
+            questionnaire,
+            feature_order=FEATURE_ORDER_REDUCED,
+            model_path=MODEL_PATH_REDUCED,
+            model_version=MODEL_VERSION_REDUCED,
+        )
+        stated = stated_tier_from_ml_estimate(quick_prediction.predicted_tier, quick_prediction.model_version, questionnaire.version)
+    else:
+        missing = sorted(all_question_ids - answered_ids)
+        raise ValueError(f"missing answers for questions: {missing}")
+
     inputs = gather_capacity_inputs(session, user_id)
     capacity = compute_capacity_ceiling(inputs, rule_table)
     final = compute_final_tier(stated, capacity, inputs, rule_table)
@@ -77,6 +121,7 @@ def compute_and_log_risk_tier(
             "questionnaire_version": stated.questionnaire_version,
             "stated_score": stated.score,
             "stated_tier": stated.tier,
+            "estimation_method": stated.estimation_method,
             "rule_table_version": capacity.rule_table_version,
             "capacity_ceiling": capacity.ceiling,
             "capacity_components": [dataclasses.asdict(c) for c in capacity.components],
@@ -101,6 +146,30 @@ def compute_and_log_risk_tier(
         },
         commit=commit,
     )
+
+    if quick_mode:
+        # quick_prediction above already *is* the decision source -- logged
+        # under risk_profile_ml too (is_authoritative=True) so Module 9's
+        # transparency view can still show "why this tier" with the same
+        # SHAP feature-contribution detail a full-7 submission gets.
+        log_suggestion_event(
+            session,
+            user_id=user_id,
+            module_source="risk_profile_ml",
+            tier=str(quick_prediction.predicted_tier),
+            suggested_value={
+                "model_version": quick_prediction.model_version,
+                "predicted_tier": quick_prediction.predicted_tier,
+                "class_probabilities": quick_prediction.class_probabilities,
+                "feature_contributions": [dataclasses.asdict(c) for c in quick_prediction.feature_contributions],
+                "questionnaire_version": questionnaire.version,
+                "answers": answers,
+                "static_final_tier": final.final_tier,
+                "is_authoritative": True,
+            },
+            commit=commit,
+        )
+        return final
 
     # Module 3b: a second, independent prediction from a trained model, on
     # the same answers. Best-effort -- a missing/unloadable model (or a
@@ -128,6 +197,7 @@ def compute_and_log_risk_tier(
                 "answers": answers,
                 # so the trace can say "the rule-based engine agreed/disagreed"
                 "static_final_tier": final.final_tier,
+                "is_authoritative": False,
             },
             commit=commit,
         )

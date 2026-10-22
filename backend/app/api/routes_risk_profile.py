@@ -6,6 +6,7 @@ from app.schemas.risk_profile import QuestionnaireOut, RiskProfileAnswersIn, Ris
 from app.services.event_log import get_user_event_history
 from app.services.onboarding import ProfileNotFoundError
 from app.services.risk_profile_config import QUESTIONNAIRE_V2
+from app.services.risk_profile_ml import FEATURE_ORDER_REDUCED, MLModelUnavailableError
 from app.services.risk_profile_service import compute_and_log_risk_tier
 
 router = APIRouter(prefix="/users/{user_id}/risk-profile", tags=["risk_profile"])
@@ -34,6 +35,7 @@ def get_questionnaire():
             }
             for q in QUESTIONNAIRE_V2.questions
         ],
+        required_question_ids=list(FEATURE_ORDER_REDUCED),
     )
 
 
@@ -45,6 +47,7 @@ def _to_risk_tier_out(result) -> RiskTierOut:
         capped=result.capped,
         binding_constraints=result.binding_constraints,
         unlock_conditions=[u.__dict__ for u in result.unlock_conditions],
+        estimation_method=result.estimation_method,
     )
 
 
@@ -54,6 +57,15 @@ def post_risk_profile(user_id: str, body: RiskProfileAnswersIn, session: Session
         result = compute_and_log_risk_tier(session, user_id, body.answers)
     except ProfileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except MLModelUnavailableError as exc:
+        # Only reachable from quick mode (4 answers): there is no
+        # deterministic fallback when the reduced model can't load, unlike
+        # a full-7 submission where a missing model just skips a bonus
+        # explanation. 503, not 422 -- the answers themselves are valid.
+        raise HTTPException(
+            status_code=503,
+            detail="Quick-mode scoring is unavailable right now. Please answer the remaining 3 questions, or try again shortly.",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return _to_risk_tier_out(result)
@@ -72,4 +84,5 @@ def get_latest_risk_profile(user_id: str, session: Session = Depends(get_session
         capped=v["capped"],
         binding_constraints=tuple(v["binding_constraints"]),
         unlock_conditions=v["unlock_conditions"],
+        estimation_method=v.get("estimation_method", "deterministic"),
     )

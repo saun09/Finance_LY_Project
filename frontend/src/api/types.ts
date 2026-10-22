@@ -187,6 +187,11 @@ export interface QuestionnaireOut {
   version: string;
   effective_date: string;
   questions: QuestionOut[];
+  /** The 4 questions a "quick mode" submission must still answer (the
+   * other 3 are optional, traded for a model-estimated rather than
+   * deterministic stated tier). Submit with exactly these 4 answers, or
+   * all 7 -- any other subset is rejected server-side. */
+  required_question_ids: string[];
 }
 
 export interface RiskProfileAnswersIn {
@@ -207,6 +212,10 @@ export interface RiskTierOut {
   capped: boolean;
   binding_constraints: string[];
   unlock_conditions: UnlockConditionOut[];
+  /** "deterministic" for a full-7-answer submission; a model version
+   * string (e.g. "rf_classifier_reduced_4items_v1") when stated_tier
+   * instead came from a quick-mode (4-answer) ML estimate. */
+  estimation_method: string;
 }
 
 // ---- Module 4: allocation ----
