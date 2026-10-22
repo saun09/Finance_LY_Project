@@ -1367,7 +1367,7 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
     ),
     "risk_profile_ml": DecisionTypeSpec(
         module_source="risk_profile_ml",
-        display_name="Risk tier (trained-model prediction)",
+        display_name="Model-predicted risk tier",
         headline=_risk_ml_headline,
         framing_label=MODEL_EXPLANATION_LABEL,
         claim_note=_risk_ml_claim_note,
@@ -1538,7 +1538,7 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
     ),
     "rumour_verification_local": DecisionTypeSpec(
         module_source="rumour_verification_local",
-        display_name="Rumour verification (explainable retrieval)",
+        display_name="Document & claim verification",
         framing_label=RETRIEVAL_EXPLANATION_LABEL,
         claim_note=LOCAL_ENGINE_CLAIM_NOTE,
         headline=_rumour_local_headline,
