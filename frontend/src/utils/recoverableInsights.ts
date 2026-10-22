@@ -41,6 +41,11 @@ export interface GroupedInsight {
   title: string;
   amountPaise: number;
   count: number;
+  /** Every raw record this row collapses, kept (not just counted/summed)
+   * so a detail view can list each one's own exact amount and backend-
+   * written explanation on expand, instead of a single generic sentence
+   * repeated once per category. */
+  items: RecoverableComponentOut[];
 }
 
 /** Collapses repeat records of the same recommendation (e.g. several
@@ -62,6 +67,7 @@ export function groupByLabel(components: RecoverableComponentOut[]): GroupedInsi
     if (existing) {
       existing.amountPaise += c.annual_amount_paise;
       existing.count += 1;
+      existing.items.push(c);
     } else {
       const kind = kindOfComponent(c.component_id);
       const { icon, tone } = ICON_FOR_KIND[kind];
@@ -73,27 +79,9 @@ export function groupByLabel(components: RecoverableComponentOut[]): GroupedInsi
         title: shortCategoryTitle(c.label),
         amountPaise: c.annual_amount_paise,
         count: 1,
+        items: [c],
       });
     }
   }
   return Array.from(byLabel.values()).sort((a, b) => b.amountPaise - a.amountPaise);
-}
-
-/** A short, category-specific explanation for one grouped row -- written
- * fresh per kind+count rather than concatenating each underlying record's
- * own reason text (which gets repetitive once a category has several
- * entries, e.g. three near-identical "looks similar to your other X
- * charge" notes). Explicitly does NOT claim that sharing a category means
- * the entries are confirmed duplicate payments -- same category text is
- * a pattern worth a human looking at, not a system-verified fact, since
- * this app has no bank/card statement feed to confirm anything against. */
-export function groupExplanation(item: GroupedInsight): string {
-  if (item.kind === 'idle_cash') {
-    return 'Cash sitting above your emergency buffer is a quantifiable opportunity cost each year it stays uninvested.';
-  }
-  const plural = item.count === 1 ? 'entry' : 'entries';
-  if (item.kind === 'fee_drag') {
-    return `${item.count} ${plural} matched a known fee pattern — worth checking whether it can be waived or avoided.`;
-  }
-  return `${item.count} ${plural} share this category text. That's a pattern worth a look, not a confirmed duplicate payment.`;
 }
