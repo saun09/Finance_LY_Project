@@ -8,6 +8,7 @@ import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
 import { invalidateFinancialData, qk } from '../../api/queryClient';
 import type { EmploymentType, IncomeStability } from '../../api/types';
+import { AvatarBadge, initialsFrom } from '../../components/AvatarBadge';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { ChoiceGroup } from '../../components/ChoiceGroup';
@@ -34,14 +35,6 @@ type BadgeTone = 'petrol' | 'positive' | 'warning' | 'terracotta';
 const TIER_TONE: Record<number, BadgeTone> = { 1: 'petrol', 2: 'petrol', 3: 'positive', 4: 'warning', 5: 'terracotta' };
 const TIER_SOFT: Record<number, keyof Palette> = { 1: 'petrolSoft', 2: 'petrolSoft', 3: 'positiveSoft', 4: 'warningSoft', 5: 'terracottaSoft' };
 
-function initialsFrom(fullName: string | null | undefined, username: string | null): string {
-  const source = (fullName?.trim() || username || '').trim();
-  if (!source) return '?';
-  const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return source.slice(0, 2).toUpperCase();
-}
-
 /** Age is always derived fresh from the stored date of birth, never a
  * static number a profile could store and forget to update. */
 function ageFromDob(dob: string): number | null {
@@ -60,17 +53,6 @@ function Pill({ label, tone, softTone }: { label: string; tone: BadgeTone; softT
     <View style={[styles.pill, { backgroundColor: colors[softTone] }]}>
       <Text variant="caption" tone={tone}>
         {label}
-      </Text>
-    </View>
-  );
-}
-
-function AvatarBadge({ initials, size = 56 }: { initials: string; size?: number }) {
-  const { colors } = useAppTheme();
-  return (
-    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.terracottaSoft }]}>
-      <Text variant="h2" tone="terracotta">
-        {initials}
       </Text>
     </View>
   );
@@ -451,7 +433,6 @@ const styles = StyleSheet.create({
   heroCard: { gap: SPACE.md, borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth * 1.5, padding: SPACE.lg },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   heroTextCol: { flex: 1, gap: 2 },
-  avatar: { alignItems: 'center', justifyContent: 'center' },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm },
   pill: { paddingHorizontal: SPACE.sm, paddingVertical: 4, borderRadius: RADIUS.pill, alignSelf: 'flex-start' },
 });

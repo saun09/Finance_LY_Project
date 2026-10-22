@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AnimatedFigure } from '../../components/AnimatedFigure';
+import { AvatarBadge, initialsFrom } from '../../components/AvatarBadge';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
@@ -18,8 +19,10 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
 import { Skeleton, SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
+import { useDemoUser } from '../../context/DemoUserContext';
 import { useDebtLeak } from '../../hooks/useDebtLeak';
 import { useFinancialPosition } from '../../hooks/useFinancialPosition';
+import { useProfile } from '../../hooks/useProfileManagement';
 import { useSnapshotHistory } from '../../hooks/useSnapshotHistory';
 import type { HomeStackParamList, MainTabParamList } from '../../navigation/types';
 import { useAppTheme } from '../../theme/ThemeContext';
@@ -66,9 +69,12 @@ const TOP_INSIGHTS_SHOWN = 3;
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
   const { colors } = useAppTheme();
+  const { username } = useDemoUser();
+  const profile = useProfile();
   const position = useFinancialPosition();
   const snapshots = useSnapshotHistory();
   const debtLeak = useDebtLeak();
+  const goToProfile = () => navigation.navigate('ProfileTab', { screen: 'ProfileHome' });
 
   if (position.isPending) {
     return (
@@ -130,9 +136,18 @@ export function HomeScreen() {
   return (
     <ScreenContainer onRefresh={() => position.refetch()} refreshing={position.isRefetching}>
       <View style={styles.greetingRow}>
+        <View style={styles.greetingSpacer} />
         <Text variant="h1" style={styles.greetingText}>
           Your money, in focus.
         </Text>
+        <Pressable
+          onPress={goToProfile}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Open your profile"
+        >
+          <AvatarBadge initials={initialsFrom(profile.data?.full_name, username)} size={40} />
+        </Pressable>
       </View>
 
       <Card raised style={styles.heroCard}>
@@ -320,8 +335,9 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  greetingRow: { alignItems: 'center' },
-  greetingText: { textAlign: 'center' },
+  greetingRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
+  greetingText: { flex: 1, textAlign: 'center' },
+  greetingSpacer: { width: 40 },
   heroCard: { gap: 4 },
   heroMain: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
   heroFigureCol: { flex: 1 },
