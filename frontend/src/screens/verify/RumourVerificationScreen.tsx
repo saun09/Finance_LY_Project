@@ -317,27 +317,10 @@ export function RumourVerificationScreen() {
         <Text variant="caption" tone="muted">
           Verify
         </Text>
-        <Text variant="display" style={styles.title}>Market Rumour Fact-Checker</Text>
+        <Text variant="display" style={styles.title}> Rumour Fact-Checker</Text>
       </View>
 
-      <LinearGradient
-        colors={[colors.petrolSoft, colors.paperRaised]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.7, y: 1 }}
-        style={[styles.heroCard, { borderColor: colors.borderStrong }]}
-      >
-        <View style={styles.statusBadge}>
-          <View style={[styles.statusDot, { backgroundColor: localAvailable ? colors.positive : colors.danger }]} />
-          <Text variant="caption" tone={localAvailable ? 'positive' : 'danger'} style={styles.statusLabel}>
-            {localAvailable ? 'FILING ARCHIVE READY' : 'FILING ARCHIVE UNAVAILABLE'}
-          </Text>
-        </View>
-        <Text variant="body" tone="muted" style={styles.heroCopy}>
-          Paste a rumour below — we check it against real NSE/BSE exchange filings, or send it to a
-          broader external workflow if you choose. This only verifies what you bring us; it doesn't
-          monitor social media or news on its own.
-        </Text>
-      </LinearGradient>
+     
 
       <Card style={styles.formCard}>
           <TextField
