@@ -94,7 +94,7 @@ def test_logs_exactly_one_debt_leak_engine_suggestion_event(session):
     assert event.market_context["expense_source_mode"] == "manual_only"
 
 
-def test_recomputing_updates_the_same_snapshot_but_logs_a_new_event(session):
+def test_recomputing_an_unchanged_report_does_not_log_a_duplicate_event(session):
     _make_profile(session)
     add_expense_item(session, user_id=USER, category="Rent", amount_paise=20_000_00, frequency=ExpenseFrequency.MONTHLY, is_essential=True)
 
@@ -102,4 +102,16 @@ def test_recomputing_updates_the_same_snapshot_but_logs_a_new_event(session):
     compute_and_log_debt_leak_report(session, USER)
 
     events = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="debt_leak_engine").all()
-    assert len(events) == 2  # each computation is its own logged event, unlike the upserted snapshot
+    assert len(events) == 1  # a re-opened screen is not a new suggestion
+
+
+def test_recomputing_after_an_input_change_logs_a_new_event(session):
+    _make_profile(session)
+    add_expense_item(session, user_id=USER, category="Rent", amount_paise=20_000_00, frequency=ExpenseFrequency.MONTHLY, is_essential=True)
+    compute_and_log_debt_leak_report(session, USER)
+
+    add_expense_item(session, user_id=USER, category="Netflix subscription", amount_paise=649_00, frequency=ExpenseFrequency.MONTHLY, is_essential=False)
+    compute_and_log_debt_leak_report(session, USER)
+
+    events = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="debt_leak_engine").all()
+    assert len(events) == 2  # the report changed, so it is a new suggestion

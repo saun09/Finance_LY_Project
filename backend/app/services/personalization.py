@@ -40,12 +40,35 @@ class EditActionTaken(str, Enum):
     IGNORED = "ignored"
 
 
+#: Why a user turned an allocation down. Recorded on every rejection so
+#: the event log keeps the reason as training data, even though none of
+#: them move the offset today (see evidence_weight).
+REJECT_REASON_CODES = ("dont_understand", "too_risky", "too_safe", "other")
+
+
 def evidence_weight(action_taken: EditActionTaken, funded: bool | None) -> Decimal:
     """Named in the module brief: a funded edit is full weight (1.0), an
     unfunded acceptance is half weight (0.5), a rejection ("confusion") is
     zero. The remaining action_taken x funded combinations aren't named
     explicitly, so they're extrapolated from the same two factors the
-    named cases already turn on:
+    named cases already turn on.
+
+    Full table (the decision record for the unnamed cases):
+
+        edited   + funded       1.0   (named)
+        edited   + not funded   0.5
+        accepted + funded       1.0
+        accepted + not funded   0.5   (named)
+        rejected, any reason    0.0   ("dont_understand" is named)
+        ignored                 0.0
+
+    Rejections for "too_risky" / "too_safe" carry a direction but no
+    size: the user said "less" or "more" without saying how much. Turning
+    that into a delta would mean inventing a number, so they stay at zero
+    and the user is pointed to "set my own mix" instead, which records an
+    actual amount. The reason is still logged for any later model.
+
+    The reasoning behind each factor:
 
     - Does the action carry a directional preference at all? ACCEPTED and
       EDITED both do (accepting confirms the suggestion as offered;
@@ -66,10 +89,15 @@ def evidence_weight(action_taken: EditActionTaken, funded: bool | None) -> Decim
 
 @dataclass(frozen=True)
 class AllocationEdit:
+    # The tier's *base* target equity -- not the offset-adjusted number the
+    # user saw. Measuring every choice against the base makes the EWMA
+    # converge on the user's preferred deviation from their tier's target,
+    # which is exactly what the offset is.
     suggested_equity_pct: Decimal
-    chosen_equity_pct: Decimal | None  # None when nothing was explicitly chosen (e.g. a plain accept/reject)
+    chosen_equity_pct: Decimal | None  # None when nothing was chosen (a reject/ignore)
     action_taken: EditActionTaken
     funded: bool | None
+    reason_code: str | None = None
 
 
 def _delta_for(edit: AllocationEdit) -> Decimal:
@@ -89,6 +117,11 @@ class OffsetStep:
     delta_pct: Decimal
     offset_before: Decimal
     offset_after: Decimal
+    # carried through so the trace can say *what the user did* at each
+    # step, not just the arithmetic
+    action_taken: EditActionTaken | None = None
+    funded: bool | None = None
+    reason_code: str | None = None
 
 
 def compute_offset_from_edits(
@@ -108,7 +141,18 @@ def compute_offset_from_edits(
         delta = _delta_for(edit)
         effective_alpha = alpha * weight
         new_offset = _clamp((1 - effective_alpha) * offset + effective_alpha * delta)
-        trace.append(OffsetStep(step=i, weight=weight, delta_pct=delta, offset_before=offset, offset_after=new_offset))
+        trace.append(
+            OffsetStep(
+                step=i,
+                weight=weight,
+                delta_pct=delta,
+                offset_before=offset,
+                offset_after=new_offset,
+                action_taken=edit.action_taken,
+                funded=edit.funded,
+                reason_code=edit.reason_code,
+            )
+        )
         offset = new_offset
     return offset, trace
 
@@ -162,3 +206,48 @@ def apply_personalization_offset(
         result[largest_other] += residual
 
     return result
+
+
+@dataclass(frozen=True)
+class OffsetCapResult:
+    """How much of the learned offset actually reached the screen.
+
+    `requested` is what the user's history asks for; `applied` is what the
+    displayed equity really moved by after the capacity ceiling (and the
+    0% floor) were enforced. When they differ, the screen says so: the cap
+    is surfaced, never silent.
+    """
+
+    requested_offset_pct_points: Decimal
+    applied_offset_pct_points: Decimal
+    max_equity_pct: Decimal
+    capped: bool
+    cap_reason: str | None  # "capacity_ceiling" | "zero_floor" | None
+
+
+def describe_offset_cap(
+    target_pct: dict[AssetClass, Decimal],
+    capacity_ceiling_target_pct: dict[AssetClass, Decimal],
+    offset_pct_points: Decimal,
+    displayed_pct: dict[AssetClass, Decimal],
+) -> OffsetCapResult:
+    """Pair with apply_personalization_offset: given what it returned,
+    report whether the cap bound and by how much."""
+    base_equity = target_pct[AssetClass.EQUITY]
+    max_equity = capacity_ceiling_target_pct[AssetClass.EQUITY]
+    applied = displayed_pct[AssetClass.EQUITY] - base_equity.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    requested = offset_pct_points.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    cap_reason = None
+    if base_equity + offset_pct_points > max_equity:
+        cap_reason = "capacity_ceiling"
+    elif base_equity + offset_pct_points < 0:
+        cap_reason = "zero_floor"
+
+    return OffsetCapResult(
+        requested_offset_pct_points=requested,
+        applied_offset_pct_points=applied,
+        max_equity_pct=max_equity,
+        capped=cap_reason is not None,
+        cap_reason=cap_reason,
+    )

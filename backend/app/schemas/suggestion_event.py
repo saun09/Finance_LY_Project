@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -14,6 +15,7 @@ class SuggestionEventRead(BaseModel):
     module_source: str
     tier: str | None
     offset: int | None
+    offset_pct_points: Decimal | None = None
     suggested_value: dict
     chosen_value: dict | None
     delta: dict | None

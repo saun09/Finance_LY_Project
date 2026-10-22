@@ -12,6 +12,8 @@ logged suggested_value/market_context ever includes a holding's freeform
 
 from dataclasses import dataclass
 
+from app.models.suggestion_event import SuggestionEvent
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -25,7 +27,8 @@ from app.services.asset_classification import (
     classify_holding,
 )
 from app.services.asset_classification_config import CONFIG_VERSION as CLASSIFICATION_CONFIG_VERSION
-from app.services.event_log import get_user_event_history, log_suggestion_event
+from app.services.event_log import get_user_event_history, log_suggestion_event_if_changed
+from app.services.personalization_service import PersonalizedTarget, compute_personalized_target, trace_as_json
 
 
 class UnclassifiedHoldingsError(ValueError):
@@ -40,6 +43,10 @@ class NoRiskTierError(ValueError):
 class AllocationReport:
     portfolio: PortfolioClassification
     target: TargetAllocationResult
+    personalized: PersonalizedTarget
+    # the suggestion_event this exact report was shown under -- the one a
+    # user's accept/edit/reject must be recorded against
+    event: SuggestionEvent
 
 
 def gather_holding_classifications(session: Session, user_id: str) -> list[HoldingClassification]:
@@ -69,17 +76,37 @@ def compute_and_log_allocation(session: Session, user_id: str, commit: bool = Tr
 
     final_tier = get_latest_final_tier(session, user_id)
     target = compute_target_allocation(final_tier)
+    # Module 7: the tier's target stays the base; the displayed mix is the
+    # base plus the user's learned offset, capped by capacity. The tier
+    # itself is never touched.
+    personalized = compute_personalized_target(session, user_id, target.target_pct, final_tier)
+    cap = personalized.cap
 
-    log_suggestion_event(
+    # GET /allocation runs on every screen load. A new row is written only
+    # when what the user would see has changed, or once they've responded
+    # to the previous one -- see log_suggestion_event_if_changed.
+    event, _created = log_suggestion_event_if_changed(
         session,
         user_id=user_id,
         module_source="allocation",
         tier=str(final_tier),
+        offset_pct_points=cap.applied_offset_pct_points,
         suggested_value={
             "final_tier": target.final_tier,
             "rule_table_version": target.rule_table_version,
             "reasoning": target.reasoning,
+            # always the tier's base target; Module 7 measures every
+            # response against this, not against the displayed mix
             "target_pct": {ac.value: str(pct) for ac, pct in target.target_pct.items()},
+            "displayed_target_pct": {ac.value: str(pct) for ac, pct in personalized.displayed_target_pct.items()},
+            "offset_pct_points": str(cap.applied_offset_pct_points),
+            "requested_offset_pct_points": str(cap.requested_offset_pct_points),
+            "offset_capped": cap.capped,
+            "cap_reason": cap.cap_reason,
+            "max_equity_pct": str(cap.max_equity_pct),
+            "capacity_ceiling": personalized.capacity_ceiling,
+            "capacity_binding_constraints": list(personalized.capacity_binding_constraints),
+            "edits_considered": personalized.edits_considered,
             "current_exposure_pct": {ac.value: str(pct) for ac, pct in portfolio.exposure_by_asset_class_pct.items()},
             "current_exposure_paise": {ac.value: paise for ac, paise in portfolio.exposure_by_asset_class_paise.items()},
             "total_value_paise": portfolio.total_value_paise,
@@ -107,8 +134,10 @@ def compute_and_log_allocation(session: Session, user_id: str, commit: bool = Tr
         market_context={
             "asset_classification_config_version": CLASSIFICATION_CONFIG_VERSION,
             "allocation_config_version": ALLOCATION_CONFIG_VERSION,
+            "personalization_alpha": str(personalized.alpha),
+            "personalization_trace": trace_as_json(personalized.trace),
         },
         commit=commit,
     )
 
-    return AllocationReport(portfolio=portfolio, target=target)
+    return AllocationReport(portfolio=portfolio, target=target, personalized=personalized, event=event)

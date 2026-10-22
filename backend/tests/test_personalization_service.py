@@ -121,6 +121,7 @@ def test_rejection_leaves_offset_at_zero(session):
     allocation_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="allocation").one()
     record_allocation_outcome(
         session, USER, allocation_event.event_id, action_taken=EditActionTaken.REJECTED, chosen_target_pct=None, funded=None,
+        reason_code="dont_understand",
     )
 
     result = compute_and_log_personalization(session, USER)

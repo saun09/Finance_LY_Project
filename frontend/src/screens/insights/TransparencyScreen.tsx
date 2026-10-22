@@ -50,7 +50,6 @@ export function TransparencyScreen() {
   return (
     <ScreenContainer>
       <View>
-        <BackHeader label="Insights" />
         <Text variant="display" style={styles.title}>Transparency</Text>
         <Text variant="body" tone="muted" style={styles.subtitle}>
           Every decision the app makes about you is recorded when it’s made, and shown back to you

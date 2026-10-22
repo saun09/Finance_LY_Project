@@ -1,4 +1,4 @@
-import type { AssetClass, Liquidity } from '../api/types';
+import type { AssetClass, Liquidity, RejectReason } from '../api/types';
 import type { TransparencyDecisionType } from '../api/transparency';
 
 /** Display labels for backend enums that have no server-provided label
@@ -56,4 +56,23 @@ export const CONTEST_REASON_LABEL: Record<string, string> = {
   outcome_unfair: 'The outcome feels unfair',
   dont_understand: "I don't understand this",
   other: 'Something else',
+};
+
+/** Why a user turned an allocation down (Module 7). Only "Set my own mix"
+ * tells the plan *how much* to change, so these reasons are recorded but
+ * don't move the offset. */
+export const REJECT_REASON_LABEL: Record<RejectReason, string> = {
+  dont_understand: "I don't understand it",
+  too_risky: 'Too risky for me',
+  too_safe: 'Too cautious for me',
+  other: 'Something else',
+};
+
+/** Module 3's capacity constraints, phrased as something a person can work
+ * on ("improving your emergency buffer would raise this limit"). */
+export const CAPACITY_CONSTRAINT_LABEL: Record<string, string> = {
+  buffer_months: 'your emergency buffer',
+  emi_to_income_ratio: 'how much of your income goes to EMIs',
+  income_stability: 'how steady your income is',
+  insurance_adequacy: 'your life insurance cover',
 };

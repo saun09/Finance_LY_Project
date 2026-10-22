@@ -228,11 +228,31 @@ export interface HoldingClassificationOut {
   is_look_through: boolean;
 }
 
+/** Module 7's effect on an allocation. `offset_pct_points` is what reached
+ * the displayed mix; `requested_offset_pct_points` is what the user's past
+ * choices asked for before the capacity cap. */
+export interface AllocationPersonalizationOut {
+  offset_pct_points: string;
+  requested_offset_pct_points: string;
+  capped: boolean;
+  cap_reason: 'capacity_ceiling' | 'zero_floor' | null;
+  max_equity_pct: string;
+  capacity_ceiling: number;
+  capacity_binding_constraints: string[];
+  edits_considered: number;
+}
+
 export interface AllocationReportOut {
+  /** Record the user's response to this report against this id. */
+  event_id: string;
   final_tier: number;
   rule_table_version: string;
   reasoning: string;
+  /** The tier's base target, straight from the rule table. */
   target_pct: Record<AssetClass, string>;
+  /** Base + personal offset, capped by capacity -- what the user is shown. */
+  displayed_target_pct: Record<AssetClass, string>;
+  personalization: AllocationPersonalizationOut;
   current_exposure_pct: Record<AssetClass, string>;
   current_exposure_paise: Record<AssetClass, number>;
   total_value_paise: number;
@@ -322,10 +342,15 @@ export interface RefinanceBreakevenOut {
 
 // ---- Module 7: personalization ----
 
+export type RejectReason = 'dont_understand' | 'too_risky' | 'too_safe' | 'other';
+
 export interface RecordAllocationOutcomeIn {
   action_taken: EditActionTaken;
+  /** Required for "edited"; the server records the displayed mix itself for "accepted". */
   chosen_target_pct?: Record<AssetClass, string> | null;
   funded?: boolean | null;
+  /** Required for "rejected". */
+  reason_code?: RejectReason | null;
 }
 
 export interface OffsetStepOut {
@@ -334,10 +359,20 @@ export interface OffsetStepOut {
   delta_pct: string;
   offset_before: string;
   offset_after: string;
+  action_taken: EditActionTaken | null;
+  funded: boolean | null;
+  reason_code: string | null;
 }
 
 export interface PersonalizationOut {
+  /** What the user's history asks for, before the cap. */
   offset_pct_points: string;
+  /** What actually reached the displayed mix. */
+  applied_offset_pct_points: string;
+  offset_capped: boolean;
+  cap_reason: 'capacity_ceiling' | 'zero_floor' | null;
+  max_equity_pct: string;
+  capacity_binding_constraints: string[];
   edits_considered: number;
   final_tier: number;
   capacity_ceiling: number;
@@ -601,6 +636,8 @@ export interface SuggestionEventRead {
   module_source: string;
   tier: string | null;
   offset: number | null;
+  /** Module 7's equity offset in effect when this suggestion was shown. */
+  offset_pct_points: string | null;
   suggested_value: Record<string, unknown>;
   chosen_value: Record<string, unknown> | null;
   delta: Record<string, unknown> | null;

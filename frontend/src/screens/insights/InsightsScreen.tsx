@@ -29,7 +29,7 @@ export function InsightsScreen() {
 
   const personalizationSubtitle =
     personalization.data && !personalization.error
-      ? `${Number(personalization.data.offset_pct_points) >= 0 ? '+' : ''}${Number(personalization.data.offset_pct_points).toFixed(1)} pt offset from ${personalization.data.edits_considered} past decisions`
+      ? `${Number(personalization.data.applied_offset_pct_points) >= 0 ? '+' : ''}${Number(personalization.data.applied_offset_pct_points).toFixed(1)} pt shift from ${personalization.data.edits_considered} past choices`
       : 'How your habits tilt your target';
 
   return (

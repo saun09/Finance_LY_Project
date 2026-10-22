@@ -11,8 +11,52 @@ import { SectionHeader } from '../../components/SectionHeader';
 import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
 import { usePersonalization } from '../../hooks/usePersonalization';
-import { ASSET_CLASS_LABEL } from '../../utils/labels';
+import type { OffsetStepOut, PersonalizationOut } from '../../api/types';
+import { ASSET_CLASS_LABEL, CAPACITY_CONSTRAINT_LABEL, REJECT_REASON_LABEL } from '../../utils/labels';
 import { SPACE } from '../../theme/tokens';
+
+function signedPoints(value: string | number): string {
+  const n = Math.round(Number(value) * 10) / 10;
+  return `${n > 0 ? '+' : ''}${n} pts`;
+}
+
+/** One step of the offset's history, in the user's terms. */
+function stepSentence(step: OffsetStepOut): string {
+  const delta = signedPoints(step.delta_pct);
+  const invested = step.funded ? ', invested' : ', not invested yet';
+  switch (step.action_taken) {
+    case 'edited':
+      return `Set your own mix: equity ${delta} vs. your tier's plan${invested}`;
+    case 'accepted':
+      return `Kept the plan as shown (${delta})${invested}`;
+    case 'rejected':
+      return `Turned it down: ${(REJECT_REASON_LABEL as Record<string, string>)[step.reason_code ?? ''] ?? 'no reason given'}`;
+    case 'ignored':
+      return "Hadn't decided yet";
+    default:
+      return `Moved by ${delta}`;
+  }
+}
+
+function stepWeightNote(step: OffsetStepOut): string {
+  const weight = Number(step.weight);
+  if (weight === 0) return "Not counted — it doesn't say what you'd prefer";
+  if (weight < 1) return 'Half strength until invested';
+  return 'Counted in full';
+}
+
+function capMessage(data: PersonalizationOut): string | null {
+  if (!data.offset_capped) return null;
+  if (data.cap_reason === 'zero_floor') {
+    return `Your choices lean ${signedPoints(data.offset_pct_points)}, but equity can't go below 0%.`;
+  }
+  const labels = data.capacity_binding_constraints.map((c) => CAPACITY_CONSTRAINT_LABEL[c] ?? 'your finances');
+  const lift = labels.length ? ` Improving ${labels.join(' and ')} would raise this limit.` : '';
+  return (
+    `Your choices lean ${signedPoints(data.offset_pct_points)}, but your finances currently support at most ` +
+    `${Math.round(Number(data.max_equity_pct))}% in equity, so we've applied ${signedPoints(data.applied_offset_pct_points)}.${lift}`
+  );
+}
 
 export function PersonalizationScreen() {
   const { data, isPending, error, refetch } = usePersonalization();
@@ -42,15 +86,22 @@ export function PersonalizationScreen() {
         <>
           <View style={styles.grid}>
             <MetricCard
-              label="Offset applied"
-              value={`${Number(data!.offset_pct_points) >= 0 ? '+' : ''}${Number(data!.offset_pct_points).toFixed(1)} pts`}
-              helper="Shift from your base target, based on past decisions"
+              label="Adjustment shown"
+              value={signedPoints(data!.applied_offset_pct_points)}
+              helper="Equity shift from your tier's plan, learned from your choices"
             />
-            <MetricCard label="Edits considered" value={String(data!.edits_considered)} helper="Past allocation outcomes used" />
+            <MetricCard label="Choices considered" value={String(data!.edits_considered)} helper="Your responses to past plans" />
           </View>
 
+          {capMessage(data!) ? (
+            <Card>
+              <SectionHeader title="Held back by a limit" subtitle="This changes what you're shown, never your risk tier" />
+              <Text variant="body">{capMessage(data!)}</Text>
+            </Card>
+          ) : null}
+
           <Card>
-            <SectionHeader title="Base vs. personalized target" subtitle={`Tier ${data!.final_tier} of 5`} />
+            <SectionHeader title="Your tier's plan vs. what you're shown" subtitle={`Tier ${data!.final_tier} of 5 — unchanged`} />
             {ASSET_CLASSES.map((ac) => {
               const base = Number(data!.base_target_pct[ac] ?? '0');
               const displayed = Number(data!.displayed_target_pct[ac] ?? '0');
@@ -77,17 +128,19 @@ export function PersonalizationScreen() {
 
           {data!.trace.length > 0 ? (
             <Card>
-              <SectionHeader title="How the offset was built" subtitle="Each step, in order — transparent reasoning, not a black box" />
+              <SectionHeader title="How the adjustment was built" subtitle="Each of your choices, in order — transparent reasoning, not a black box" />
               {data!.trace.map((step) => (
                 <View key={step.step} style={styles.traceRow}>
-                  <Text variant="caption" tone="faint">
-                    Step {step.step}
-                  </Text>
-                  <Text variant="caption" tone="muted">
-                    weight {step.weight} · Δ{step.delta_pct}
-                  </Text>
+                  <View style={styles.traceText}>
+                    <Text variant="bodyMedium">
+                      {step.step}. {stepSentence(step)}
+                    </Text>
+                    <Text variant="caption" tone="faint">
+                      {stepWeightNote(step)}
+                    </Text>
+                  </View>
                   <Text variant="figure">
-                    {step.offset_before} → {step.offset_after}
+                    {signedPoints(step.offset_before)} → {signedPoints(step.offset_after)}
                   </Text>
                 </View>
               ))}
@@ -104,5 +157,6 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, paddingVertical: SPACE.xs },
   rowLabel: { flex: 1 },
-  traceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: SPACE.xs },
+  traceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: SPACE.sm, paddingVertical: SPACE.xs },
+  traceText: { flex: 1 },
 });
