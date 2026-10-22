@@ -817,6 +817,31 @@ def _risk_ml_headline(v: dict, m: dict) -> str:
     return f"Our trained model would have put you on {predicted}, versus {static} from your answers and finances."
 
 
+def _risk_ml_section(v: dict, m: dict) -> dict:
+    """Enriches the stored feature_contributions (question_id/selected_value
+    only) with the same human-readable question_text/answer_label the
+    facts builder below computes, plus a ready-made tier label -- so a
+    richer client rendering (a visual card per factor, a tier badge) never
+    has to parse a fact's prose sentence back apart to recover the answer
+    text, and never re-derives the tier-name mapping itself."""
+    version = v.get("questionnaire_version")
+    return {
+        "model_version": v["model_version"],
+        "predicted_tier": v["predicted_tier"],
+        "predicted_tier_label": L.tier(v["predicted_tier"]),
+        "class_probabilities": v["class_probabilities"],
+        "is_authoritative": bool(v.get("is_authoritative")),
+        "feature_contributions": [
+            {
+                **c,
+                "question_text": L.question_text(version, c["question_id"]),
+                "answer_label": L.answer_label(version, c["question_id"], c["selected_value"]),
+            }
+            for c in v["feature_contributions"]
+        ],
+    }
+
+
 def _risk_ml_claim_note(v: dict, m: dict) -> str:
     if v.get("is_authoritative"):
         return (
@@ -1351,12 +1376,7 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
             ReasoningSection(
                 key="ml_prediction",
                 title="What the trained model predicts, and why",
-                build=lambda v, m: {
-                    "model_version": v["model_version"],
-                    "predicted_tier": v["predicted_tier"],
-                    "class_probabilities": v["class_probabilities"],
-                    "feature_contributions": v["feature_contributions"],
-                },
+                build=_risk_ml_section,
                 facts=_risk_ml_facts,
                 summary=_risk_ml_summary,
                 requires_value=(

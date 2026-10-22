@@ -423,6 +423,30 @@ export interface TraceResultOut {
   contest_reason_code: string | null;
 }
 
+/** The shape of `TraceResultOut.reasoning["ml_prediction"]` specifically
+ * for module_source "risk_profile_ml" -- cast to this after checking
+ * `module_source`, same as any other decision type's reasoning shape
+ * (the field is untyped Record<string, unknown> because it genuinely
+ * varies per decision type). */
+export interface MLFeatureContributionOut {
+  question_id: string;
+  selected_value: string;
+  selected_points: number;
+  shap_value: number;
+  direction: 'increases' | 'decreases' | 'neutral';
+  question_text: string;
+  answer_label: string;
+}
+
+export interface MLPredictionSectionOut {
+  model_version: string;
+  predicted_tier: number;
+  predicted_tier_label: string;
+  class_probabilities: Record<string, number>;
+  is_authoritative: boolean;
+  feature_contributions: MLFeatureContributionOut[];
+}
+
 export interface AvailableDecisionTypesOut {
   counts_by_module_source: Record<string, number>;
 }
