@@ -25,13 +25,23 @@ export function ProgressBar({ fraction, tone = 'petrol', duration = 700, height 
   const anim = useRef(new Animated.Value(0)).current;
   const reducedMotion = useReducedMotion();
   const clamped = Math.max(0, Math.min(1, fraction));
+  // Only the first render starts from 0 (the "fill in on mount" entrance
+  // every existing caller relies on) -- a caller that updates `fraction`
+  // later (a step wizard's progress bar) instead animates onward from
+  // wherever the bar currently sits, so it reads as advancing, not
+  // resetting and refilling from empty each time.
+  const hasMounted = useRef(false);
 
   useEffect(() => {
     if (reducedMotion) {
       anim.setValue(clamped);
+      hasMounted.current = true;
       return;
     }
-    anim.setValue(0);
+    if (!hasMounted.current) {
+      anim.setValue(0);
+      hasMounted.current = true;
+    }
     const animation = Animated.timing(anim, { toValue: clamped, duration, useNativeDriver: false });
     animation.start();
     return () => animation.stop();
