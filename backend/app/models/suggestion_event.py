@@ -2,9 +2,10 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.crypto import EncryptedJSON
 from app.db import Base
 
 
@@ -52,9 +53,9 @@ class SuggestionEvent(Base):
     # module_source + tier (module-defined semantics, e.g. rank in a list)
     offset: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    suggested_value: Mapped[dict] = mapped_column(JSON, nullable=False)
-    chosen_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    delta: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    suggested_value: Mapped[dict] = mapped_column(EncryptedJSON, nullable=False)
+    chosen_value: Mapped[dict | None] = mapped_column(EncryptedJSON, nullable=True)
+    delta: Mapped[dict | None] = mapped_column(EncryptedJSON, nullable=True)
 
     action_taken: Mapped[ActionTaken | None] = mapped_column(
         Enum(ActionTaken, name="action_taken_enum", native_enum=True), nullable=True
@@ -64,7 +65,7 @@ class SuggestionEvent(Base):
 
     # snapshot of market context (e.g. index levels, reference rates) at
     # event time, so a later transparency view can explain "why this, then"
-    market_context: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    market_context: Mapped[dict] = mapped_column(EncryptedJSON, nullable=False, default=dict)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_utcnow

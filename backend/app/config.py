@@ -22,3 +22,8 @@ CORS_ORIGINS = [
 CORS_ORIGIN_REGEX = os.environ.get(
     "CORS_ORIGIN_REGEX", r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
 )
+
+# Encryption in transit. On when deployed (set FORCE_HTTPS=true on Render):
+# plain-HTTP requests are redirected to HTTPS and responses carry HSTS so
+# browsers refuse to downgrade. Off locally, where uvicorn serves plain HTTP.
+FORCE_HTTPS = os.environ.get("FORCE_HTTPS", "").lower() in {"1", "true", "yes"}
