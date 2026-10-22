@@ -182,7 +182,12 @@ export function LeaksScreen() {
           />
         </Card>
       ) : (
-        <>
+        // ScreenContainer only puts its own gap between ITS direct
+        // children -- this whole block is one of those (previously a bare
+        // fragment), so without an explicit gap here every card inside it
+        // rendered flush against the next with nothing but two stacked
+        // hairline borders between them.
+        <View style={styles.resultsGroup}>
           <LinearGradient
             colors={[colors.terracottaSoft, colors.paperRaised]}
             start={{ x: 0, y: 0 }}
@@ -220,7 +225,7 @@ export function LeaksScreen() {
               onReviewEntry={goToExpenses}
             />
           ))}
-        </>
+        </View>
       )}
 
       <View style={styles.footerInfo}>
@@ -241,6 +246,7 @@ const styles = StyleSheet.create({
   title: { marginTop: SPACE.xs },
   totalNote: { marginTop: SPACE.xs },
 
+  resultsGroup: { gap: SPACE.lg },
   heroCard: { borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth * 1.5, padding: SPACE.lg, gap: 2 },
 
   banner: {
@@ -261,14 +267,14 @@ const styles = StyleSheet.create({
   proportionRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, marginTop: 2 },
   proportionBar: { flex: 1 },
 
-  expandedBody: { marginTop: SPACE.md, gap: SPACE.sm },
+  expandedBody: { marginTop: SPACE.md, gap: SPACE.xs },
   subItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: SPACE.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: SPACE.sm,
+    paddingVertical: SPACE.sm,
   },
   subItemLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, flexShrink: 1 },
   duplicateBadge: { paddingHorizontal: SPACE.sm, paddingVertical: 2, borderRadius: RADIUS.pill },
