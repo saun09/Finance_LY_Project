@@ -28,6 +28,20 @@ function groupIndian(digits: string): string {
   return `${groups.join(',')},${last3}`;
 }
 
+/** Live Indian-grouped display for a rupee amount being typed, e.g.
+ * "120000" -> "1,20,000" -- commas are display-only; TextField strips them
+ * back out before calling onChangeText, so rupeeInputToPaise and every
+ * other existing caller still receive the plain digit string they always
+ * have. Non-digit characters (an accidental paste, a decimal point) are
+ * stripped rather than rejected, since this is a display transform, not
+ * validation -- rupeeInputToPaise remains the single source of truth for
+ * whether an amount is valid. */
+export function formatRupeeInputDisplay(raw: string): string {
+  const digitsOnly = raw.replace(/\D/g, '');
+  if (digitsOnly === '') return '';
+  return groupIndian(digitsOnly);
+}
+
 /** paise (integer) -> "₹1,20,000" (whole rupees, floor of any leftover paise) */
 export function formatPaise(paise: number): string {
   const sign = paise < 0 ? '-' : '';

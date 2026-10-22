@@ -15,6 +15,12 @@ interface Props {
    * by default (the app's one consistent motion language) -- set false
    * for a screen where that reads as noise (e.g. one already mid-flow). */
   animate?: boolean;
+  /** A floating action button (or similar), anchored bottom-right over the
+   * scrolling content rather than scrolling away with it -- e.g. a manage
+   * screen's "+ Add X" that opens a FormSheet. Positioned within this
+   * SafeAreaView, so it sits above this screen's own content area without
+   * needing to know the tab bar's height. */
+  floatingAction?: React.ReactNode;
 }
 
 /** Consistent safe-area handling + background across every screen
@@ -42,7 +48,7 @@ interface Props {
  * View would break, so those opt out automatically. */
 const TAB_BAR_CLEARANCE = 112;
 
-export function ScreenContainer({ children, scroll = true, onRefresh, refreshing, contentStyle, animate = true }: Props) {
+export function ScreenContainer({ children, scroll = true, onRefresh, refreshing, contentStyle, animate = true, floatingAction }: Props) {
   const { colors } = useAppTheme();
   const Wrapper = scroll ? ScrollView : View;
   const wrapperProps = scroll
@@ -67,6 +73,7 @@ export function ScreenContainer({ children, scroll = true, onRefresh, refreshing
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.paper }]} edges={['top', 'left', 'right']}>
       <Wrapper {...(wrapperProps as any)}>{content}</Wrapper>
+      {floatingAction ? <View style={styles.floatingActionWrap}>{floatingAction}</View> : null}
     </SafeAreaView>
   );
 }
@@ -75,4 +82,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   scrollContent: { padding: SPACE.lg, paddingBottom: TAB_BAR_CLEARANCE, gap: SPACE.lg },
   flexContent: { flex: 1, padding: SPACE.lg, gap: SPACE.lg },
+  floatingActionWrap: { position: 'absolute', right: SPACE.lg, bottom: SPACE.lg },
 });

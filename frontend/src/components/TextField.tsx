@@ -2,6 +2,7 @@ import React from 'react';
 import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
 import { FONT, RADIUS, SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
+import { formatRupeeInputDisplay } from '../utils/currency';
 import { Text } from './Text';
 
 interface Props {
@@ -16,6 +17,12 @@ interface Props {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   multiline?: boolean;
   secureTextEntry?: boolean;
+  /** Displays `value` with Indian comma grouping while the plain digit
+   * string is still what's passed to `onChangeText` (commas are stripped
+   * back out on every keystroke) -- so every existing caller's parsing
+   * (rupeeInputToPaise, which already strips commas defensively) is
+   * unaffected. Only meaningful for a whole-rupee amount field. */
+  formatAsCurrency?: boolean;
 }
 
 /** The one text-input primitive every onboarding form uses -- labeled,
@@ -33,8 +40,11 @@ export function TextField({
   autoCapitalize = 'sentences',
   multiline = false,
   secureTextEntry = false,
+  formatAsCurrency = false,
 }: Props) {
   const { colors } = useAppTheme();
+  const displayValue = formatAsCurrency ? formatRupeeInputDisplay(value) : value;
+  const handleChangeText = (text: string) => onChangeText(formatAsCurrency ? text.replace(/\D/g, '') : text);
 
   return (
     <View style={styles.container}>
@@ -54,8 +64,8 @@ export function TextField({
           </Text>
         ) : null}
         <TextInput
-          value={value}
-          onChangeText={onChangeText}
+          value={displayValue}
+          onChangeText={handleChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.inkFaint}
           keyboardType={keyboardType}

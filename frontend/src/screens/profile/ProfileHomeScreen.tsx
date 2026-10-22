@@ -126,6 +126,7 @@ export function ProfileHomeScreen() {
             }}
             keyboardType="numeric"
             prefix="₹"
+            formatAsCurrency
           />
           <ChoiceGroup
             label="Income stability"
@@ -163,6 +164,7 @@ export function ProfileHomeScreen() {
             }}
             keyboardType="numeric"
             prefix="₹"
+            formatAsCurrency
           />
 
           {saveError ? <InlineError message={saveError} /> : null}
@@ -192,26 +194,41 @@ export function ProfileHomeScreen() {
             title: 'Expenses',
             subtitle: activeExpenseCount === null ? 'Manage recurring expenses' : `${activeExpenseCount} active`,
             onPress: () => navigation.navigate('ExpensesManage'),
+            icon: 'receipt-outline',
+            iconTone: 'petrol',
           },
           {
             key: 'debt',
             title: 'Loans & EMIs',
             subtitle: activeEmiCount === null ? 'Manage loans' : `${activeEmiCount} active`,
             onPress: () => navigation.navigate('DebtManage'),
+            icon: 'business-outline',
+            iconTone: 'warning',
           },
           {
             key: 'insurance',
             title: 'Insurance',
             subtitle: insurance.data ? `${insurance.data.length} polic${insurance.data.length === 1 ? 'y' : 'ies'}` : 'Manage insurance',
             onPress: () => navigation.navigate('InsuranceManage'),
+            icon: 'shield-checkmark-outline',
+            iconTone: 'positive',
           },
           {
             key: 'holdings',
             title: 'Holdings',
             subtitle: holdings.data ? `${holdings.data.length} holding${holdings.data.length === 1 ? '' : 's'}` : 'Manage holdings',
             onPress: () => navigation.navigate('HoldingsManage'),
+            icon: 'trending-up-outline',
+            iconTone: 'terracotta',
           },
-          { key: 'settings', title: 'Settings', subtitle: 'Demo user, API connection', onPress: () => navigation.navigate('Settings') },
+          {
+            key: 'settings',
+            title: 'Settings',
+            subtitle: 'Account & app preferences',
+            onPress: () => navigation.navigate('Settings'),
+            icon: 'settings-outline',
+            iconTone: 'petrol',
+          },
         ]}
       />
     </ScreenContainer>
