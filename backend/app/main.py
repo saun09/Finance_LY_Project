@@ -12,17 +12,16 @@ from app.api.routes_risk_profile import config_router as risk_profile_config_rou
 from app.api.routes_risk_profile import router as risk_profile_router
 from app.api.routes_rumour_verification import router as rumour_verification_router
 from app.api.routes_transparency import router as transparency_router
+from app.config import CORS_ORIGIN_REGEX, CORS_ORIGINS
 
 app = FastAPI(title="Personal Finance App backend")
 
-# Dev-only: the Expo web target runs on its own origin (Metro's dev
-# server) and needs CORS to call this API from the browser. There's no
-# auth/session and no production deployment of this backend, so an
-# unrestricted allow-list is the right tradeoff here rather than hardcoding
-# a Metro port that varies by machine/run.
+# Restricted to the deployed frontend plus localhost for Expo web dev. Auth
+# is bearer-token (no cookies), so credentials stay disabled.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_methods=["*"],
     allow_headers=["*"],
 )
