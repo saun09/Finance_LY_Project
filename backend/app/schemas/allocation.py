@@ -26,6 +26,9 @@ class AllocationReportOut(BaseModel):
     final_tier: int
     rule_table_version: str
     reasoning: str
+    # [min, max] weight range per asset class for this tier -- the same
+    # ranges `reasoning` describes in prose, structured for display.
+    target_bounds_pct: dict[AssetClass, tuple[Decimal, Decimal]]
     target_pct: dict[AssetClass, Decimal]
     current_exposure_pct: dict[AssetClass, Decimal]
     current_exposure_paise: dict[AssetClass, int]

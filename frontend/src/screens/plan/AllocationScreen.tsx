@@ -52,11 +52,15 @@ const SOFT_KEY: Record<keyof typeof ASSET_CLASS_COLOR_KEY, keyof Palette> = {
 
 type Nav = NativeStackNavigationProp<PlanStackParamList, 'Allocation'>;
 
-/** Collapsed by default -- the rule-table version, layer-1 bounds, and
- * optimizer method note are an audit trail, not something most people
- * need to read to use the page (same disclosure pattern as Plan's tier
- * legend and Progress's checklist sections). */
-function MethodologyDisclosure({ reasoning, ruleTableVersion }: { reasoning: string; ruleTableVersion: string }) {
+/** Collapsed by default -- an audit trail, not something most people need
+ * to read to use the page (same disclosure pattern as Plan's tier legend
+ * and Progress's checklist sections). Plain-English explanation plus a
+ * clean per-asset-class range grid, built from the backend's own
+ * structured `target_bounds_pct` -- never a raw dump of the internal
+ * reasoning string (which has bracket/variable-name syntax meant for
+ * logs, not this screen) and never the internal rule-table version,
+ * which stays out of the primary user view entirely. */
+function MethodologyDisclosure({ finalTier, boundsPct }: { finalTier: number; boundsPct: Record<AssetClass, [string, string]> }) {
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
   const chevronRotation = useChevronRotation(open);
@@ -82,11 +86,22 @@ function MethodologyDisclosure({ reasoning, ruleTableVersion }: { reasoning: str
         <Reveal>
           <View style={styles.disclosureBody}>
             <Text variant="body" tone="muted">
-              {reasoning}
+              This mix uses your Tier {finalTier} risk guardrails — a minimum and maximum range for each asset
+              class — to keep your portfolio stable while aiming for the best possible return within those limits.
             </Text>
-            <Text variant="caption" tone="faint" style={styles.ruleVersion}>
-              Rule table {ruleTableVersion}
-            </Text>
+            <View style={styles.boundsGrid}>
+              {(ASSET_CLASSES as AssetClass[]).map((ac) => {
+                const [lo, hi] = boundsPct[ac] ?? ['0', '0'];
+                return (
+                  <View key={ac} style={[styles.boundsRow, { borderTopColor: colors.border }]}>
+                    <Text variant="body">{ASSET_CLASS_LABEL[ac]}</Text>
+                    <Text variant="bodyMedium" tone="muted">
+                      {Number(lo).toFixed(0)}%–{Number(hi).toFixed(0)}%
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
         </Reveal>
       ) : null}
@@ -268,7 +283,7 @@ export function AllocationScreen() {
       </View>
 
       <Reveal index={0}>
-        <MethodologyDisclosure reasoning={data!.reasoning} ruleTableVersion={data!.rule_table_version} />
+        <MethodologyDisclosure finalTier={data!.final_tier} boundsPct={data!.target_bounds_pct} />
       </Reveal>
 
       <Reveal index={1}>
@@ -368,7 +383,7 @@ export function AllocationScreen() {
           <Card>
             <SectionHeader
               title="What did you do with this?"
-              subtitle="Helps future suggestions reflect how you actually invest, not just this rule table"
+              subtitle="Helps future suggestions reflect how you actually invest, not just this one"
             />
             {recorded ? (
               <Text variant="bodyMedium" tone="positive" style={styles.recordedNote}>
@@ -402,11 +417,18 @@ export function AllocationScreen() {
 
 const styles = StyleSheet.create({
   headerSubtitle: { marginTop: SPACE.xs },
-  ruleVersion: { marginTop: SPACE.sm },
 
   disclosureHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
   disclosureTitle: { flex: 1 },
   disclosureBody: { marginTop: SPACE.md },
+  boundsGrid: { marginTop: SPACE.md },
+  boundsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACE.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 
   donutCard: { gap: SPACE.md },
   totalValueRow: { gap: 2 },

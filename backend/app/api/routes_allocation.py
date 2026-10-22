@@ -26,6 +26,7 @@ def get_allocation(user_id: str, session: Session = Depends(get_session)):
         final_tier=target.final_tier,
         rule_table_version=target.rule_table_version,
         reasoning=target.reasoning,
+        target_bounds_pct=target.bounds_pct,
         target_pct=target.target_pct,
         current_exposure_pct=portfolio.exposure_by_asset_class_pct,
         current_exposure_paise=portfolio.exposure_by_asset_class_paise,

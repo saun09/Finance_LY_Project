@@ -232,6 +232,9 @@ export interface AllocationReportOut {
   final_tier: number;
   rule_table_version: string;
   reasoning: string;
+  /** [min, max] weight range per asset class for this tier -- the same
+   * ranges `reasoning` describes in prose, structured for display. */
+  target_bounds_pct: Record<AssetClass, [string, string]>;
   target_pct: Record<AssetClass, string>;
   current_exposure_pct: Record<AssetClass, string>;
   current_exposure_paise: Record<AssetClass, number>;
