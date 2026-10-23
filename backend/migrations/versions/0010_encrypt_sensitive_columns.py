@@ -4,8 +4,8 @@ Each listed column becomes TEXT holding an `enc:v1:` ciphertext, and every
 existing row is encrypted in place. Requires DATA_ENCRYPTION_KEY to be set
 when this runs -- and the same key afterwards, or the data is unreadable.
 
-Revision ID: 0008
-Revises: 0007
+Revision ID: 0010
+Revises: 0009
 Create Date: 2026-10-23
 """
 import json
@@ -16,8 +16,8 @@ import sqlalchemy as sa
 
 from app.crypto import EncryptedDecimal, EncryptedInteger, EncryptedJSON, EncryptedString
 
-revision = "0008"
-down_revision = "0007"
+revision = "0010"
+down_revision = "0009"
 branch_labels = None
 depends_on = None
 

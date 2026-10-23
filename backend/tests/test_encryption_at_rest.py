@@ -95,13 +95,13 @@ def test_missing_key_fails_loudly(monkeypatch):
         crypto._aesgcm.cache_clear()
 
 
-def test_migration_0008_encrypts_existing_rows_and_downgrade_restores_them(tmp_path):
+def test_migration_0010_encrypts_existing_rows_and_downgrade_restores_them(tmp_path):
     db_url = f"sqlite:///{tmp_path / 'enc.db'}"
     cfg = Config(str(BACKEND_DIR / "alembic.ini"))
     cfg.set_main_option("script_location", str(BACKEND_DIR / "migrations"))
     cfg.set_main_option("sqlalchemy.url", db_url)
 
-    command.upgrade(cfg, "0007")
+    command.upgrade(cfg, "0009")
     engine = sa.create_engine(db_url)
     with engine.begin() as conn:
         conn.execute(sa.text(
@@ -115,14 +115,14 @@ def test_migration_0008_encrypts_existing_rows_and_downgrade_restores_them(tmp_p
             "'{\"amount_paise\": 777}', '{}', '2026-10-01')"
         ))
 
-    command.upgrade(cfg, "0008")
+    command.upgrade(cfg, "0010")
     with engine.connect() as conn:
         raw_income = conn.execute(sa.text("SELECT income_paise FROM user_profile")).scalar_one()
         raw_event = conn.execute(sa.text("SELECT suggested_value FROM suggestion_event")).scalar_one()
     assert raw_income.startswith(crypto.PREFIX) and crypto.decrypt(raw_income) == "5000000"
     assert raw_event.startswith(crypto.PREFIX) and crypto.decrypt(raw_event) == '{"amount_paise": 777}'
 
-    command.downgrade(cfg, "0007")
+    command.downgrade(cfg, "0009")
     with engine.connect() as conn:
         assert int(conn.execute(sa.text("SELECT income_paise FROM user_profile")).scalar_one()) == 5_000_000
     engine.dispose()
