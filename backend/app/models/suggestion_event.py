@@ -7,7 +7,7 @@ from sqlalchemy import JSON, Boolean, DateTime, Enum, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.crypto import EncryptedJSON
-from app.db import Base
+from app.db import Base, enum_values
 
 
 class ActionTaken(str, enum.Enum):
@@ -66,7 +66,7 @@ class SuggestionEvent(Base):
     delta: Mapped[dict | None] = mapped_column(EncryptedJSON, nullable=True)
 
     action_taken: Mapped[ActionTaken | None] = mapped_column(
-        Enum(ActionTaken, name="action_taken_enum", native_enum=True), nullable=True
+        Enum(ActionTaken, name="action_taken_enum", values_callable=enum_values, native_enum=True), nullable=True
     )
     reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     funded: Mapped[bool | None] = mapped_column(Boolean, nullable=True)

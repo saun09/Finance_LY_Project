@@ -11,6 +11,14 @@ class Base(DeclarativeBase):
     pass
 
 
+def enum_values(enum_cls) -> list[str]:
+    """`values_callable` for every sa.Enum column: store each member's
+    lowercase *value* ("regular"), which is what the migrations created the
+    Postgres enum types with -- SQLAlchemy's default is the member *name*
+    ("REGULAR"), which SQLite silently accepted but Postgres rejects."""
+    return [member.value for member in enum_cls]
+
+
 def make_engine(database_url: str = DATABASE_URL):
     if not database_url.startswith("sqlite"):
         return create_engine(database_url, pool_pre_ping=True)
