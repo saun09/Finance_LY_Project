@@ -1,7 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { Animated, LayoutChangeEvent, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  LayoutChangeEvent,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import type {
   AwardedMilestoneOut,
   ChecklistItemOut,
@@ -9,20 +20,16 @@ import type {
   RoadmapLevelOut,
   RoadmapTopicOut,
 } from '../../api/types';
-import { AnimatedFigure } from '../../components/AnimatedFigure';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { IconChip } from '../../components/IconChip';
-import { ProgressBar } from '../../components/ProgressBar';
 import { ReasoningTree } from '../../components/ReasoningTree';
 import { Reveal } from '../../components/Reveal';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { SectionHeader } from '../../components/SectionHeader';
 import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
-import { useChevronRotation } from '../../hooks/useChevronRotation';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { useCheckMilestones, useCompleteEducation, useEducationProgress, useMilestoneHistory } from '../../hooks/useGamification';
 import { MILESTONE_CATEGORY_LABEL } from '../../utils/labels';
@@ -30,23 +37,66 @@ import { RADIUS, SPACE } from '../../theme/tokens';
 
 type QuizFeedbackMap = Record<string, { correct: boolean; explanation: string }>;
 type CompleteFn = (itemId: string, kind: 'lesson' | 'quiz' | 'checklist') => void;
+type IconName = keyof typeof Ionicons.glyphMap;
+type TopicEntry = { level: RoadmapLevelOut; topic: RoadmapTopicOut };
 
-const LEVEL_ICON: Record<number, keyof typeof Ionicons.glyphMap> = {
-  1: 'wallet-outline',
-  2: 'shield-checkmark-outline',
-  3: 'business-outline',
-  4: 'trending-up-outline',
-  5: 'calendar-outline',
+/* -------------------------------------------------------------------------- */
+/* Game palette + static maps                                                 */
+/* -------------------------------------------------------------------------- */
+
+const GAME = {
+  bg: '#181715',
+  panel: '#221F1B',
+  panelRaised: '#2B2721',
+  line: '#3A352E',
+  text: '#F4EFE6',
+  textMuted: '#A39B8E',
+  gold: '#F2B93B',
+  goldBg: '#2B2314',
+  emerald: '#2FD39A',
+  emeraldDeep: '#0E5C43',
+  terracotta: '#E2784A',
+  terracottaBg: '#2E1F18',
+  dark: '#181715',
 };
 
-const CHECKLIST_SECTION_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+const PAGE_SIZE = 6; // 3 columns x 2 rows
+
+// One icon per topic (matched by title), so the grid never repeats a glyph.
+// Unrecognised titles fall back to a rotating pool keyed by position.
+const TOPIC_ICON: Record<string, IconName> = {
+  'income vs expenses': 'scale-outline',
+  'needs vs wants': 'pie-chart-outline',
+  'budgeting and cash flow': 'calculator-outline',
+  'emergency funds': 'shield-outline',
+  'inflation and interest': 'trending-up-outline',
+  'buffers and insurance': 'umbrella-outline',
+};
+const FALLBACK_TOPIC_ICONS: IconName[] = [
+  'receipt-outline',
+  'bar-chart-outline',
+  'git-branch-outline',
+  'cash-outline',
+  'bulb-outline',
+  'school-outline',
+  'pricetag-outline',
+  'card-outline',
+  'briefcase-outline',
+  'leaf-outline',
+];
+function topicIcon(title: string, flatIndex: number): IconName {
+  const key = title.trim().toLowerCase().replace(/\./g, '');
+  return TOPIC_ICON[key] ?? FALLBACK_TOPIC_ICONS[flatIndex % FALLBACK_TOPIC_ICONS.length];
+}
+
+const CHECKLIST_SECTION_ICON: Record<string, IconName> = {
   'Financial foundation': 'home-outline',
   Savings: 'wallet-outline',
   Investing: 'trending-up-outline',
   'Financial literacy': 'book-outline',
 };
 
-const BADGE_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+const BADGE_ICON: Record<string, IconName> = {
   'budget-beginner': 'wallet-outline',
   'emergency-ready': 'shield-checkmark-outline',
   'debt-aware': 'trending-down-outline',
@@ -56,7 +106,7 @@ const BADGE_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'foundations-complete': 'trophy-outline',
 };
 
-const MILESTONE_CATEGORY_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+const MILESTONE_CATEGORY_ICON: Record<string, IconName> = {
   buffer: 'shield-checkmark-outline',
   capacity_unlock: 'lock-open-outline',
   debt: 'trending-down-outline',
@@ -65,6 +115,720 @@ const MILESTONE_CATEGORY_ICON: Record<string, keyof typeof Ionicons.glyphMap> = 
 };
 
 const CHECKLIST_SECTIONS = ['Financial foundation', 'Savings', 'Investing', 'Financial literacy'];
+
+type DeckTab = 'deck' | 'habits' | 'trophies';
+const TABS: { key: DeckTab; label: string; icon: IconName }[] = [
+  { key: 'deck', label: 'Learning', icon: 'albums-outline' },
+  { key: 'habits', label: 'Habits', icon: 'checkbox-outline' },
+  { key: 'trophies', label: 'Trophies', icon: 'trophy-outline' },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Small helpers                                                              */
+/* -------------------------------------------------------------------------- */
+
+/** Text with an explicit colour, so game UI stays legible on the dark shell
+ * regardless of the app theme's `tone` colours. */
+function GText({ color = GAME.text, style, ...rest }: React.ComponentProps<typeof Text> & { color?: string }) {
+  return <Text {...rest} style={[{ color }, style]} />;
+}
+
+function useReduceMotion() {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setReduce)
+      .catch(() => {});
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduce);
+    return () => sub.remove();
+  }, []);
+  return reduce;
+}
+
+/** Increments when `done` flips false -> true *after* mount, so a card plays
+ * its unlock animation only when something is newly completed -- never on
+ * first render or when the pager remounts it. */
+function useUnlockTrigger(done: boolean) {
+  const prev = useRef(done);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!prev.current && done) setTick((t) => t + 1);
+    prev.current = done;
+  }, [done]);
+  return tick;
+}
+
+function findNextTopic(roadmap: RoadmapLevelOut[]): TopicEntry | null {
+  for (const level of roadmap) {
+    const topic = level.topics.find((t) => !t.completed);
+    if (topic) return { level, topic };
+  }
+  return null;
+}
+
+function findTopicById(roadmap: RoadmapLevelOut[], topicId: string): TopicEntry | null {
+  for (const level of roadmap) {
+    const topic = level.topics.find((t) => t.topic_id === topicId);
+    if (topic) return { level, topic };
+  }
+  return null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* CollectibleFrame: press-scale + pulse + flip + shine, shared by every card  */
+/* -------------------------------------------------------------------------- */
+
+function CollectibleFrame({
+  children,
+  slotStyle,
+  background,
+  borderColor,
+  borderStyle = 'solid',
+  glowColor,
+  unlockTick = 0,
+  pulse = false,
+  disabled = false,
+  selected = false,
+  label,
+  onPress,
+}: {
+  children: React.ReactNode;
+  slotStyle?: StyleProp<ViewStyle>;
+  background: string;
+  borderColor: string;
+  borderStyle?: 'solid' | 'dashed';
+  glowColor?: string;
+  unlockTick?: number;
+  pulse?: boolean;
+  disabled?: boolean;
+  selected?: boolean;
+  label: string;
+  onPress?: () => void;
+}) {
+  const reduce = useReduceMotion();
+  const pressScale = useRef(new Animated.Value(1)).current;
+  const flip = useRef(new Animated.Value(0)).current;
+  const shine = useRef(new Animated.Value(0)).current;
+  const pulseVal = useRef(new Animated.Value(0)).current;
+  const [width, setWidth] = useState(0);
+
+  const springTo = (v: number) =>
+    Animated.spring(pressScale, { toValue: v, useNativeDriver: true, speed: 40, bounciness: 6 }).start();
+
+  // Gentle pulse on the card you should tap next.
+  useEffect(() => {
+    if (!pulse || reduce) {
+      pulseVal.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseVal, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulseVal, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse, reduce, pulseVal]);
+
+  // Flip, then a diagonal shine sweep, when the card is newly completed.
+  useEffect(() => {
+    if (unlockTick === 0 || reduce) return;
+    flip.setValue(0);
+    shine.setValue(0);
+    Animated.sequence([
+      Animated.timing(flip, { toValue: 1, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(shine, { toValue: 1, duration: 650, easing: Easing.linear, useNativeDriver: true }),
+    ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unlockTick]);
+
+  const rotateY = flip.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const pulseScale = pulseVal.interpolate({ inputRange: [0, 1], outputRange: [1, 1.035] });
+  const scale = Animated.multiply(pressScale, pulseScale);
+  const ringOpacity = pulseVal.interpolate({ inputRange: [0, 1], outputRange: [0.15, 0.95] });
+  const shineX = shine.interpolate({ inputRange: [0, 1], outputRange: [-width * 0.6, width * 1.2] });
+  const shineOpacity = shine.interpolate({ inputRange: [0, 0.1, 0.9, 1], outputRange: [0, 1, 1, 0] });
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => !disabled && springTo(0.95)}
+      onPressOut={() => springTo(1)}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled, selected }}
+      style={slotStyle}
+    >
+      <Animated.View
+        style={[
+          styles.frameOuter,
+          glowColor
+            ? { shadowColor: glowColor, shadowOpacity: 0.65, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 6 }
+            : null,
+          { transform: [{ perspective: 900 }, { rotateY }, { scale }] },
+        ]}
+      >
+        <View
+          style={[styles.frameInner, { backgroundColor: background, borderColor, borderStyle }]}
+          onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}
+        >
+          {children}
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.shine, { opacity: shineOpacity, transform: [{ translateX: shineX }, { rotate: '20deg' }] }]}
+          />
+        </View>
+        {pulse ? (
+          <Animated.View pointerEvents="none" style={[styles.pulseRing, { borderColor: GAME.terracotta, opacity: ringOpacity }]} />
+        ) : null}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Top resource bar                                                           */
+/* -------------------------------------------------------------------------- */
+
+function GoldBar({ fraction }: { fraction: number }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: Math.max(0, Math.min(1, fraction)),
+      duration: 900,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [fraction, anim]);
+  const width = anim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  return (
+    <View style={styles.barTrack}>
+      <Animated.View style={[styles.barFill, { width }]} />
+    </View>
+  );
+}
+
+function StatTile({ icon, color, value, caption }: { icon: IconName; color: string; value: string; caption: string }) {
+  return (
+    <View style={styles.statTile}>
+      <Ionicons name={icon} size={22} color={color} />
+      <GText variant="bodyMedium" style={styles.statValue}>
+        {value}
+      </GText>
+      <GText variant="caption" color={GAME.textMuted}>
+        {caption}
+      </GText>
+    </View>
+  );
+}
+
+function ResourceBar({
+  streak,
+  topics,
+  badges,
+  progressPct,
+}: {
+  streak: number;
+  topics: number;
+  badges: number;
+  progressPct: number;
+}) {
+  return (
+    <View style={styles.resourceBar}>
+      <View style={styles.statsRow}>
+        <StatTile icon="flame" color={GAME.terracotta} value={`${streak} ${streak === 1 ? 'Day' : 'Days'}`} caption="Streak" />
+        <View style={styles.statDivider} />
+        <StatTile icon="book" color={GAME.emerald} value={`${topics} Done`} caption="Topics" />
+        <View style={styles.statDivider} />
+        <StatTile icon="trophy" color={GAME.gold} value={`${badges} ${badges === 1 ? 'Badge' : 'Badges'}`} caption="Earned" />
+      </View>
+      <View style={styles.progressRow}>
+        <GText variant="caption" color={GAME.textMuted}>
+          Roadmap Progress
+        </GText>
+        <GText variant="bodyMedium" color={GAME.gold}>
+          {progressPct}%
+        </GText>
+      </View>
+      <GoldBar fraction={progressPct / 100} />
+    </View>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Segmented tabs                                                             */
+/* -------------------------------------------------------------------------- */
+
+function DeckTabs({ value, onChange }: { value: DeckTab; onChange: (tab: DeckTab) => void }) {
+  return (
+    <View style={styles.tabs}>
+      {TABS.map((tab) => {
+        const active = tab.key === value;
+        return (
+          <Pressable
+            key={tab.key}
+            onPress={() => onChange(tab.key)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
+            style={({ pressed }) => [
+              styles.tab,
+              active && styles.tabActive,
+              { transform: [{ scale: pressed ? 0.95 : 1 }] },
+            ]}
+          >
+            <Ionicons name={tab.icon} size={16} color={active ? GAME.dark : GAME.textMuted} />
+            <GText variant="bodyMedium" color={active ? GAME.dark : GAME.textMuted}>
+              {tab.label}
+            </GText>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tab 1: Learning deck                                                       */
+/* -------------------------------------------------------------------------- */
+
+type CardState = 'complete' | 'current' | 'available' | 'locked';
+
+function TopicCard({
+  entry,
+  state,
+  requiredLevel,
+  iconName,
+  onPress,
+}: {
+  entry: TopicEntry;
+  state: CardState;
+  requiredLevel: number;
+  iconName: IconName;
+  onPress: () => void;
+}) {
+  const { topic, level } = entry;
+  const unlockTick = useUnlockTrigger(topic.completed);
+
+  const look = {
+    complete: { bg: '#22201D', border: 'rgba(242, 185, 59, 0.45)', glow: undefined, icon: GAME.gold },
+    current: { bg: GAME.terracottaBg, border: GAME.terracotta, glow: GAME.terracotta, icon: GAME.terracotta },
+    available: { bg: GAME.panelRaised, border: GAME.line, glow: undefined, icon: GAME.textMuted },
+    locked: { bg: 'rgba(255,255,255,0.03)', border: GAME.line, glow: undefined, icon: GAME.textMuted },
+  }[state];
+  const locked = state === 'locked';
+
+  return (
+    <CollectibleFrame
+      slotStyle={[styles.topicSlot, locked && styles.lockedSlot]}
+      background={look.bg}
+      borderColor={look.border}
+      borderStyle={locked ? 'dashed' : 'solid'}
+      glowColor={look.glow}
+      unlockTick={unlockTick}
+      pulse={state === 'current'}
+      disabled={locked}
+      label={locked ? `${topic.title}, locked. Finish level ${requiredLevel} first.` : topic.title}
+      onPress={onPress}
+    >
+      <View style={styles.cardBody}>
+        <View style={[styles.cardIcon, { borderColor: look.border }]}>
+          <Ionicons name={locked ? 'lock-closed' : iconName} size={22} color={look.icon} />
+        </View>
+        <GText variant="caption" style={styles.cardTitle} numberOfLines={3} color={locked ? GAME.textMuted : GAME.text}>
+          {topic.title}
+        </GText>
+      </View>
+
+      {state === 'complete' ? (
+        <View style={styles.checkBadge}>
+          <Ionicons name="checkmark" size={14} color={GAME.dark} />
+        </View>
+      ) : null}
+
+      <View
+        style={[
+          styles.levelPill,
+          state === 'complete' && { backgroundColor: GAME.gold },
+          state === 'current' && { backgroundColor: GAME.terracotta },
+          state === 'available' && { backgroundColor: GAME.panel, borderTopWidth: 1, borderTopColor: GAME.line },
+          locked && { backgroundColor: 'transparent', borderTopWidth: 1, borderTopColor: GAME.line },
+        ]}
+      >
+        <GText
+          variant="label"
+          color={state === 'complete' || state === 'current' ? GAME.dark : GAME.textMuted}
+          numberOfLines={1}
+          style={styles.levelPillText}
+        >
+          {locked ? `Finish Level ${requiredLevel}` : `LEVEL ${level.level}`}
+        </GText>
+      </View>
+    </CollectibleFrame>
+  );
+}
+
+function LearningDeck({ roadmap, nextUp, onOpenTopic }: { roadmap: RoadmapLevelOut[]; nextUp: TopicEntry | null; onOpenTopic: (id: string) => void }) {
+  const flat = roadmap.flatMap((level) => level.topics.map((topic) => ({ level, topic })));
+  const nextIdx = flat.findIndex((f) => !f.topic.completed);
+  const pageCount = Math.max(1, Math.ceil(flat.length / PAGE_SIZE));
+  const [page, setPage] = useState(() => Math.max(0, Math.floor(nextIdx / PAGE_SIZE)));
+  const currentLevel = nextUp?.level.level ?? 0;
+
+  const pageItems = flat.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const placeholders = Math.max(0, PAGE_SIZE - pageItems.length);
+
+  return (
+    <View style={styles.tabBody}>
+      {nextUp ? (
+        <Pressable
+          onPress={() => onOpenTopic(nextUp.topic.topic_id)}
+          accessibilityRole="button"
+          accessibilityLabel={`Continue lesson: ${nextUp.topic.title}`}
+          style={({ pressed }) => [styles.upNext, { transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+        >
+          <GText variant="caption" color={GAME.textMuted}>
+            Up next
+          </GText>
+          <GText variant="bodyMedium" numberOfLines={1} style={styles.flex1}>
+            {nextUp.topic.title}
+          </GText>
+          <Ionicons name="play-circle" size={22} color={GAME.terracotta} />
+        </Pressable>
+      ) : (
+        <View style={[styles.celebrate, { borderColor: GAME.gold }]}>
+          <Ionicons name="trophy" size={22} color={GAME.gold} />
+          <GText variant="bodyMedium" color={GAME.gold}>
+            Roadmap complete — nice work!
+          </GText>
+        </View>
+      )}
+
+      <View style={styles.grid}>
+        {pageItems.map((entry, i) => {
+          const isCurrent = nextUp?.topic.topic_id === entry.topic.topic_id;
+          const state: CardState = entry.topic.completed
+            ? 'complete'
+            : isCurrent
+              ? 'current'
+              : entry.level.level > currentLevel
+                ? 'locked'
+                : 'available';
+          return (
+            <TopicCard
+              key={entry.topic.topic_id}
+              entry={entry}
+              state={state}
+              requiredLevel={currentLevel}
+              iconName={topicIcon(entry.topic.title, page * PAGE_SIZE + i)}
+              onPress={() => onOpenTopic(entry.topic.topic_id)}
+            />
+          );
+        })}
+        {Array.from({ length: placeholders }).map((_, i) => (
+          <View key={`ph-${i}`} style={styles.topicSlot} />
+        ))}
+      </View>
+
+      {pageCount > 1 ? (
+        <View style={styles.pager}>
+          <Pressable
+            onPress={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Previous cards"
+            style={[styles.pagerBtn, page === 0 && { opacity: 0.35 }]}
+          >
+            <Ionicons name="chevron-back" size={20} color={GAME.text} />
+          </Pressable>
+          <View style={styles.dots}>
+            {Array.from({ length: pageCount }).map((_, i) => (
+              <View key={i} style={[styles.dot, i === page && styles.dotActive]} />
+            ))}
+          </View>
+          <Pressable
+            onPress={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            disabled={page === pageCount - 1}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Next cards"
+            style={[styles.pagerBtn, page === pageCount - 1 && { opacity: 0.35 }]}
+          >
+            <Ionicons name="chevron-forward" size={20} color={GAME.text} />
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tab 2: Habits & checklist                                                  */
+/* -------------------------------------------------------------------------- */
+
+function HabitsTab({
+  checklist,
+  selectedSection,
+  onSelectSection,
+  completeItem,
+  isPending,
+}: {
+  checklist: ChecklistItemOut[];
+  selectedSection: string;
+  onSelectSection: (section: string) => void;
+  completeItem: CompleteFn;
+  isPending: boolean;
+}) {
+  const sections = CHECKLIST_SECTIONS.map((section) => ({ section, items: checklist.filter((i) => i.section === section) })).filter(
+    (s) => s.items.length > 0
+  );
+  const selected = sections.find((s) => s.section === selectedSection) ?? sections[0];
+
+  return (
+    <View style={styles.tabBody}>
+      <View style={styles.habitGrid}>
+        {sections.map(({ section, items }) => {
+          const done = items.filter((i) => i.completed).length;
+          const all = done === items.length;
+          const isSel = selected?.section === section;
+          return (
+            <HabitTile
+              key={section}
+              section={section}
+              done={done}
+              total={items.length}
+              all={all}
+              selected={isSel}
+              onPress={() => onSelectSection(section)}
+            />
+          );
+        })}
+      </View>
+
+      {selected ? (
+        <View style={styles.habitPanel}>
+          {selected.items.map((item, i) => (
+            <View key={item.item_id} style={[styles.checkRow, i > 0 && styles.checkRowBorder]}>
+              <Ionicons
+                name={item.completed ? 'checkmark-circle' : 'ellipse-outline'}
+                size={20}
+                color={item.completed ? GAME.emerald : GAME.textMuted}
+              />
+              <GText variant="body" style={styles.flex1} color={item.completed ? GAME.textMuted : GAME.text}>
+                {item.title}
+              </GText>
+              {!item.completed ? (
+                <Pressable
+                  onPress={() => completeItem(item.item_id, 'checklist')}
+                  disabled={isPending}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Complete ${item.title}`}
+                  style={({ pressed }) => [styles.completeBtn, isPending && { opacity: 0.5 }, { transform: [{ scale: pressed ? 0.95 : 1 }] }]}
+                >
+                  <GText variant="label" color={GAME.dark}>
+                    COMPLETE
+                  </GText>
+                </Pressable>
+              ) : null}
+            </View>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function HabitTile({
+  section,
+  done,
+  total,
+  all,
+  selected,
+  onPress,
+}: {
+  section: string;
+  done: number;
+  total: number;
+  all: boolean;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const unlockTick = useUnlockTrigger(all);
+  return (
+    <CollectibleFrame
+      slotStyle={styles.habitSlot}
+      background={all ? '#22201D' : GAME.panelRaised}
+      borderColor={all ? GAME.gold : selected ? GAME.terracotta : GAME.line}
+            unlockTick={unlockTick}
+      selected={selected}
+      label={`${section}, ${done} of ${total} complete`}
+      onPress={onPress}
+    >
+      <View style={styles.habitTile}>
+        <Ionicons name={CHECKLIST_SECTION_ICON[section] ?? 'list-outline'} size={24} color={all ? GAME.gold : GAME.text} />
+        <View style={styles.flex1}>
+          <GText variant="bodyMedium" numberOfLines={2}>
+            {section}
+          </GText>
+          <GText variant="caption" color={GAME.textMuted}>
+            {done} of {total}
+          </GText>
+        </View>
+        {all ? <Ionicons name="checkmark-circle" size={18} color={GAME.emerald} /> : null}
+      </View>
+    </CollectibleFrame>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tab 3: Trophy cabinet                                                      */
+/* -------------------------------------------------------------------------- */
+
+function BadgeTile({
+  badge,
+  selected,
+  onPress,
+}: {
+  badge: EducationProgressOut['badges'][number];
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const unlockTick = useUnlockTrigger(badge.earned);
+  return (
+    <CollectibleFrame
+      slotStyle={styles.badgeSlot}
+      background={badge.earned ? '#22201D' : 'rgba(255,255,255,0.03)'}
+      borderColor={badge.earned ? GAME.gold : selected ? GAME.terracotta : GAME.line}
+      borderStyle={badge.earned ? 'solid' : 'dashed'}
+            unlockTick={unlockTick}
+      selected={selected}
+      label={`${badge.title}, ${badge.earned ? 'earned' : 'locked'}`}
+      onPress={onPress}
+    >
+      <View style={[styles.cardBody, !badge.earned && { opacity: 0.5 }]}>
+        <View style={[styles.cardIcon, { borderColor: badge.earned ? GAME.gold : GAME.line }]}>
+          <Ionicons
+            name={badge.earned ? BADGE_ICON[badge.badge_id] ?? 'ribbon-outline' : 'lock-closed'}
+            size={22}
+            color={badge.earned ? GAME.gold : GAME.textMuted}
+          />
+        </View>
+        <GText variant="caption" style={styles.cardTitle} numberOfLines={2} color={badge.earned ? GAME.text : GAME.textMuted}>
+          {badge.title}
+        </GText>
+      </View>
+    </CollectibleFrame>
+  );
+}
+
+type MilestoneState = {
+  milestones: AwardedMilestoneOut[];
+  isPending: boolean;
+  error: { message: string } | null;
+  onRetry: () => void;
+  newlyAwardedIds: Set<string>;
+};
+
+function MilestoneCard({ milestone, isNew }: { milestone: AwardedMilestoneOut; isNew?: boolean }) {
+  const { colors } = useAppTheme();
+  const hasDetails = Object.keys(milestone.details ?? {}).length > 0;
+
+  return (
+    <Card>
+      <View style={styles.cardHeader}>
+        <IconChip name={MILESTONE_CATEGORY_ICON[milestone.category] ?? 'trophy-outline'} tone="terracotta" size={36} />
+        <View style={styles.flex1}>
+          <View style={styles.pillRow}>
+            <View style={[styles.pill, { backgroundColor: colors.terracottaSoft }]}>
+              <Text variant="label" tone="terracotta">
+                {(MILESTONE_CATEGORY_LABEL[milestone.category] ?? milestone.category).toUpperCase()}
+              </Text>
+            </View>
+            {isNew ? (
+              <View style={[styles.pill, { backgroundColor: colors.positiveSoft }]}>
+                <Text variant="label" tone="positive">
+                  NEW
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </View>
+      <Text variant="bodyMedium" style={styles.headline}>
+        {milestone.headline}
+      </Text>
+      {hasDetails ? (
+        <View style={styles.details}>
+          <ReasoningTree data={milestone.details} />
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+function TrophyTab({ badges, milestoneState }: { badges: EducationProgressOut['badges']; milestoneState: MilestoneState }) {
+  const [selectedBadgeId, setSelectedBadgeId] = useState<string | null>(null);
+  const selectedBadge = badges.find((b) => b.badge_id === selectedBadgeId);
+  const { milestones, isPending, error, onRetry, newlyAwardedIds } = milestoneState;
+
+  return (
+    <View style={styles.tabBody}>
+      <GText variant="label" color={GAME.textMuted}>
+        BADGES
+      </GText>
+      <View style={styles.grid}>
+        {badges.map((badge) => (
+          <BadgeTile
+            key={badge.badge_id}
+            badge={badge}
+            selected={selectedBadgeId === badge.badge_id}
+            onPress={() => setSelectedBadgeId((cur) => (cur === badge.badge_id ? null : badge.badge_id))}
+          />
+        ))}
+      </View>
+      {selectedBadge ? (
+        <View style={styles.badgeInfo}>
+          <GText variant="bodyMedium" color={selectedBadge.earned ? GAME.gold : GAME.text}>
+            {selectedBadge.title}
+          </GText>
+          <GText variant="caption" color={GAME.textMuted}>
+            {selectedBadge.description}
+          </GText>
+        </View>
+      ) : null}
+
+      <GText variant="label" color={GAME.textMuted} style={styles.milestonesLabel}>
+        MILESTONES
+      </GText>
+      {isPending ? (
+        <SkeletonCard />
+      ) : error ? (
+        <ErrorState message={error.message} onRetry={onRetry} />
+      ) : milestones.length === 0 ? (
+        <Card>
+          <EmptyState
+            title="No milestones yet"
+            message="These are awarded automatically as you build your buffer, unlock more capacity, clear debt, or cut a recurring cost — nothing to do here directly."
+          />
+        </Card>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.milestoneRail}>
+          {milestones.map((m) => (
+            <View key={m.milestone_id} style={styles.milestoneSlot}>
+              <MilestoneCard milestone={m} isNew={newlyAwardedIds.has(m.milestone_id)} />
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Quiz + topic modal (unchanged behaviour)                                   */
+/* -------------------------------------------------------------------------- */
 
 function QuizOption({
   letter,
@@ -109,151 +873,6 @@ function QuizOption({
   );
 }
 
-/** Smooths a sequence of points into a single cubic-bezier path (the
- * standard Catmull-Rom -> bezier conversion) so the roadmap reads as one
- * continuous winding road through every topic node, however irregular the
- * vertical spacing between them (a level banner's gap included). */
-function smoothPath(points: { x: number; y: number }[]): string {
-  if (points.length === 0) return '';
-  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-  let d = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
-    const c1x = p1.x + (p2.x - p0.x) / 6;
-    const c1y = p1.y + (p2.y - p0.y) / 6;
-    const c2x = p2.x - (p3.x - p1.x) / 6;
-    const c2y = p2.y - (p3.y - p1.y) / 6;
-    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
-  }
-  return d;
-}
-
-function findTopicById(roadmap: RoadmapLevelOut[], topicId: string): { level: RoadmapLevelOut; topic: RoadmapTopicOut } | null {
-  for (const level of roadmap) {
-    const topic = level.topics.find((t) => t.topic_id === topicId);
-    if (topic) return { level, topic };
-  }
-  return null;
-}
-
-const NODE_SIZE = 56;
-const ROAD_V_SPACING = 84;
-// Vertical space reserved before each level's first node: the banner
-// pill's own height (~56px, centered 30px into the slot) plus a clear
-// 24px gap so it never overlaps the node sitting right below it.
-const ROAD_BANNER_SLOT = 110;
-const ROAD_BANNER_CENTER_OFFSET = 30;
-const ROAD_PAD_TOP = 28;
-const ROAD_PAD_BOTTOM = 36;
-
-/** The whole beginner roadmap as one winding road (an SVG path smoothed
- * through every topic's node), banners marking each level like mile-
- * markers, and a node per topic the user taps to open its lesson + quiz --
- * the "actual roadmap" visual metaphor, in place of 26 topics' worth of
- * always-visible description text. */
-function RoadmapPath({
-  roadmap,
-  currentTopicId,
-  onSelectTopic,
-}: {
-  roadmap: RoadmapLevelOut[];
-  currentTopicId: string | null;
-  onSelectTopic: (topicId: string) => void;
-}) {
-  const { colors } = useAppTheme();
-  const [width, setWidth] = useState(0);
-  const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
-
-  const flat = roadmap.flatMap((level) => level.topics.map((topic) => ({ level, topic })));
-
-  const yPositions: number[] = [];
-  const bannerYByLevel: Record<number, number> = {};
-  let cursor = ROAD_PAD_TOP;
-  roadmap.forEach((level) => {
-    bannerYByLevel[level.level] = cursor + ROAD_BANNER_CENTER_OFFSET;
-    cursor += ROAD_BANNER_SLOT;
-    level.topics.forEach(() => {
-      yPositions.push(cursor);
-      cursor += ROAD_V_SPACING;
-    });
-  });
-  const totalHeight = cursor - ROAD_V_SPACING + NODE_SIZE / 2 + 36 + ROAD_PAD_BOTTOM;
-
-  if (width === 0) {
-    return <View style={{ height: totalHeight }} onLayout={onLayout} />;
-  }
-
-  const centerX = width / 2;
-  const amplitude = Math.min(width * 0.3, centerX - NODE_SIZE / 2 - 20);
-  const roadPoints = flat.map((_, i) => ({ x: centerX + amplitude * Math.sin(i * 0.65 + 0.3), y: yPositions[i] }));
-  const roadD = smoothPath(roadPoints);
-  const firstIncompleteIndex = flat.findIndex((f) => !f.topic.completed);
-
-  return (
-    <View onLayout={onLayout} style={{ height: totalHeight }}>
-      <View style={styles.roadmapSvgWrap} pointerEvents="none">
-        <Svg width={width} height={totalHeight}>
-          <Path d={roadD} stroke={colors.paperSunken} strokeWidth={18} strokeLinecap="round" fill="none" />
-          <Path d={roadD} stroke={colors.borderStrong} strokeWidth={2.5} strokeDasharray="10 12" strokeLinecap="round" fill="none" />
-        </Svg>
-      </View>
-
-      {roadmap.map((level) => {
-        const allComplete = level.topics.every((t) => t.completed);
-        return (
-          <View key={level.level} style={[styles.levelBanner, { top: bannerYByLevel[level.level] - 26 }]} pointerEvents="none">
-            <View style={[styles.levelBannerPill, { backgroundColor: colors.paperRaised, borderColor: colors.borderStrong }]}>
-              <IconChip name={LEVEL_ICON[level.level] ?? 'book-outline'} tone={allComplete ? 'positive' : 'petrol'} size={28} />
-              <View>
-                <Text variant="label" tone="muted">
-                  LEVEL {level.level}
-                </Text>
-                <Text variant="bodyMedium">{level.title}</Text>
-              </View>
-            </View>
-          </View>
-        );
-      })}
-
-      {flat.map(({ topic }, i) => {
-        const { x, y } = roadPoints[i];
-        const isCurrent = i === firstIncompleteIndex || topic.topic_id === currentTopicId;
-        const state = topic.completed ? 'complete' : isCurrent ? 'current' : 'upcoming';
-        const tone = {
-          complete: { bg: colors.positiveSoft, border: colors.positive, icon: colors.positive },
-          current: { bg: colors.terracottaSoft, border: colors.terracotta, icon: colors.terracotta },
-          upcoming: { bg: colors.paperRaised, border: colors.border, icon: colors.inkFaint },
-        }[state];
-        const iconName = topic.completed ? 'checkmark' : isCurrent ? 'flag' : 'ellipse-outline';
-
-        return (
-          <View key={topic.topic_id} style={[styles.roadmapNodeWrap, { left: x - 54, top: y - NODE_SIZE / 2 }]}>
-            <Pressable
-              onPress={() => onSelectTopic(topic.topic_id)}
-              accessibilityRole="button"
-              accessibilityLabel={topic.title}
-              style={[styles.roadmapNode, { backgroundColor: tone.bg, borderColor: tone.border }]}
-            >
-              <Ionicons name={iconName} size={24} color={tone.icon} />
-            </Pressable>
-            <Text variant="caption" tone={isCurrent ? 'terracotta' : 'muted'} style={styles.roadmapNodeLabel} numberOfLines={2}>
-              {topic.title}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-/** The lesson + quiz for a single tapped roadmap node, in a modal -- the
- * content every topic used to show inline (keeping the roadmap itself
- * compact) and the thing "Continue" now opens directly, so the button
- * always has something visible to jump to instead of relying on scroll
- * position. */
 function TopicModal({
   active,
   onClose,
@@ -263,7 +882,7 @@ function TopicModal({
   onSelectAnswer,
   feedback,
 }: {
-  active: { level: RoadmapLevelOut; topic: RoadmapTopicOut } | null;
+  active: TopicEntry | null;
   onClose: () => void;
   completeItem: CompleteFn;
   isPending: boolean;
@@ -318,9 +937,7 @@ function TopicModal({
                         QUICK CHECK
                       </Text>
                     </View>
-                    <Text variant="bodyMedium" style={styles.quizPrompt}>
-                      {topic.quiz_question.prompt}
-                    </Text>
+                    <Text variant="bodyMedium">{topic.quiz_question.prompt}</Text>
                     <View style={styles.quizOptions}>
                       {topic.quiz_question.options.map((option, index) => {
                         const isSelected = selectedAnswer === index;
@@ -386,134 +1003,23 @@ function TopicModal({
   );
 }
 
-function ChecklistSectionCard({
-  section,
-  items,
-  index,
-  isOpen,
-  onToggle,
-  completeItem,
-  isPending,
-}: {
-  section: string;
-  items: ChecklistItemOut[];
-  index: number;
-  isOpen: boolean;
-  onToggle: () => void;
-  completeItem: CompleteFn;
-  isPending: boolean;
-}) {
-  const { colors } = useAppTheme();
-  const chevronRotation = useChevronRotation(isOpen);
-  const completedCount = items.filter((i) => i.completed).length;
-  const allComplete = completedCount === items.length;
+/* -------------------------------------------------------------------------- */
+/* The deck: header bar + tabs + tab content (all tracking logic lives here)  */
+/* -------------------------------------------------------------------------- */
 
-  return (
-    <Reveal index={index}>
-      <Card>
-        <Pressable
-          onPress={onToggle}
-          style={styles.levelHeader}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: isOpen }}
-          accessibilityLabel={section}
-        >
-          <IconChip name={CHECKLIST_SECTION_ICON[section] ?? 'list-outline'} tone={allComplete ? 'positive' : 'terracotta'} size={40} />
-          <View style={styles.levelHeaderCopy}>
-            <Text variant="h2">{section}</Text>
-            <Text variant="caption" tone="muted">
-              {completedCount} of {items.length} complete
-            </Text>
-          </View>
-          <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
-            <Ionicons name="chevron-down" size={22} color={colors.inkFaint} />
-          </Animated.View>
-        </Pressable>
-        {isOpen ? (
-          <Reveal>
-            <View style={styles.topicList}>
-              {items.map((item) => (
-                <View key={item.item_id} style={[styles.checkRow, { borderTopColor: colors.border }]}>
-                  <Ionicons
-                    name={item.completed ? 'checkmark-circle' : 'ellipse-outline'}
-                    size={20}
-                    color={item.completed ? colors.positive : colors.inkFaint}
-                  />
-                  <Text variant="body" style={styles.checkTitle}>
-                    {item.title}
-                  </Text>
-                  {!item.completed ? (
-                    <Button label="Complete" variant="ghost" disabled={isPending} onPress={() => completeItem(item.item_id, 'checklist')} />
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          </Reveal>
-        ) : null}
-      </Card>
-    </Reveal>
-  );
-}
-
-function MilestoneCard({ milestone, isNew }: { milestone: AwardedMilestoneOut; isNew?: boolean }) {
-  const { colors } = useAppTheme();
-  const hasDetails = Object.keys(milestone.details ?? {}).length > 0;
-
-  return (
-    <Card>
-      <View style={styles.cardHeader}>
-        <IconChip name={MILESTONE_CATEGORY_ICON[milestone.category] ?? 'trophy-outline'} tone="terracotta" size={36} />
-        <View style={styles.cardHeaderText}>
-          <View style={styles.pillRow}>
-            <View style={[styles.pill, { backgroundColor: colors.terracottaSoft }]}>
-              <Text variant="label" tone="terracotta">
-                {(MILESTONE_CATEGORY_LABEL[milestone.category] ?? milestone.category).toUpperCase()}
-              </Text>
-            </View>
-            {isNew ? (
-              <View style={[styles.pill, { backgroundColor: colors.positiveSoft }]}>
-                <Text variant="label" tone="positive">
-                  NEW
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </View>
-      </View>
-      <Text variant="bodyMedium" style={styles.headline}>
-        {milestone.headline}
-      </Text>
-      {hasDetails ? (
-        <View style={styles.details}>
-          <ReasoningTree data={milestone.details} />
-        </View>
-      ) : null}
-    </Card>
-  );
-}
-
-function findNextTopic(roadmap: RoadmapLevelOut[]): { level: RoadmapLevelOut; topic: RoadmapTopicOut } | null {
-  for (const level of roadmap) {
-    const topic = level.topics.find((t) => !t.completed);
-    if (topic) return { level, topic };
-  }
-  return null;
-}
-
-function EducationHub({ education }: { education: EducationProgressOut }) {
-  const { colors } = useAppTheme();
+function ProgressDeck({ education, milestoneState }: { education: EducationProgressOut; milestoneState: MilestoneState }) {
   const complete = useCompleteEducation();
+  const [tab, setTab] = useState<DeckTab>('deck');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [quizFeedback, setQuizFeedback] = useState<QuizFeedbackMap>({});
-  // Which roadmap node's lesson + quiz is open in the modal -- null means
-  // closed. Resolved by id (not a stored snapshot) so the modal always
-  // reflects the latest `education` data after a completion mutation.
+  // Resolved by id (not a stored snapshot) so the modal always reflects the
+  // latest `education` data after a completion mutation.
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
-  const [expandedChecklistSection, setExpandedChecklistSection] = useState<string | null>(() => {
+  const [selectedSection, setSelectedSection] = useState<string>(() => {
     const firstIncomplete = CHECKLIST_SECTIONS.find((section) =>
       education.checklist.some((item) => item.section === section && !item.completed)
     );
-    return firstIncomplete ?? null;
+    return firstIncomplete ?? CHECKLIST_SECTIONS[0];
   });
 
   const completeItem: CompleteFn = (itemId, kind) =>
@@ -528,9 +1034,8 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
 
   const selectAnswer = (topicId: string, index: number) => {
     setSelectedAnswers((current) => ({ ...current, [topicId]: index }));
-    // A fresh pick deserves a fresh read -- stale "not quite" feedback from
-    // a previous guess on this same topic would otherwise linger and read
-    // as if it applied to the new answer.
+    // A fresh pick deserves a fresh read -- stale "not quite" feedback would
+    // otherwise linger and read as if it applied to the new answer.
     setQuizFeedback((current) => {
       if (!(topicId in current)) return current;
       const next = { ...current };
@@ -543,94 +1048,28 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
   const nextUp = findNextTopic(education.roadmap);
 
   return (
-    <View style={styles.education}>
-      <View>
-        <Text variant="caption" tone="muted">
-          Financial literacy roadmap
-        </Text>
-        <Text variant="h1">Learn with purpose</Text>
-        <Text variant="body" tone="muted" style={styles.sectionIntro}>
-          Short lessons move from financial hygiene to investing. Your progress reflects learning, never wealth or returns.
-        </Text>
-      </View>
+    <View style={styles.shell}>
+      <ResourceBar
+        streak={education.learning_streak_days}
+        topics={education.completed_topics}
+        badges={badgesEarned}
+        progressPct={education.progress_pct}
+      />
+      <DeckTabs value={tab} onChange={setTab} />
 
-      <Reveal index={0}>
-        <Card raised>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <IconChip name="flame" tone="terracotta" size={36} />
-              <AnimatedFigure target={education.learning_streak_days} formatter={(n) => `${Math.round(n)}`} variant="h1" />
-              <Text variant="caption" tone="muted">
-                day streak
-              </Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.statItem}>
-              <IconChip name="book" tone="petrol" size={36} />
-              <AnimatedFigure target={education.completed_topics} formatter={(n) => `${Math.round(n)}`} variant="h1" />
-              <Text variant="caption" tone="muted">
-                topics done
-              </Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.statItem}>
-              <IconChip name="trophy" tone="warning" size={36} />
-              <AnimatedFigure target={badgesEarned} formatter={(n) => `${Math.round(n)}`} variant="h1" />
-              <Text variant="caption" tone="muted">
-                badges
-              </Text>
-            </View>
-          </View>
-          <View style={styles.roadmapProgressRow}>
-            <Text variant="bodyMedium">Roadmap progress</Text>
-            <Text variant="figure" tone="petrol">
-              {education.progress_pct}%
-            </Text>
-          </View>
-          <ProgressBar fraction={education.progress_pct / 100} tone="petrol" duration={900} />
-        </Card>
-      </Reveal>
-
-      <Reveal index={1}>
-        {nextUp ? (
-          <Card raised style={styles.continueCard}>
-            <View style={styles.continueRow}>
-              <IconChip name="play-circle" tone="terracotta" size={44} />
-              <View style={styles.continueCopy}>
-                <Text variant="label" tone="terracotta">
-                  CONTINUE LEARNING
-                </Text>
-                <Text variant="bodyMedium">{nextUp.topic.title}</Text>
-                <Text variant="caption" tone="muted">
-                  Level {nextUp.level.level} · {nextUp.level.title}
-                </Text>
-              </View>
-            </View>
-            <Button label="Continue" fullWidth onPress={() => setActiveTopicId(nextUp.topic.topic_id)} />
-          </Card>
-        ) : (
-          <Card raised style={styles.celebrateCard}>
-            <IconChip name="trophy" tone="positive" size={48} />
-            <Text variant="h2">Roadmap complete!</Text>
-            <Text variant="caption" tone="muted" style={styles.celebrateText}>
-              You've finished every topic on the beginner roadmap. Nice work.
-            </Text>
-          </Card>
-        )}
-      </Reveal>
-
-      <View style={styles.subsection}>
-        <SectionHeader title="Your learning path" subtitle="Follow the road — tap a stop to learn and quiz" />
-        <Reveal index={2}>
-          <Card>
-            <RoadmapPath
-              roadmap={education.roadmap}
-              currentTopicId={nextUp?.topic.topic_id ?? null}
-              onSelectTopic={(topicId) => setActiveTopicId(topicId)}
-            />
-          </Card>
-        </Reveal>
-      </View>
+      {tab === 'deck' ? (
+        <LearningDeck roadmap={education.roadmap} nextUp={nextUp} onOpenTopic={setActiveTopicId} />
+      ) : null}
+      {tab === 'habits' ? (
+        <HabitsTab
+          checklist={education.checklist}
+          selectedSection={selectedSection}
+          onSelectSection={setSelectedSection}
+          completeItem={completeItem}
+          isPending={complete.isPending}
+        />
+      ) : null}
+      {tab === 'trophies' ? <TrophyTab badges={education.badges} milestoneState={milestoneState} /> : null}
 
       <TopicModal
         active={activeTopicId ? findTopicById(education.roadmap, activeTopicId) : null}
@@ -641,64 +1080,20 @@ function EducationHub({ education }: { education: EducationProgressOut }) {
         onSelectAnswer={(i) => activeTopicId && selectAnswer(activeTopicId, i)}
         feedback={activeTopicId ? quizFeedback[activeTopicId] : undefined}
       />
-
-      <View style={styles.subsection}>
-        <SectionHeader title="Getting started checklist" subtitle="Everyday habits, ticked off at your own pace" />
-        {CHECKLIST_SECTIONS.map((section, index) => {
-          const items = education.checklist.filter((item) => item.section === section);
-          if (items.length === 0) return null;
-          return (
-            <ChecklistSectionCard
-              key={section}
-              section={section}
-              items={items}
-              index={index}
-              isOpen={expandedChecklistSection === section}
-              onToggle={() => setExpandedChecklistSection(expandedChecklistSection === section ? null : section)}
-              completeItem={completeItem}
-              isPending={complete.isPending}
-            />
-          );
-        })}
-      </View>
-
-      <View style={styles.subsection}>
-        <SectionHeader title="Badges" subtitle="Earned by finishing modules and quizzes" />
-        <View style={styles.badgeGrid}>
-          {education.badges.map((badge, index) => (
-            <Reveal key={badge.badge_id} index={index}>
-              <Card style={[styles.badgeCard, !badge.earned && styles.badgeLocked]}>
-                <View style={styles.badgeIconRow}>
-                  <IconChip name={BADGE_ICON[badge.badge_id] ?? 'ribbon-outline'} tone={badge.earned ? 'positive' : 'neutral'} size={40} />
-                  <Ionicons
-                    name={badge.earned ? 'checkmark-circle' : 'lock-closed-outline'}
-                    size={badge.earned ? 18 : 15}
-                    color={badge.earned ? colors.positive : colors.inkFaint}
-                  />
-                </View>
-                <Text variant="bodyMedium" style={styles.badgeTitle}>
-                  {badge.title}
-                </Text>
-                <Text variant="caption" tone="muted">
-                  {badge.description}
-                </Text>
-              </Card>
-            </Reveal>
-          ))}
-        </View>
-      </View>
     </View>
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Screen                                                                     */
+/* -------------------------------------------------------------------------- */
+
 export function ProgressScreen() {
-  const { colors } = useAppTheme();
   const { data, isPending, isRefetching, error, refetch } = useMilestoneHistory();
   const educationQuery = useEducationProgress();
   const checkMutation = useCheckMilestones();
   const [newlyAwardedIds, setNewlyAwardedIds] = useState<Set<string>>(new Set());
   const [checked, setChecked] = useState(false);
-  const [showAllMilestones, setShowAllMilestones] = useState(false);
 
   const runCheck = () =>
     checkMutation.mutate(undefined, {
@@ -713,7 +1108,6 @@ export function ProgressScreen() {
   }, [checked]);
 
   const milestones = (data?.milestones ?? []).slice().reverse();
-  const visibleMilestones = showAllMilestones ? milestones : milestones.slice(0, 4);
 
   return (
     <ScreenContainer onRefresh={runCheck} refreshing={isRefetching || checkMutation.isPending}>
@@ -722,93 +1116,111 @@ export function ProgressScreen() {
           Your journey
         </Text>
         <Text variant="display">Progress</Text>
-        <Text variant="body" tone="muted" style={styles.subtitle}>
-          A friendlier way to see what you've built -- one lesson, one habit, one milestone at a time.
-        </Text>
       </View>
 
-      {educationQuery.data ? <EducationHub education={educationQuery.data} /> : null}
-
-      <View style={styles.subsection}>
-        <SectionHeader title="Milestones" subtitle="Awarded automatically for what you've actually done" />
-        {isPending ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : error ? (
-          <ErrorState message={error.message} onRetry={() => refetch()} />
-        ) : milestones.length === 0 ? (
-          <Card>
-            <EmptyState
-              title="No milestones yet"
-              message="These are awarded automatically as you build your buffer, unlock more capacity, clear debt, or cut a recurring cost — nothing to do here directly."
-            />
-          </Card>
-        ) : (
-          <>
-            {visibleMilestones.map((m, index) => (
-              <Reveal key={m.milestone_id} index={index}>
-                <MilestoneCard milestone={m} isNew={newlyAwardedIds.has(m.milestone_id)} />
-              </Reveal>
-            ))}
-            {milestones.length > 4 ? (
-              <Pressable
-                onPress={() => setShowAllMilestones((v) => !v)}
-                style={styles.showMoreRow}
-                accessibilityRole="button"
-                accessibilityLabel={showAllMilestones ? 'Show fewer milestones' : 'Show all milestones'}
-              >
-                <Text variant="bodyMedium" tone="petrol">
-                  {showAllMilestones ? 'Show less' : `Show ${milestones.length - 4} more`}
-                </Text>
-                <Ionicons name={showAllMilestones ? 'chevron-up' : 'chevron-down'} size={18} color={colors.petrol} />
-              </Pressable>
-            ) : null}
-          </>
-        )}
-      </View>
+      {educationQuery.data ? (
+        <ProgressDeck
+          education={educationQuery.data}
+          milestoneState={{
+            milestones,
+            isPending,
+            error: error ?? null,
+            onRetry: () => refetch(),
+            newlyAwardedIds,
+          }}
+        />
+      ) : educationQuery.error ? (
+        <ErrorState message={educationQuery.error.message} onRetry={() => educationQuery.refetch()} />
+      ) : (
+        <SkeletonCard />
+      )}
     </ScreenContainer>
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Styles                                                                     */
+/* -------------------------------------------------------------------------- */
+
 const styles = StyleSheet.create({
-  subtitle: { marginTop: SPACE.xs },
-  education: { gap: SPACE.lg, marginTop: SPACE.xxl },
-  subsection: { gap: SPACE.md, marginTop: SPACE.lg },
-  sectionIntro: { marginTop: SPACE.xs },
+  flex1: { flex: 1 },
 
+  shell: { backgroundColor: GAME.bg, borderRadius: RADIUS.lg, padding: SPACE.md, gap: SPACE.md, marginTop: SPACE.lg },
+  tabBody: { gap: SPACE.md },
+
+  // resource bar
+  resourceBar: { backgroundColor: GAME.panel, borderRadius: RADIUS.md, padding: SPACE.md, borderWidth: 1, borderColor: GAME.line },
   statsRow: { flexDirection: 'row', alignItems: 'center' },
-  statItem: { flex: 1, alignItems: 'center', gap: 2 },
-  statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', marginVertical: SPACE.xs },
-  roadmapProgressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: SPACE.lg, marginBottom: SPACE.sm },
+  statTile: { flex: 1, alignItems: 'center', gap: 2 },
+  statValue: { color: GAME.text },
+  statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: GAME.line },
+  progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: SPACE.md, marginBottom: SPACE.xs },
+  barTrack: { height: 10, borderRadius: 5, backgroundColor: GAME.bg, overflow: 'hidden', borderWidth: 1, borderColor: GAME.line },
+  barFill: { height: '100%', borderRadius: 5, backgroundColor: GAME.gold },
 
-  continueCard: { gap: SPACE.md },
-  continueRow: { flexDirection: 'row', gap: SPACE.sm, alignItems: 'center' },
-  continueCopy: { flex: 1, gap: 2 },
-  celebrateCard: { alignItems: 'center', gap: SPACE.xs },
-  celebrateText: { textAlign: 'center' },
+  // tabs
+  tabs: { flexDirection: 'row', backgroundColor: GAME.panel, borderRadius: RADIUS.pill, padding: 4, gap: 4 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.xs, paddingVertical: SPACE.sm, borderRadius: RADIUS.pill },
+  tabActive: { backgroundColor: GAME.gold },
 
-  levelHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
-  levelHeaderCopy: { flex: 1, gap: 2 },
+  // collectible frame
+  frameOuter: { flex: 1 },
+  frameInner: { flex: 1, borderRadius: RADIUS.md, borderWidth: 2, overflow: 'hidden' },
+  pulseRing: { position: 'absolute', top: -4, left: -4, right: -4, bottom: -4, borderRadius: RADIUS.md + 4, borderWidth: 2 },
+  shine: { position: 'absolute', top: -40, bottom: -40, width: 34, backgroundColor: 'rgba(255,255,255,0.35)' },
 
-  topicList: { marginTop: SPACE.sm },
-
-  roadmapSvgWrap: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 },
-  levelBanner: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  levelBannerPill: {
-    flexDirection: 'row',
+  // learning grid
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: SPACE.sm },
+  topicSlot: { width: '31.5%', aspectRatio: 0.7 },
+  cardBody: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACE.xs, paddingHorizontal: 12, paddingTop: 8, paddingBottom: 36 },
+  cardIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: GAME.bg },
+  cardTitle: { textAlign: 'center' },
+  checkBadge: { position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: GAME.emerald, alignItems: 'center', justifyContent: 'center' },
+  levelPill: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 28,
     alignItems: 'center',
-    gap: SPACE.sm,
-    paddingHorizontal: SPACE.md,
-    paddingVertical: SPACE.sm,
-    borderRadius: RADIUS.pill,
-    borderWidth: StyleSheet.hairlineWidth * 1.5,
+    justifyContent: 'center',
+    borderBottomLeftRadius: RADIUS.md - 2,
+    borderBottomRightRadius: RADIUS.md - 2,
   },
-  roadmapNodeWrap: { position: 'absolute', width: 108, alignItems: 'center' },
-  roadmapNode: { width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  roadmapNodeLabel: { marginTop: SPACE.xs, textAlign: 'center', width: 100 },
+  levelPillText: { fontSize: 10, textAlign: 'center' },
+  lockedSlot: { opacity: 0.6 },
 
+  upNext: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, paddingHorizontal: SPACE.md, height: 44, borderRadius: RADIUS.pill, backgroundColor: GAME.panel, borderWidth: 1, borderColor: GAME.line },
+  celebrate: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.sm, padding: SPACE.md, borderRadius: RADIUS.md, borderWidth: 2 },
+
+  pager: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pagerBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: GAME.panel, alignItems: 'center', justifyContent: 'center' },
+  dots: { flexDirection: 'row', gap: 6 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: GAME.line },
+  dotActive: { backgroundColor: GAME.gold, width: 20 },
+
+  // habits
+  habitGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: SPACE.sm },
+  habitSlot: { width: '48.5%', height: 76 },
+  habitTile: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, paddingHorizontal: SPACE.sm },
+  habitPanel: { backgroundColor: GAME.panel, borderRadius: RADIUS.md, padding: SPACE.md, borderWidth: 1, borderColor: GAME.line },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
+  checkRowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: GAME.line, paddingTop: SPACE.sm, marginTop: SPACE.sm },
+  completeBtn: { backgroundColor: GAME.gold, borderRadius: RADIUS.pill, paddingHorizontal: SPACE.sm, paddingVertical: 6 },
+
+  // trophies
+  badgeSlot: { width: '31.5%', aspectRatio: 0.9 },
+  badgeInfo: { backgroundColor: GAME.panel, borderRadius: RADIUS.md, padding: SPACE.sm, gap: 2, borderWidth: 1, borderColor: GAME.line },
+  milestonesLabel: { marginTop: SPACE.xs },
+  milestoneRail: { gap: SPACE.sm },
+  milestoneSlot: { width: 280 },
+  cardHeader: { flexDirection: 'row', gap: SPACE.sm, alignItems: 'center' },
+  pillRow: { flexDirection: 'row', gap: SPACE.sm, flexWrap: 'wrap' },
+  pill: { paddingHorizontal: SPACE.sm, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' },
+  headline: { marginTop: SPACE.sm },
+  details: { marginTop: SPACE.md },
+
+  // modal
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(20, 15, 8, 0.55)', justifyContent: 'center', padding: SPACE.lg },
   modalSheetWrap: { maxHeight: '85%', borderRadius: RADIUS.lg },
   modalHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
@@ -818,7 +1230,6 @@ const styles = StyleSheet.create({
 
   quizCard: { marginTop: SPACE.sm, padding: SPACE.md, borderRadius: RADIUS.md, gap: SPACE.sm },
   quizHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm },
-  quizPrompt: {},
   quizOptions: { gap: SPACE.sm },
   quizOption: {
     flexDirection: 'row',
@@ -833,29 +1244,4 @@ const styles = StyleSheet.create({
   quizPassedRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs },
   quizFeedbackRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.xs },
   quizFeedbackText: { flex: 1 },
-
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACE.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: SPACE.sm,
-    marginTop: SPACE.sm,
-  },
-  checkTitle: { flex: 1 },
-
-  badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm },
-  badgeCard: { flexBasis: '47%', flexGrow: 1, gap: SPACE.xs },
-  badgeLocked: { opacity: 0.55 },
-  badgeIconRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  badgeTitle: { marginTop: SPACE.xs },
-
-  showMoreRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.xs, paddingVertical: SPACE.sm },
-
-  cardHeader: { flexDirection: 'row', gap: SPACE.sm, alignItems: 'center' },
-  cardHeaderText: { flex: 1 },
-  pillRow: { flexDirection: 'row', gap: SPACE.sm, flexWrap: 'wrap' },
-  pill: { paddingHorizontal: SPACE.sm, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start' },
-  headline: { marginTop: SPACE.sm },
-  details: { marginTop: SPACE.md },
 });
