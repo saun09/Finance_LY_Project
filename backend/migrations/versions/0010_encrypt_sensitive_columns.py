@@ -4,6 +4,12 @@ Each listed column becomes TEXT holding an `enc:v1:` ciphertext, and every
 existing row is encrypted in place. Requires DATA_ENCRYPTION_KEY to be set
 when this runs -- and the same key afterwards, or the data is unreadable.
 
+Idempotent on purpose: this file used to be a second revision "0008"
+(forked with 0008_add_profile_identity_fields), so a database may have
+recorded "0008" after running the encryption instead of the identity
+columns. upgrade() therefore adds any missing identity columns and skips
+columns/values that are already encrypted, so it is safe on either path.
+
 Revision ID: 0010
 Revises: 0009
 Create Date: 2026-10-23
@@ -14,7 +20,7 @@ from decimal import Decimal
 from alembic import op
 import sqlalchemy as sa
 
-from app.crypto import EncryptedDecimal, EncryptedInteger, EncryptedJSON, EncryptedString
+from app.crypto import PREFIX, EncryptedDecimal, EncryptedInteger, EncryptedJSON, EncryptedString
 
 revision = "0010"
 down_revision = "0009"
@@ -61,6 +67,16 @@ COLUMNS = {
 }
 
 
+# Same columns as 0008_add_profile_identity_fields -- re-added here only if
+# that revision was skipped because of the duplicate "0008" (see docstring).
+IDENTITY_COLUMNS = [
+    ("full_name", sa.String(128)),
+    ("email", sa.String(255)),
+    ("date_of_birth", sa.Date()),
+    ("phone_number", sa.String(32)),
+]
+
+
 def _parse_plain(enc_type, text: str):
     """Old column value (already cast to TEXT) -> the Python value the
     encrypted type expects."""
@@ -94,17 +110,30 @@ def _rewrite(table: str, pk: str, columns, transform) -> None:
         bind.execute(update, params)
 
 
+def _encrypt_unless_encrypted(enc_type, text: str) -> str:
+    if text.startswith(PREFIX):
+        return text
+    return enc_type.process_bind_param(_parse_plain(enc_type, text), None)
+
+
 def upgrade() -> None:
+    inspector = sa.inspect(op.get_bind())
+
+    existing = {c["name"] for c in inspector.get_columns("user_profile")}
+    for name, type_ in IDENTITY_COLUMNS:
+        if name not in existing:
+            op.add_column("user_profile", sa.Column(name, type_, nullable=True))
+
     for table, (pk, columns) in COLUMNS.items():
-        with op.batch_alter_table(table) as batch:
-            for name, _, orig_type, _ in columns:
-                batch.alter_column(
-                    name, type_=sa.Text(), existing_type=orig_type, postgresql_using=f'"{name}"::text'
-                )
-        _rewrite(
-            table, pk, columns,
-            lambda enc_type, text: enc_type.process_bind_param(_parse_plain(enc_type, text), None),
-        )
+        current = {c["name"]: c["type"] for c in inspector.get_columns(table)}
+        to_alter = [c for c in columns if not isinstance(current[c[0]], sa.Text)]
+        if to_alter:
+            with op.batch_alter_table(table) as batch:
+                for name, _, orig_type, _ in to_alter:
+                    batch.alter_column(
+                        name, type_=sa.Text(), existing_type=orig_type, postgresql_using=f'"{name}"::text'
+                    )
+        _rewrite(table, pk, columns, _encrypt_unless_encrypted)
 
 
 def downgrade() -> None:
