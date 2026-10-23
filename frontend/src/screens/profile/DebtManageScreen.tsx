@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
 import { invalidateFinancialData, qk } from '../../api/queryClient';
@@ -10,6 +10,8 @@ import { Card } from '../../components/Card';
 import { EmiPurposePicker, EMI_PURPOSE_LABEL } from '../../components/EmiPurposePicker';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { FloatingActionButton } from '../../components/FloatingActionButton';
+import { FormSheet } from '../../components/FormSheet';
 import { InlineError } from '../../components/InlineError';
 import { ListRow } from '../../components/ListRow';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -19,7 +21,6 @@ import { Text } from '../../components/Text';
 import { TextField } from '../../components/TextField';
 import { useDemoUser } from '../../context/DemoUserContext';
 import { useEmis } from '../../hooks/useProfileManagement';
-import { SPACE } from '../../theme/tokens';
 import { formatPaise, percentInputToBps, rupeeInputToPaise } from '../../utils/currency';
 
 export function DebtManageScreen() {
@@ -27,6 +28,7 @@ export function DebtManageScreen() {
   const queryClient = useQueryClient();
   const { data, isPending, error, refetch } = useEmis();
 
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [lender, setLender] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [tenureInput, setTenureInput] = useState('');
@@ -56,6 +58,7 @@ export function DebtManageScreen() {
       setTenureInput('');
       setRateInput('');
       setPurpose(null);
+      setSheetOpen(false);
       invalidateAll();
     },
     onError: (err) =>
@@ -79,7 +82,7 @@ export function DebtManageScreen() {
   const closed = data?.filter((e) => e.closed_at !== null) ?? [];
 
   return (
-    <ScreenContainer>
+    <ScreenContainer floatingAction={<FloatingActionButton label="Add loan" onPress={() => setSheetOpen(true)} />}>
       <View>
         <Text variant="caption" tone="muted">
           Profile
@@ -95,7 +98,7 @@ export function DebtManageScreen() {
         <>
           {active.length === 0 && closed.length === 0 ? (
             <Card>
-              <EmptyState title="No loans recorded" message="Add a loan below if you have one." />
+              <EmptyState title="No loans recorded" message="Tap “Add loan” below if you have one." />
             </Card>
           ) : (
             <Card>
@@ -123,30 +126,23 @@ export function DebtManageScreen() {
         </>
       )}
 
-      <Card style={styles.formCard}>
-        <Text variant="label" tone="muted">
-          ADD A LOAN
-        </Text>
+      <FormSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} title="Add a loan">
         <TextField label="Lender" value={lender} onChangeText={setLender} placeholder="HDFC Bank" />
-        <TextField label="Monthly EMI" value={amountInput} onChangeText={setAmountInput} placeholder="18000" keyboardType="numeric" prefix="₹" />
+        <TextField label="Monthly EMI" value={amountInput} onChangeText={setAmountInput} placeholder="18,000" keyboardType="numeric" prefix="₹" formatAsCurrency />
         <TextField label="Remaining tenure (months)" value={tenureInput} onChangeText={setTenureInput} placeholder="36" keyboardType="numeric" />
         <TextField label="Interest rate (annual %)" value={rateInput} onChangeText={setRateInput} placeholder="9.5" keyboardType="decimal-pad" />
         <EmiPurposePicker value={purpose} onChange={setPurpose} />
         {formError ? <InlineError message={formError} /> : null}
         <Button
           label="Add loan"
-          variant="secondary"
+          fullWidth
           loading={addMutation.isPending}
           onPress={() => {
             setFormError(null);
             addMutation.mutate();
           }}
         />
-      </Card>
+      </FormSheet>
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  formCard: { gap: SPACE.md },
-});

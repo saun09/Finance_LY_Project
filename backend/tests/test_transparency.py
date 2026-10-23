@@ -88,6 +88,54 @@ def test_risk_profile_trace_reconstructs_purely_from_stored_data(session):
     assert "tier" in trace.headline.lower()
 
 
+def test_risk_profile_ml_trace_full_mode_is_a_secondary_opinion(session):
+    _full_onboarding(session)
+    trace = get_trace(session, USER, "risk_profile_ml")
+
+    assert trace.gap_detected is False
+    assert trace.framing_label == "model explanation"
+    assert "shown alongside" in trace.claim_note
+    assert "never instead of" in trace.claim_note
+    section = trace.reasoning["ml_prediction"]
+    assert "predicted_tier" in section
+    rule_based_fact = next(f for f in trace.sections[0].facts if f.label == "Did the rule-based tier agree?")
+    assert rule_based_fact.value in ("Yes", "No")
+
+
+def test_risk_profile_ml_trace_quick_mode_is_authoritative_not_a_second_opinion(session):
+    upsert_profile(
+        session,
+        user_id=USER,
+        income_paise=100_000_00,
+        income_stability=IncomeStability.REGULAR,
+        employment_type=EmploymentType.SALARIED,
+        dependents_count=0,
+        cash_balance_paise=800_000_00,
+    )
+    add_expense_item(session, user_id=USER, category="Rent", amount_paise=20_000_00, frequency=ExpenseFrequency.MONTHLY, is_essential=True)
+    quick_answers = {
+        qid: AGGRESSIVE_ANSWERS[qid]
+        for qid in ("windfall_allocation", "friend_description", "drawdown_reaction", "sure_gain_tradeoff")
+    }
+    compute_and_log_risk_tier(session, USER, quick_answers)
+
+    ml_trace = get_trace(session, USER, "risk_profile_ml")
+    assert ml_trace.gap_detected is False
+    assert "became your stated risk tier directly" in ml_trace.claim_note
+    assert "never instead of" not in ml_trace.claim_note
+    assert "Estimated from your 4 main answers" in ml_trace.headline
+    fact_labels = {f.label for f in ml_trace.sections[0].facts}
+    assert "Did the rule-based tier agree?" not in fact_labels
+    assert "Was there a separate rule-based tier to compare?" in fact_labels
+
+    rule_trace = get_trace(session, USER, "risk_profile")
+    assert rule_trace.reasoning["questionnaire"]["estimation_method"] != "deterministic"
+    questionnaire_summary = next(s.summary for s in rule_trace.sections if s.key == "questionnaire")
+    assert "trained model estimated" in questionnaire_summary
+    questionnaire_facts = {f.label for f in next(s.facts for s in rule_trace.sections if s.key == "questionnaire")}
+    assert "Your willingness score" not in questionnaire_facts  # no weighted-sum score ran
+
+
 def test_allocation_trace_names_which_tier_and_which_rule(session):
     _full_onboarding(session)
     trace = get_trace(session, USER, "allocation")
@@ -294,7 +342,7 @@ def test_list_available_decision_types_reflects_what_has_been_computed(session):
     assert list_available_decision_types(session, USER) == {}
     _full_onboarding(session)
     available = list_available_decision_types(session, USER)
-    assert set(available) == {"risk_profile", "allocation", "debt_leak_engine", "personalization"}
+    assert set(available) == {"risk_profile", "risk_profile_ml", "allocation", "debt_leak_engine", "personalization"}
     assert all(count >= 1 for count in available.values())
 
 

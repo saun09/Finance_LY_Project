@@ -21,12 +21,26 @@ def get_allocation(user_id: str, session: Session = Depends(get_session)):
     except NoRiskTierError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
-    portfolio, target = report.portfolio, report.target
+    portfolio, target, personalized = report.portfolio, report.target, report.personalized
+    cap = personalized.cap
     return AllocationReportOut(
+        event_id=report.event.event_id,
         final_tier=target.final_tier,
         rule_table_version=target.rule_table_version,
         reasoning=target.reasoning,
+        target_bounds_pct=target.bounds_pct,
         target_pct=target.target_pct,
+        displayed_target_pct=personalized.displayed_target_pct,
+        personalization={
+            "offset_pct_points": cap.applied_offset_pct_points,
+            "requested_offset_pct_points": cap.requested_offset_pct_points,
+            "capped": cap.capped,
+            "cap_reason": cap.cap_reason,
+            "max_equity_pct": cap.max_equity_pct,
+            "capacity_ceiling": personalized.capacity_ceiling,
+            "capacity_binding_constraints": list(personalized.capacity_binding_constraints),
+            "edits_considered": personalized.edits_considered,
+        },
         current_exposure_pct=portfolio.exposure_by_asset_class_pct,
         current_exposure_paise=portfolio.exposure_by_asset_class_paise,
         total_value_paise=portfolio.total_value_paise,

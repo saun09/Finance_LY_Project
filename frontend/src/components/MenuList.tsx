@@ -1,8 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAppTheme } from '../theme/ThemeContext';
 import { SPACE } from '../theme/tokens';
 import { Card } from './Card';
+import { IconChip } from './IconChip';
 import { Text } from './Text';
 
 export interface MenuItem {
@@ -11,11 +13,17 @@ export interface MenuItem {
   subtitle: string;
   onPress: () => void;
   disabled?: boolean;
+  /** Optional leading icon chip -- every existing caller omits this and
+   * renders exactly as before; new callers (e.g. Home's "A few things to
+   * check") opt in per-row. */
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconTone?: 'positive' | 'warning' | 'danger' | 'petrol' | 'terracotta';
 }
 
-/** A card of tappable rows with a title/subtitle/chevron, each separated
- * by a hairline divider -- the shared shape behind Insights, Transparency,
- * and Profile's own navigation menus. */
+/** A card of tappable rows with an optional icon chip, title/subtitle,
+ * and chevron, each separated by a hairline divider -- the shared shape
+ * behind Insights, Transparency, Profile's navigation menus, and Home's
+ * condensed recommendation list. */
 export function MenuList({ items }: { items: MenuItem[] }) {
   const { colors } = useAppTheme();
   return (
@@ -25,8 +33,22 @@ export function MenuList({ items }: { items: MenuItem[] }) {
           <Pressable
             disabled={item.disabled}
             onPress={item.onPress}
-            style={({ pressed }) => [styles.row, { opacity: pressed ? 0.7 : item.disabled ? 0.5 : 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel={item.subtitle ? `${item.title}. ${item.subtitle}` : item.title}
+            accessibilityState={{ disabled: !!item.disabled }}
+            style={(state) => {
+              // react-native-web adds `focused` to this callback's state on
+              // top of core RN's `pressed` -- not in the upstream type, so
+              // read it defensively rather than widening Pressable's props.
+              const focused = (state as { focused?: boolean }).focused;
+              return [
+                styles.row,
+                (state.pressed || focused) && !item.disabled ? { backgroundColor: colors.paperSunken } : null,
+                { opacity: item.disabled ? 0.5 : 1 },
+              ];
+            }}
           >
+            {item.icon ? <IconChip name={item.icon} tone={item.iconTone ?? 'petrol'} size={32} /> : null}
             <View style={styles.rowText}>
               <Text variant="h2">{item.title}</Text>
               <Text variant="caption" tone="muted">

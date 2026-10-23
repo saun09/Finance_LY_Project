@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.db import get_session
 from app.main import app
+from app.services.allocation_config import CONFIG_VERSION as ALLOCATION_CONFIG_VERSION
 
 USER = "api-transparency-user-1"
 
@@ -70,7 +71,9 @@ def test_allocation_trace_via_api_has_no_holding_descriptions(client):
     resp = client.get(f"/users/{USER}/transparency/allocation")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["reasoning"]["which_rule"] == "v1"
+    # Nested under its section, and read from the config rather than
+    # hardcoded, so a version bump doesn't silently break this test.
+    assert body["reasoning"]["rule_lookup"]["which_rule"] == ALLOCATION_CONFIG_VERSION
     raw = resp.text
     assert "Equity fund" not in raw  # Module 4's hard constraint holds through the transparency view too
 

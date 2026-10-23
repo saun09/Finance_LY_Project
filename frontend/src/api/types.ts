@@ -86,8 +86,19 @@ export interface ProfileIn {
 
 export interface ProfileOut extends ProfileIn {
   user_id: string;
+  full_name: string | null;
+  email: string | null;
+  date_of_birth: string | null;
+  phone_number: string | null;
   onboarding_started_at: string;
   onboarding_completed_at: string | null;
+}
+
+export interface ProfileIdentityIn {
+  full_name?: string | null;
+  email?: string | null;
+  date_of_birth?: string | null;
+  phone_number?: string | null;
 }
 
 export type EmiPurpose = 'home' | 'vehicle' | 'personal' | 'education' | 'credit_card' | 'electronics' | 'other';
@@ -187,6 +198,11 @@ export interface QuestionnaireOut {
   version: string;
   effective_date: string;
   questions: QuestionOut[];
+  /** The 4 questions a "quick mode" submission must still answer (the
+   * other 3 are optional, traded for a model-estimated rather than
+   * deterministic stated tier). Submit with exactly these 4 answers, or
+   * all 7 -- any other subset is rejected server-side. */
+  required_question_ids: string[];
 }
 
 export interface RiskProfileAnswersIn {
@@ -207,6 +223,10 @@ export interface RiskTierOut {
   capped: boolean;
   binding_constraints: string[];
   unlock_conditions: UnlockConditionOut[];
+  /** "deterministic" for a full-7-answer submission; a model version
+   * string (e.g. "rf_classifier_reduced_4items_v1") when stated_tier
+   * instead came from a quick-mode (4-answer) ML estimate. */
+  estimation_method: string;
 }
 
 // ---- Module 4: allocation ----
@@ -228,11 +248,34 @@ export interface HoldingClassificationOut {
   is_look_through: boolean;
 }
 
+/** Module 7's effect on an allocation. `offset_pct_points` is what reached
+ * the displayed mix; `requested_offset_pct_points` is what the user's past
+ * choices asked for before the capacity cap. */
+export interface AllocationPersonalizationOut {
+  offset_pct_points: string;
+  requested_offset_pct_points: string;
+  capped: boolean;
+  cap_reason: 'capacity_ceiling' | 'zero_floor' | null;
+  max_equity_pct: string;
+  capacity_ceiling: number;
+  capacity_binding_constraints: string[];
+  edits_considered: number;
+}
+
 export interface AllocationReportOut {
+  /** Record the user's response to this report against this id. */
+  event_id: string;
   final_tier: number;
   rule_table_version: string;
   reasoning: string;
+  /** [min, max] weight range per asset class for this tier -- the same
+   * ranges `reasoning` describes in prose, structured for display. */
+  target_bounds_pct: Record<AssetClass, [string, string]>;
+  /** The tier's base target, straight from the rule table. */
   target_pct: Record<AssetClass, string>;
+  /** Base + personal offset, capped by capacity -- what the user is shown. */
+  displayed_target_pct: Record<AssetClass, string>;
+  personalization: AllocationPersonalizationOut;
   current_exposure_pct: Record<AssetClass, string>;
   current_exposure_paise: Record<AssetClass, number>;
   total_value_paise: number;
@@ -322,10 +365,15 @@ export interface RefinanceBreakevenOut {
 
 // ---- Module 7: personalization ----
 
+export type RejectReason = 'dont_understand' | 'too_risky' | 'too_safe' | 'other';
+
 export interface RecordAllocationOutcomeIn {
   action_taken: EditActionTaken;
+  /** Required for "edited"; the server records the displayed mix itself for "accepted". */
   chosen_target_pct?: Record<AssetClass, string> | null;
   funded?: boolean | null;
+  /** Required for "rejected". */
+  reason_code?: RejectReason | null;
 }
 
 export interface OffsetStepOut {
@@ -334,10 +382,24 @@ export interface OffsetStepOut {
   delta_pct: string;
   offset_before: string;
   offset_after: string;
+  timestamp: string | null;
+  event_id: string | null;
+  action_taken: EditActionTaken | null;
+  funded: boolean | null;
+  suggested_equity_pct: string | null;
+  chosen_equity_pct: string | null;
+  reason_code: string | null;
 }
 
 export interface PersonalizationOut {
+  /** What the user's history asks for, before the cap. */
   offset_pct_points: string;
+  /** What actually reached the displayed mix. */
+  applied_offset_pct_points: string;
+  offset_capped: boolean;
+  cap_reason: 'capacity_ceiling' | 'zero_floor' | null;
+  max_equity_pct: string;
+  capacity_binding_constraints: string[];
   edits_considered: number;
   final_tier: number;
   capacity_ceiling: number;
@@ -409,6 +471,30 @@ export interface TraceResultOut {
   claim_note: string | null;
   contested: boolean;
   contest_reason_code: string | null;
+}
+
+/** The shape of `TraceResultOut.reasoning["ml_prediction"]` specifically
+ * for module_source "risk_profile_ml" -- cast to this after checking
+ * `module_source`, same as any other decision type's reasoning shape
+ * (the field is untyped Record<string, unknown> because it genuinely
+ * varies per decision type). */
+export interface MLFeatureContributionOut {
+  question_id: string;
+  selected_value: string;
+  selected_points: number;
+  shap_value: number;
+  direction: 'increases' | 'decreases' | 'neutral';
+  question_text: string;
+  answer_label: string;
+}
+
+export interface MLPredictionSectionOut {
+  model_version: string;
+  predicted_tier: number;
+  predicted_tier_label: string;
+  class_probabilities: Record<string, number>;
+  is_authoritative: boolean;
+  feature_contributions: MLFeatureContributionOut[];
 }
 
 export interface AvailableDecisionTypesOut {
@@ -601,6 +687,8 @@ export interface SuggestionEventRead {
   module_source: string;
   tier: string | null;
   offset: number | null;
+  /** Module 7's equity offset in effect when this suggestion was shown. */
+  offset_pct_points: string | null;
   suggested_value: Record<string, unknown>;
   chosen_value: Record<string, unknown> | null;
   delta: Record<string, unknown> | null;

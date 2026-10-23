@@ -22,11 +22,35 @@ class HoldingClassificationOut(BaseModel):
     is_look_through: bool
 
 
+class AllocationPersonalizationOut(BaseModel):
+    """Module 7's effect on this allocation. `offset_pct_points` is what
+    actually reached the displayed mix; `requested_offset_pct_points` is
+    what the user's history asked for before the capacity cap."""
+
+    offset_pct_points: Decimal
+    requested_offset_pct_points: Decimal
+    capped: bool
+    cap_reason: str | None
+    max_equity_pct: Decimal
+    capacity_ceiling: int
+    capacity_binding_constraints: list[str]
+    edits_considered: int
+
+
 class AllocationReportOut(BaseModel):
+    # record the user's response to this report against this id
+    event_id: str
     final_tier: int
     rule_table_version: str
     reasoning: str
+    # [min, max] weight range per asset class for this tier -- the same
+    # ranges `reasoning` describes in prose, structured for display.
+    target_bounds_pct: dict[AssetClass, tuple[Decimal, Decimal]]
+    # the tier's base target, straight from the rule table
     target_pct: dict[AssetClass, Decimal]
+    # base + personal offset, capped by capacity -- what the user is shown
+    displayed_target_pct: dict[AssetClass, Decimal]
+    personalization: AllocationPersonalizationOut
     current_exposure_pct: dict[AssetClass, Decimal]
     current_exposure_paise: dict[AssetClass, int]
     total_value_paise: int

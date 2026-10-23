@@ -66,6 +66,14 @@ const HOLDING_TYPE_GROUPS: { group: string; options: { value: HoldingType; label
   },
 ];
 
+/** Flattened from HOLDING_TYPE_GROUPS -- the single source of truth for
+ * "what does this HoldingType enum value read as", reused by any screen
+ * that displays an already-stored holding's type (so it never falls back
+ * to showing the raw enum, e.g. "gold_etf"). */
+export const HOLDING_TYPE_LABEL: Record<HoldingType, string> = Object.fromEntries(
+  HOLDING_TYPE_GROUPS.flatMap((g) => g.options.map((opt) => [opt.value, opt.label]))
+) as Record<HoldingType, string>;
+
 interface Props {
   value: HoldingType | null;
   onChange: (value: HoldingType | null) => void;

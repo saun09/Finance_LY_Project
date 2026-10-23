@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
 import { invalidateFinancialData, qk } from '../../api/queryClient';
@@ -10,6 +10,8 @@ import { Card } from '../../components/Card';
 import { ChoiceGroup } from '../../components/ChoiceGroup';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { FloatingActionButton } from '../../components/FloatingActionButton';
+import { FormSheet } from '../../components/FormSheet';
 import { InlineError } from '../../components/InlineError';
 import { ListRow } from '../../components/ListRow';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -20,8 +22,8 @@ import { TextField } from '../../components/TextField';
 import { Toggle } from '../../components/Toggle';
 import { useDemoUser } from '../../context/DemoUserContext';
 import { useExpenses } from '../../hooks/useProfileManagement';
-import { SPACE } from '../../theme/tokens';
 import { formatPaise, rupeeInputToPaise } from '../../utils/currency';
+import { titleCase } from '../../utils/textFormat';
 
 const FREQUENCY_OPTIONS: { value: ExpenseFrequency; label: string }[] = [
   { value: 'monthly', label: 'Monthly' },
@@ -29,11 +31,18 @@ const FREQUENCY_OPTIONS: { value: ExpenseFrequency; label: string }[] = [
   { value: 'one_time', label: 'One-time' },
 ];
 
+const FREQUENCY_LABEL: Record<ExpenseFrequency, string> = {
+  monthly: 'Monthly',
+  annual: 'Annual',
+  one_time: 'One-time',
+};
+
 export function ExpensesManageScreen() {
   const { userId } = useDemoUser();
   const queryClient = useQueryClient();
   const { data, isPending, error, refetch } = useExpenses();
 
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [category, setCategory] = useState('');
   const [amountInput, setAmountInput] = useState('');
   const [frequency, setFrequency] = useState<ExpenseFrequency | null>(null);
@@ -62,6 +71,7 @@ export function ExpensesManageScreen() {
       setAmountInput('');
       setFrequency(null);
       setIsEssential(true);
+      setSheetOpen(false);
       invalidateAll();
     },
     onError: (err) =>
@@ -81,7 +91,7 @@ export function ExpensesManageScreen() {
   const removed = data?.filter((e) => e.removed_at !== null) ?? [];
 
   return (
-    <ScreenContainer>
+    <ScreenContainer floatingAction={<FloatingActionButton label="Add expense" onPress={() => setSheetOpen(true)} />}>
       <View>
         <Text variant="caption" tone="muted">
           Profile
@@ -97,15 +107,15 @@ export function ExpensesManageScreen() {
         <>
           {active.length === 0 && removed.length === 0 ? (
             <Card>
-              <EmptyState title="No expenses yet" message="Add your recurring expenses below." />
+              <EmptyState title="No expenses yet" message="Tap “Add expense” below to record your recurring expenses." />
             </Card>
           ) : (
             <Card>
               {active.map((item) => (
                 <ListRow
                   key={item.id}
-                  title={item.category}
-                  subtitle={`${item.frequency}${item.is_essential ? ' · essential' : ''}`}
+                  title={titleCase(item.category)}
+                  subtitle={`${FREQUENCY_LABEL[item.frequency]}${item.is_essential ? ' · essential' : ''}`}
                   trailing={formatPaise(item.amount_paise)}
                   onRemove={() => removeMutation.mutate(item.id)}
                   removing={removingId === item.id}
@@ -120,8 +130,8 @@ export function ExpensesManageScreen() {
               {removed.map((item) => (
                 <ListRow
                   key={item.id}
-                  title={item.category}
-                  subtitle={`${item.frequency} · removed`}
+                  title={titleCase(item.category)}
+                  subtitle={`${FREQUENCY_LABEL[item.frequency]} · removed`}
                   trailing={formatPaise(item.amount_paise)}
                 />
               ))}
@@ -130,36 +140,30 @@ export function ExpensesManageScreen() {
         </>
       )}
 
-      <Card style={styles.formCard}>
-        <Text variant="label" tone="muted">
-          ADD AN EXPENSE
-        </Text>
+      <FormSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} title="Add an expense">
         <TextField label="Category" value={category} onChangeText={setCategory} placeholder="Rent" />
         <TextField
           label="Amount"
           value={amountInput}
           onChangeText={setAmountInput}
-          placeholder="15000"
+          placeholder="15,000"
           keyboardType="numeric"
           prefix="₹"
+          formatAsCurrency
         />
         <ChoiceGroup label="Frequency" options={FREQUENCY_OPTIONS} value={frequency} onChange={setFrequency} />
         <Toggle label="Essential" value={isEssential} onChange={setIsEssential} />
         {formError ? <InlineError message={formError} /> : null}
         <Button
           label="Add expense"
-          variant="secondary"
+          fullWidth
           loading={addMutation.isPending}
           onPress={() => {
             setFormError(null);
             addMutation.mutate();
           }}
         />
-      </Card>
+      </FormSheet>
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  formCard: { gap: SPACE.md },
-});

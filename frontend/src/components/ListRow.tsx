@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { SPACE } from '../theme/tokens';
+import { RADIUS, SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
 import { Text } from './Text';
 
@@ -39,11 +40,27 @@ export function ListRow({ title, subtitle, trailing, onRemove, removing }: Props
           onPress={onRemove}
           disabled={removing}
           hitSlop={8}
-          style={styles.removeButton}
+          style={(state) => {
+            // react-native-web adds `focused` to this callback's state on
+            // top of core RN's `pressed` -- not in the upstream type, read
+            // defensively (same approach as Button/MenuList). A soft
+            // danger-tinted fill on press/focus gives the delete action a
+            // deliberate "about to remove this" feedback state instead of
+            // an instant, easy-to-miss tap.
+            const focused = (state as { focused?: boolean }).focused;
+            return [
+              styles.removeButton,
+              { backgroundColor: (state.pressed || focused) && !removing ? colors.dangerSoft : 'transparent' },
+            ];
+          }}
         >
-          <Text variant="bodyMedium" tone="danger">
-            {removing ? '…' : '✕'}
-          </Text>
+          {removing ? (
+            <Text variant="bodyMedium" tone="danger">
+              …
+            </Text>
+          ) : (
+            <Ionicons name="close" size={16} color={colors.danger} />
+          )}
         </Pressable>
       ) : null}
     </View>
@@ -59,5 +76,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth * 1.5,
   },
   textCol: { flex: 1, gap: 2 },
-  removeButton: { paddingHorizontal: SPACE.xs, paddingVertical: SPACE.xs },
+  removeButton: { width: 30, height: 30, borderRadius: RADIUS.pill, alignItems: 'center', justifyContent: 'center' },
 });

@@ -28,6 +28,20 @@ function groupIndian(digits: string): string {
   return `${groups.join(',')},${last3}`;
 }
 
+/** Live Indian-grouped display for a rupee amount being typed, e.g.
+ * "120000" -> "1,20,000" -- commas are display-only; TextField strips them
+ * back out before calling onChangeText, so rupeeInputToPaise and every
+ * other existing caller still receive the plain digit string they always
+ * have. Non-digit characters (an accidental paste, a decimal point) are
+ * stripped rather than rejected, since this is a display transform, not
+ * validation -- rupeeInputToPaise remains the single source of truth for
+ * whether an amount is valid. */
+export function formatRupeeInputDisplay(raw: string): string {
+  const digitsOnly = raw.replace(/\D/g, '');
+  if (digitsOnly === '') return '';
+  return groupIndian(digitsOnly);
+}
+
 /** paise (integer) -> "₹1,20,000" (whole rupees, floor of any leftover paise) */
 export function formatPaise(paise: number): string {
   const sign = paise < 0 ? '-' : '';
@@ -64,6 +78,24 @@ export function rupeeInputToPaise(input: string): number | null {
   const rupees = Number(trimmed);
   if (!Number.isFinite(rupees)) return null;
   return Math.round(rupees * 100);
+}
+
+function trimDecimal(n: number): string {
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/** Compact Indian-style abbreviation for a tight label context (e.g. "3
+ * entries · ₹3L/year") -- lakh (L, 10^5) and crore (Cr, 10^7). Below one
+ * lakh it falls back to formatPaise's full grouped form, since e.g.
+ * "₹96,000" is already short -- this is for shortening large figures
+ * specifically, not a universal replacement for formatPaise. */
+export function formatPaiseCompact(paise: number): string {
+  const sign = paise < 0 ? '-' : '';
+  const rupees = Math.floor(Math.abs(paise) / 100);
+  if (rupees >= 1_00_00_000) return `${sign}₹${trimDecimal(rupees / 1_00_00_000)}Cr`;
+  if (rupees >= 1_00_000) return `${sign}₹${trimDecimal(rupees / 1_00_000)}L`;
+  return formatPaise(paise);
 }
 
 /** A Decimal-string percentage from the backend (e.g. "35.00") -> "35%" */

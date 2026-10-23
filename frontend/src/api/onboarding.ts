@@ -11,6 +11,7 @@ import type {
   HoldingOut,
   InsurancePolicyIn,
   InsurancePolicyOut,
+  ProfileIdentityIn,
   ProfileIn,
   ProfileOut,
   UserMonthlySnapshotRead,
@@ -21,6 +22,9 @@ export const onboardingApi = {
     apiClient.put<ProfileOut>(`/users/${userId}/profile`, body).then((r) => r.data),
 
   getProfile: (userId: string) => apiClient.get<ProfileOut>(`/users/${userId}/profile`).then((r) => r.data),
+
+  putProfileIdentity: (userId: string, body: ProfileIdentityIn) =>
+    apiClient.put<ProfileOut>(`/users/${userId}/profile/identity`, body).then((r) => r.data),
 
   postEmi: (userId: string, body: EmiIn) =>
     apiClient.post<EmiOut>(`/users/${userId}/emis`, body).then((r) => r.data),

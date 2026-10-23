@@ -86,10 +86,16 @@ def run_verification(
     }
 
     try:
+        # This workflow does a live web search plus an LLM pass per
+        # request (see its own `official_evidence` sources), and its
+        # response time varies widely in practice -- observed anywhere
+        # from under a minute to over two. 110s leaves headroom under the
+        # client's own 115s timeout (see rumourVerification.ts) rather
+        # than racing it.
         response = httpx.post(
             N8N_WEBHOOK_URL,
             json=payload,
-            timeout=60.0,
+            timeout=110.0,
         )
 
         response.raise_for_status()

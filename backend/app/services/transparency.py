@@ -32,7 +32,20 @@ made through this module, and they are deliberately NOT the same claim:
   `framing_label` lives on the spec rather than being one module-level
   constant.
 
-This module makes no model calls and never will; see Module 1's original
+  "model explanation" -- Module 3b's `risk_profile_ml` only: a genuinely
+  trained scikit-learn model (not a weighted sum, not a rule table), whose
+  individual predictions are explained with per-feature SHAP values. This
+  is the one decision type where "which input moved the output, and by
+  how much" is answered by a model's actual learned behaviour rather than
+  a hardcoded formula a person already wrote down -- which is exactly why
+  it cannot share the "transparent reasoning" claim above, and gets its
+  own distinct, honestly-scoped label instead.
+
+This module itself still makes no model calls and never will, and still
+never recomputes a decision to explain it -- Module 3b's model runs once,
+at submission time, in app/services/risk_profile_ml.py; the SHAP values it
+produces are logged like any other suggestion_event, and this module only
+ever reads them back. Every other decision type keeps Module 1's original
 convention that scoring/cap logic stays pure and deterministic, with no
 hidden state.
 """
@@ -57,13 +70,17 @@ from app.services.event_log import (
 FRAMING_LABEL = "transparent reasoning"
 RETRIEVAL_EXPLANATION_LABEL = "retrieval explanation"
 THIRD_PARTY_OUTPUT_LABEL = "third-party workflow output"
+#: Module 3b (`risk_profile_ml`) only -- see the docstring above. Named to
+#: avoid "AI"/"explainable", same as every other label here (see the
+#: import-time assertion at the bottom of this file).
+MODEL_EXPLANATION_LABEL = "model explanation"
 
 #: Labels this module is permitted to stamp on a response. Guarded at
 #: import time (see the assertion at the bottom of this file) so that
 #: "explainable AI" / "AI-powered" can never appear by accident; a new
 #: label has to be added here deliberately.
 ALLOWED_FRAMING_LABELS = frozenset(
-    {FRAMING_LABEL, RETRIEVAL_EXPLANATION_LABEL, THIRD_PARTY_OUTPUT_LABEL}
+    {FRAMING_LABEL, RETRIEVAL_EXPLANATION_LABEL, THIRD_PARTY_OUTPUT_LABEL, MODEL_EXPLANATION_LABEL}
 )
 
 #: Marker written in place of a reasoning section that cannot be honestly
@@ -80,6 +97,17 @@ CONTEST_REASON_CODES = (
     "dont_understand",
     "other",
 )
+
+#: Written into an event's `delta` when the user contests it from a trace.
+#: "Contested" is this marker, not `action_taken == REJECTED`: a plain
+#: rejection from the allocation screen is not a dispute of the reasoning,
+#: and a contested decision may keep an earlier accept/edit outcome.
+CONTESTED_VIA_KEY = "contested_via"
+CONTESTED_VIA_TRACE = "transparency_trace"
+
+
+def _is_contested(event: SuggestionEvent) -> bool:
+    return (event.delta or {}).get(CONTESTED_VIA_KEY) == CONTESTED_VIA_TRACE
 
 
 # --------------------------------------------------------------------------
@@ -229,8 +257,12 @@ class DecisionTypeSpec:
     headline_requires_value: tuple[str, ...] = ()
     headline_requires_context: tuple[str, ...] = ()
     #: Surfaced with the trace when this decision type's claim needs
-    #: qualifying (e.g. the n8n path's self-reported prose).
-    claim_note: str | None = None
+    #: qualifying (e.g. the n8n path's self-reported prose). A callable
+    #: (same (v, m) shape as headline/summary) lets the note itself depend
+    #: on the stored event -- e.g. risk_profile_ml's note differs when its
+    #: prediction was the actual tier source (quick mode) vs. a secondary
+    #: opinion alongside a separate rule-based tier (full mode).
+    claim_note: str | Callable[[dict, dict], str] | None = None
 
     @property
     def required_suggested_value_keys(self) -> tuple[str, ...]:
@@ -349,6 +381,7 @@ def _risk_questionnaire_section(v: dict, m: dict) -> dict:
         "answers": v["answers"],
         "weighted_score": v["stated_score"],
         "stated_tier": v["stated_tier"],
+        "estimation_method": v.get("estimation_method", "deterministic"),
     }
 
 
@@ -396,6 +429,18 @@ def _allocation_position_section(v: dict, m: dict) -> dict:
         "current_exposure_pct": v.get("current_exposure_pct"),
         "concentration": v.get("concentration"),
         "per_holding_classification": v.get("holdings"),
+    }
+
+
+def _allocation_personal_section(v: dict, m: dict) -> dict:
+    return {
+        "base_target_pct": v["target_pct"],
+        "displayed_target_pct": v["displayed_target_pct"],
+        "offset_pct_points": v["offset_pct_points"],
+        "requested_offset_pct_points": v.get("requested_offset_pct_points"),
+        "offset_capped": v.get("offset_capped"),
+        "capacity_ceiling": v.get("capacity_ceiling"),
+        "trace": m.get("personalization_trace"),
     }
 
 
@@ -682,6 +727,11 @@ def _risk_profile_headline(v: dict, m: dict) -> str:
 
 
 def _risk_questionnaire_summary(v: dict, m: dict) -> str:
+    if v.get("estimation_method", "deterministic") != "deterministic":
+        return (
+            f"You answered 4 of 7 questions; a trained model estimated {L.tier(v['stated_tier'])} "
+            "from those — see the model-prediction trace below for how."
+        )
     return (
         f"Your answers scored {v['stated_score']} out of 100, which on its own "
         f"would put you on {L.tier(v['stated_tier'])}."
@@ -690,6 +740,7 @@ def _risk_questionnaire_summary(v: dict, m: dict) -> str:
 
 def _risk_questionnaire_facts(v: dict, m: dict) -> list[Fact]:
     version = v.get("questionnaire_version")
+    estimated = v.get("estimation_method", "deterministic") != "deterministic"
     facts = [
         fact(
             _normalize_currency(L.question_text(version, qid)),
@@ -698,8 +749,17 @@ def _risk_questionnaire_facts(v: dict, m: dict) -> list[Fact]:
         )
         for qid, answer in (v.get("answers") or {}).items()
     ]
-    facts.append(fact("Your willingness score", f"{v['stated_score']} out of 100", raw=v["stated_score"]))
-    facts.append(fact("On your answers alone", L.tier(v["stated_tier"]), raw=v["stated_tier"]))
+    if estimated:
+        facts.append(
+            fact(
+                "On your answers alone",
+                f"{L.tier(v['stated_tier'])} (model-estimated from 4 answers, not a weighted-sum score)",
+                raw=v["stated_tier"],
+            )
+        )
+    else:
+        facts.append(fact("Your willingness score", f"{v['stated_score']} out of 100", raw=v["stated_score"]))
+        facts.append(fact("On your answers alone", L.tier(v["stated_tier"]), raw=v["stated_tier"]))
     return facts
 
 
@@ -767,11 +827,126 @@ def _risk_outcome_facts(v: dict, m: dict) -> list[Fact]:
     return facts
 
 
+# --- Module 3b: ML risk-tier prediction (model explanation) ----------------
+
+
+def _risk_ml_headline(v: dict, m: dict) -> str:
+    predicted = L.tier(v["predicted_tier"])
+    if v.get("is_authoritative"):
+        return f"Estimated from your 4 main answers: {predicted}. Answer 3 more questions for a precise, deterministic tier."
+    static = L.tier(v["static_final_tier"])
+    if v["predicted_tier"] == v["static_final_tier"]:
+        return f"Our trained model independently agrees: {predicted}."
+    return f"Our trained model would have put you on {predicted}, versus {static} from your answers and finances."
+
+
+def _risk_ml_section(v: dict, m: dict) -> dict:
+    """Enriches the stored feature_contributions (question_id/selected_value
+    only) with the same human-readable question_text/answer_label the
+    facts builder below computes, plus a ready-made tier label -- so a
+    richer client rendering (a visual card per factor, a tier badge) never
+    has to parse a fact's prose sentence back apart to recover the answer
+    text, and never re-derives the tier-name mapping itself."""
+    version = v.get("questionnaire_version")
+    return {
+        "model_version": v["model_version"],
+        "predicted_tier": v["predicted_tier"],
+        "predicted_tier_label": L.tier(v["predicted_tier"]),
+        "class_probabilities": v["class_probabilities"],
+        "is_authoritative": bool(v.get("is_authoritative")),
+        "feature_contributions": [
+            {
+                **c,
+                "question_text": L.question_text(version, c["question_id"]),
+                "answer_label": L.answer_label(version, c["question_id"], c["selected_value"]),
+            }
+            for c in v["feature_contributions"]
+        ],
+    }
+
+
+def _risk_ml_claim_note(v: dict, m: dict) -> str:
+    if v.get("is_authoritative"):
+        return (
+            "You answered only the 4 main questions this time, so this trained model's "
+            "prediction became your stated risk tier directly -- there is no separate "
+            "rule-based weighted-sum score to compare it against. Answer the remaining 3 "
+            "questions for a precise, deterministic score instead of this estimate."
+        )
+    return (
+        "This is a separate, genuinely trained model's own prediction, shown alongside -- "
+        "never instead of -- your actual rule-based risk tier above. Each factor's effect is "
+        "that factor's real, computed SHAP value for your specific answers, not an estimate."
+    )
+
+
+def _risk_ml_summary(v: dict, m: dict) -> str:
+    top = max(v["feature_contributions"], key=lambda c: abs(c["shap_value"]))
+    top_label = L.question_text(v.get("questionnaire_version"), top["question_id"])
+    verb = "pushed this up the most" if top["direction"] == "increases" else "pulled this down the most"
+    confidence = v["class_probabilities"].get(str(v["predicted_tier"]))
+    confidence_text = f" ({L.ratio_as_percent(confidence)} confidence)" if confidence is not None else ""
+    return f"Trained on real survey responses, not hand-set weights{confidence_text}. Your answer to “{top_label}” {verb}."
+
+
+def _risk_ml_facts(v: dict, m: dict) -> list[Fact]:
+    version = v.get("questionnaire_version")
+    is_authoritative = bool(v.get("is_authoritative"))
+    facts = [
+        fact(
+            "Model's predicted tier",
+            L.tier(v["predicted_tier"]),
+            raw=v["predicted_tier"],
+        ),
+        fact(
+            "How confident the model is",
+            L.ratio_as_percent(v["class_probabilities"].get(str(v["predicted_tier"]))),
+            raw=v["class_probabilities"],
+        ),
+    ]
+    if is_authoritative:
+        facts.append(
+            fact(
+                "Was there a separate rule-based tier to compare?",
+                "No — only 4 of 7 questions were answered, so this prediction became your stated tier directly.",
+                raw=False,
+            )
+        )
+    else:
+        facts.append(
+            fact(
+                "Did the rule-based tier agree?",
+                "Yes" if v["predicted_tier"] == v["static_final_tier"] else "No",
+                raw=v["static_final_tier"],
+            )
+        )
+    ranked = sorted(v["feature_contributions"], key=lambda c: abs(c["shap_value"]), reverse=True)
+    for c in ranked:
+        question_label = L.question_text(version, c["question_id"])
+        answer_label = L.answer_label(version, c["question_id"], c["selected_value"])
+        if c["direction"] == "increases":
+            verb = "pushed your tier up"
+        elif c["direction"] == "decreases":
+            verb = "pulled your tier down"
+        else:
+            verb = "made no real difference"
+        facts.append(
+            fact(
+                question_label,
+                f"You answered “{answer_label}” — this {verb}",
+                raw=round(c["shap_value"], 4),
+            )
+        )
+    return facts
+
+
 # --- Module 4: target allocation -------------------------------------------
 
 
 def _allocation_headline(v: dict, m: dict) -> str:
-    return f"Your target mix for {L.tier(v['final_tier'])}: {_mix_sentence(v.get('target_pct'))}."
+    # the mix the user was actually shown (personalized when that was
+    # recorded; older events only stored the tier's base mix)
+    return f"Your target mix for {L.tier(v['final_tier'])}: {_mix_sentence(v.get('displayed_target_pct') or v.get('target_pct'))}."
 
 
 def _allocation_rule_summary(v: dict, m: dict) -> str:
@@ -784,6 +959,41 @@ def _allocation_rule_facts(v: dict, m: dict) -> list[Fact]:
         facts.append(fact(L.ASSET_CLASS_LABEL.get(asset_class, L.field_label(asset_class)), L.percent(pct), raw=pct))
     if v.get("reasoning"):
         facts.append(fact("The rule we applied", _humanize_codes(str(v["reasoning"]))))
+    return facts
+
+
+def _allocation_personal_summary(v: dict, m: dict) -> str:
+    if not _nonzero(v["offset_pct_points"]) and not v.get("offset_capped"):
+        if v.get("edits_considered"):
+            return "Your past choices haven't moved this plan away from your tier's mix."
+        return "We show your tier's mix as-is until you tell us what you did with a plan."
+    if v.get("offset_capped") and not _nonzero(v["offset_pct_points"]):
+        return (
+            f"Based on {L.count(v.get('edits_considered') or 0, 'choice')} you made, you lean "
+            f"{_signed_points(v.get('requested_offset_pct_points'))}, but your finances hold the plan at "
+            "your tier's mix for now. Your tier stays the same."
+        )
+    return (
+        f"We've shifted equity by {_signed_points(v['offset_pct_points'])} from your tier's mix, "
+        f"learned from {L.count(v.get('edits_considered') or 0, 'choice')} you made. Your tier stays the same."
+    )
+
+
+def _allocation_personal_facts(v: dict, m: dict) -> list[Fact]:
+    facts = []
+    base, shown = v["target_pct"] or {}, v["displayed_target_pct"] or {}
+    for asset_class, pct in _sorted_pct(shown):
+        label = L.ASSET_CLASS_LABEL.get(asset_class, L.field_label(asset_class))
+        before = base.get(asset_class)
+        if before == pct:
+            facts.append(fact(label, f"{L.percent(pct)} — same as your tier's mix", raw=pct))
+        else:
+            facts.append(fact(label, f"{L.percent(before)} in your tier's mix → {L.percent(pct)} shown", raw=f"{before} -> {pct}"))
+    cap_fact = _personalization_cap_fact(
+        {**v, "applied_offset_pct_points": v["offset_pct_points"]}
+    )
+    if cap_fact is not None:
+        facts.append(cap_fact)
     return facts
 
 
@@ -910,10 +1120,16 @@ def _debt_leak_provenance_facts(v: dict, m: dict) -> list[Fact]:
 def _personalization_headline(v: dict, m: dict) -> str:
     if not _nonzero(v["offset_pct_points"]):
         return "We haven't adjusted your plan — you haven't edited it in a way we can learn from yet."
-    return (
-        f"We've nudged your displayed plan by {L.number(v['offset_pct_points'])} percentage points, "
-        f"based on {L.count(v['edits_considered'], 'edit')} you made."
-    )
+    # what actually reached the screen; older events only stored the
+    # pre-cap number
+    applied = v.get("applied_offset_pct_points", v["offset_pct_points"])
+    based_on = f"based on {L.count(v['edits_considered'], 'choice')} you made"
+    if v.get("offset_capped"):
+        return (
+            f"Your choices lean {_signed_points(v['offset_pct_points'])}, {based_on}, but we've only "
+            f"applied {_signed_points(applied)} because of what your finances currently support."
+        )
+    return f"We've adjusted your displayed plan by {_signed_points(applied)}, {based_on}."
 
 
 def _personalization_inputs_summary(v: dict, m: dict) -> str:
@@ -941,6 +1157,54 @@ def _personalization_trace_summary(v: dict, m: dict) -> str:
     return f"Each of your {L.count(len(steps), 'edit')}, in order, and what it moved."
 
 
+_REJECT_REASON_SENTENCE = {
+    "dont_understand": "you weren't sure what it meant",
+    "too_risky": "it felt too risky",
+    "too_safe": "it felt too cautious",
+    "other": "of another reason",
+}
+
+
+def _signed_points(value) -> str:
+    d = L._decimal(value)
+    if d is None:
+        return f"{value} percentage points"
+    sign = "+" if d > 0 else ""
+    return f"{sign}{L.number(value)} percentage points"
+
+
+def _personalization_step_sentence(step: dict) -> str:
+    """What the user did at one step, in their terms. Older traces only
+    stored the arithmetic, so they fall back to the delta alone."""
+    action = step.get("action_taken")
+    delta = _signed_points(step.get("delta_pct"))
+    invested = " and invested it" if step.get("funded") else ", not invested yet"
+    if action == "edited":
+        return f"You set your own mix: equity {delta} from your tier's plan{invested}"
+    if action == "accepted":
+        return f"You kept the plan as shown (equity {delta} from your tier's plan){invested}"
+    if action == "rejected":
+        reason = _REJECT_REASON_SENTENCE.get(step.get("reason_code") or "", "of a reason you didn't give")
+        return f"You turned it down because {reason}"
+    if action == "ignored":
+        return "You hadn't decided yet"
+    return f"You moved it by {L.number(step.get('delta_pct'))} percentage points"
+
+
+def _personalization_step_weight_note(step: dict) -> str:
+    weight = L._decimal(step.get("weight"))
+    if weight is not None and weight == 0:
+        counted = "Not counted: it doesn't say what you'd prefer instead"
+    elif weight is not None and weight < 1:
+        counted = "Counted at half strength until you invest it"
+    else:
+        counted = "Counted in full"
+    return (
+        f"{counted} · running adjustment "
+        f"{L.number(step.get('offset_before'))} → {L.number(step.get('offset_after'))} points"
+    )
+
+
 def _personalization_trace_facts(v: dict, m: dict) -> list[Fact]:
     if not (m.get("trace") or []):
         return [
@@ -949,19 +1213,41 @@ def _personalization_trace_facts(v: dict, m: dict) -> list[Fact]:
                 "You haven't edited your plan, so there's nothing for us to learn from.",
             )
         ]
-    facts = []
-    for i, step in enumerate(m["trace"] or [], start=1):
-        facts.append(
-            fact(
-                f"Edit {i}",
-                f"You moved it by {L.number(step.get('delta_pct'))} percentage points",
-                note=(
-                    f"Counted at weight {L.number(step.get('weight'))} · "
-                    f"running adjustment {L.number(step.get('offset_before'))} → {L.number(step.get('offset_after'))}"
-                ),
-            )
+    return [
+        fact(
+            f"Choice {i}",
+            _personalization_step_sentence(step),
+            raw=f"weight {step.get('weight')}, delta {step.get('delta_pct')}",
+            note=_personalization_step_weight_note(step),
         )
-    return facts
+        for i, step in enumerate(m["trace"] or [], start=1)
+    ]
+
+
+def _personalization_cap_fact(v: dict) -> Fact | None:
+    """The cap, surfaced rather than silent: what the history asked for,
+    what reached the screen, and what would lift the limit."""
+    if not v.get("offset_capped"):
+        return None
+    requested = v.get("requested_offset_pct_points", v.get("offset_pct_points"))
+    applied = v.get("applied_offset_pct_points", v.get("offset_pct_points"))
+    if v.get("cap_reason") == "zero_floor":
+        return fact(
+            "Limit reached",
+            f"Your choices lean {_signed_points(requested)}, but equity can't go below 0%.",
+        )
+    binding = v.get("capacity_binding_constraints") or []
+    lift = (
+        f" Improving {L.joined([L.constraint_label(c) for c in binding])} would raise this limit."
+        if binding
+        else ""
+    )
+    return fact(
+        "Limit reached",
+        f"Your choices lean {_signed_points(requested)}, but we've applied {_signed_points(applied)}: "
+        f"your finances currently support at most {L.percent(v.get('max_equity_pct'))} in equity.{lift}",
+        note="This limit changes what we show you. It never changes your risk tier.",
+    )
 
 
 def _personalization_effect_summary(v: dict, m: dict) -> str:
@@ -978,6 +1264,9 @@ def _personalization_effect_facts(v: dict, m: dict) -> list[Fact]:
             facts.append(fact(label, f"{L.percent(after)} — unchanged", raw=after))
         else:
             facts.append(fact(label, f"{L.percent(before)} → {L.percent(after)}", raw=f"{before} -> {after}"))
+    cap_fact = _personalization_cap_fact(v)
+    if cap_fact is not None:
+        facts.append(cap_fact)
     if v.get("capacity_ceiling") is not None:
         facts.append(
             fact(
@@ -1215,6 +1504,27 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
             ),
         ),
     ),
+    "risk_profile_ml": DecisionTypeSpec(
+        module_source="risk_profile_ml",
+        display_name="Model-predicted risk tier",
+        headline=_risk_ml_headline,
+        framing_label=MODEL_EXPLANATION_LABEL,
+        claim_note=_risk_ml_claim_note,
+        headline_requires_value=("predicted_tier", "static_final_tier"),
+        sections=(
+            ReasoningSection(
+                key="ml_prediction",
+                title="What the trained model predicts, and why",
+                build=_risk_ml_section,
+                facts=_risk_ml_facts,
+                summary=_risk_ml_summary,
+                requires_value=(
+                    "model_version", "predicted_tier", "class_probabilities",
+                    "feature_contributions", "questionnaire_version", "static_final_tier",
+                ),
+            ),
+        ),
+    ),
     "allocation": DecisionTypeSpec(
         module_source="allocation",
         display_name="Target allocation",
@@ -1228,6 +1538,14 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
                 facts=_allocation_rule_facts,
                 summary=_allocation_rule_summary,
                 requires_value=("final_tier", "rule_table_version", "reasoning", "target_pct"),
+            ),
+            ReasoningSection(
+                key="personal_adjustment",
+                title="How your own choices adjusted it",
+                build=_allocation_personal_section,
+                facts=_allocation_personal_facts,
+                summary=_allocation_personal_summary,
+                requires_value=("target_pct", "displayed_target_pct", "offset_pct_points"),
             ),
             ReasoningSection(
                 key="current_position",
@@ -1367,7 +1685,7 @@ DECISION_TYPES: dict[str, DecisionTypeSpec] = {
     ),
     "rumour_verification_local": DecisionTypeSpec(
         module_source="rumour_verification_local",
-        display_name="Rumour verification (explainable retrieval)",
+        display_name="Document & claim verification",
         framing_label=RETRIEVAL_EXPLANATION_LABEL,
         claim_note=LOCAL_ENGINE_CLAIM_NOTE,
         headline=_rumour_local_headline,
@@ -1538,9 +1856,9 @@ def build_trace(event: SuggestionEvent, spec: DecisionTypeSpec | None = None) ->
         sections=tuple(section_results),
         value_hints=build_value_hints(reasoning),
         value_hint_rules_version=VALUE_HINT_RULES_VERSION,
-        claim_note=spec.claim_note,
-        contested=event.action_taken == ActionTaken.REJECTED,
-        contest_reason_code=event.reason_code,
+        claim_note=spec.claim_note(v, m) if callable(spec.claim_note) else spec.claim_note,
+        contested=_is_contested(event),
+        contest_reason_code=event.reason_code if _is_contested(event) else None,
     )
 
 
@@ -1723,12 +2041,19 @@ def contest_decision(
         )
 
     event = _load_event(session, user_id, module_source, event_id)
+    contest_marker = {CONTESTED_VIA_KEY: CONTESTED_VIA_TRACE}
+    if note:
+        contest_marker["contest_note"] = note
+    # A decision the user had already acted on (e.g. a funded allocation
+    # edit) keeps that outcome: disputing the reasoning is not the same as
+    # un-doing what they did, and wiping it would delete Module 7 evidence.
+    # Only a decision with no outcome yet is marked as rejected.
     record_suggestion_outcome(
         session,
         event_id=event.event_id,
-        action_taken=ActionTaken.REJECTED,
         reason_code=reason_code,
-        delta={"contested_via": "transparency_trace", "contest_note": note} if note else {"contested_via": "transparency_trace"},
+        delta={**(event.delta or {}), **contest_marker},
+        **({"action_taken": ActionTaken.REJECTED} if event.action_taken is None else {}),
         commit=commit,
     )
     session.refresh(event)

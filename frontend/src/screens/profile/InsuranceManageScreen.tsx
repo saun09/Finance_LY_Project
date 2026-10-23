@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
 import { qk } from '../../api/queryClient';
@@ -10,6 +10,8 @@ import { Card } from '../../components/Card';
 import { ChoiceGroup } from '../../components/ChoiceGroup';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { FloatingActionButton } from '../../components/FloatingActionButton';
+import { FormSheet } from '../../components/FormSheet';
 import { InlineError } from '../../components/InlineError';
 import { ListRow } from '../../components/ListRow';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -18,7 +20,6 @@ import { Text } from '../../components/Text';
 import { TextField } from '../../components/TextField';
 import { useDemoUser } from '../../context/DemoUserContext';
 import { useInsurancePolicies } from '../../hooks/useProfileManagement';
-import { SPACE } from '../../theme/tokens';
 import { formatPaise, rupeeInputToPaise } from '../../utils/currency';
 
 const POLICY_TYPE_OPTIONS: { value: InsuranceType; label: string }[] = [
@@ -31,6 +32,7 @@ export function InsuranceManageScreen() {
   const queryClient = useQueryClient();
   const { data, isPending, error, refetch } = useInsurancePolicies();
 
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [policyType, setPolicyType] = useState<InsuranceType | null>(null);
   const [sumAssuredInput, setSumAssuredInput] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export function InsuranceManageScreen() {
     onSuccess: () => {
       setPolicyType(null);
       setSumAssuredInput('');
+      setSheetOpen(false);
       queryClient.invalidateQueries({ queryKey: qk.insurancePolicies(userId) });
     },
     onError: (err) =>
@@ -51,7 +54,7 @@ export function InsuranceManageScreen() {
   });
 
   return (
-    <ScreenContainer>
+    <ScreenContainer floatingAction={<FloatingActionButton label="Add policy" onPress={() => setSheetOpen(true)} />}>
       <View>
         <Text variant="caption" tone="muted">
           Profile
@@ -65,7 +68,7 @@ export function InsuranceManageScreen() {
         <ErrorState message={error.message} onRetry={() => refetch()} />
       ) : !data || data.length === 0 ? (
         <Card>
-          <EmptyState title="No policies yet" message="Add your life and health insurance policies below." />
+          <EmptyState title="No policies yet" message="Tap “Add policy” below to record your life and health insurance." />
         </Card>
       ) : (
         <Card>
@@ -79,27 +82,28 @@ export function InsuranceManageScreen() {
         </Card>
       )}
 
-      <Card style={styles.formCard}>
-        <Text variant="label" tone="muted">
-          ADD A POLICY
-        </Text>
+      <FormSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} title="Add a policy">
         <ChoiceGroup label="Type" options={POLICY_TYPE_OPTIONS} value={policyType} onChange={setPolicyType} />
-        <TextField label="Sum assured" value={sumAssuredInput} onChangeText={setSumAssuredInput} placeholder="1000000" keyboardType="numeric" prefix="₹" />
+        <TextField
+          label="Sum assured"
+          value={sumAssuredInput}
+          onChangeText={setSumAssuredInput}
+          placeholder="10,00,000"
+          keyboardType="numeric"
+          prefix="₹"
+          formatAsCurrency
+        />
         {formError ? <InlineError message={formError} /> : null}
         <Button
           label="Add policy"
-          variant="secondary"
+          fullWidth
           loading={addMutation.isPending}
           onPress={() => {
             setFormError(null);
             addMutation.mutate();
           }}
         />
-      </Card>
+      </FormSheet>
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  formCard: { gap: SPACE.md },
-});

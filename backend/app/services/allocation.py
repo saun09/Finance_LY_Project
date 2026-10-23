@@ -49,6 +49,11 @@ class TargetAllocationResult:
     rule_table_version: str
     target_pct: dict[AssetClass, Decimal]
     reasoning: str
+    # Layer 1's per-asset-class [min, max] weight range for this tier --
+    # the same numbers `reasoning`'s prose already names, exposed
+    # structurally too so a UI can render them as a clean list instead of
+    # parsing them back out of a sentence.
+    bounds_pct: dict[AssetClass, tuple[Decimal, Decimal]]
 
 
 def _neg_sharpe(weights: np.ndarray, mu: np.ndarray, cov: np.ndarray, risk_free_rate: float) -> float:
@@ -115,10 +120,12 @@ def compute_target_allocation(
 
     bounds_desc = ", ".join(f"{a.value}=[{tier_bounds[a][0]:.0f}%,{tier_bounds[a][1]:.0f}%]" for a in asset_order)
     reasoning = f"Looked up tier {final_tier} bounds ({bounds_desc}) in rule table {table_version}; {method_note}."
+    bounds_pct = {a: (Decimal(str(tier_bounds[a][0])), Decimal(str(tier_bounds[a][1]))) for a in asset_order}
 
     return TargetAllocationResult(
         final_tier=final_tier,
         rule_table_version=table_version,
         target_pct=target_pct,
         reasoning=reasoning,
+        bounds_pct=bounds_pct,
     )

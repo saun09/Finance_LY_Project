@@ -10,12 +10,23 @@ import { SkeletonCard } from '../../components/Skeleton';
 import { Text } from '../../components/Text';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { useDebtLeak } from '../../hooks/useDebtLeak';
+import { useEmis } from '../../hooks/useProfileManagement';
 import { SPACE } from '../../theme/tokens';
 import { formatPaise } from '../../utils/currency';
 
 export function DebtScreen() {
   const { colors } = useAppTheme();
   const { data, isPending, error, refetch } = useDebtLeak();
+  // Same query (qk.emis) Profile > Loans & EMIs reads -- not a second,
+  // divergent source of truth. Needed because the backend only computes
+  // avalanche_snowball when there's a positive monthly surplus to put
+  // toward extra payments (compute_and_log_debt_leak_report's `if debts
+  // and surplus_paise > 0`); a null avalanche_snowball on its own doesn't
+  // tell us whether that's because there are no loans, or because there
+  // are loans but no surplus right now. Reading the actual EMI list here
+  // resolves that ambiguity instead of assuming "no loans" either way.
+  const emis = useEmis();
+  const activeLoanCount = emis.data?.filter((e) => e.closed_at === null).length ?? 0;
 
   return (
     <ScreenContainer>
@@ -33,7 +44,14 @@ export function DebtScreen() {
         <ErrorState message={error.message} onRetry={() => refetch()} />
       ) : !data!.avalanche_snowball ? (
         <Card>
-          <EmptyState title="No active loans" message="You haven't recorded any EMIs, so there's no payoff strategy to compare." />
+          <EmptyState
+            title={activeLoanCount > 0 ? 'No payoff comparison yet' : 'No active loans'}
+            message={
+              activeLoanCount > 0
+                ? `You have ${activeLoanCount} active loan${activeLoanCount === 1 ? '' : 's'} recorded, but no monthly surplus right now to put toward extra payments. This comparison appears once you have surplus to allocate.`
+                : "You haven't recorded any EMIs, so there's no payoff strategy to compare."
+            }
+          />
         </Card>
       ) : (
         <>

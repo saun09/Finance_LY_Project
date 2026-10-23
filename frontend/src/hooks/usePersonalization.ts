@@ -17,14 +17,19 @@ export function usePersonalization() {
   return { ...query, error: query.error ? toApiError(query.error) : null };
 }
 
-/** The most recent allocation suggestion_event, purely to get its
- * event_id -- POST /allocation/{event_id}/outcome needs it, and there is
- * no other way to learn it (GET /allocation itself doesn't return one). */
-export function useLatestAllocationEvent() {
+/** Allocation choices the user kept or set but hasn't invested yet. Each
+ * counts at half weight until marked as invested, so the screen offers a
+ * one-tap follow-up. (The suggestion currently on screen comes with its own
+ * event_id from GET /allocation -- this is only for earlier ones.) */
+export function usePendingInvestments() {
   const { userId } = useDemoUser();
   const query = useQuery({
     queryKey: qk.events(userId, 'allocation'),
-    queryFn: () => eventsApi.getEvents(userId, { module_source: 'allocation', limit: 1 }),
+    queryFn: () => eventsApi.getEvents(userId, { module_source: 'allocation', limit: 50 }),
+    select: (events) =>
+      events.filter(
+        (e) => (e.action_taken === 'accepted' || e.action_taken === 'edited') && e.funded === false,
+      ),
   });
   return { ...query, error: query.error ? toApiError(query.error) : null };
 }

@@ -79,6 +79,7 @@ def produced(session):
 #: their own contract tests (see test_rumour_local_engine_contract.py).
 IN_BACKEND_DECISION_TYPES = (
     "risk_profile",
+    "risk_profile_ml",
     "allocation",
     "debt_leak_engine",
     "personalization",

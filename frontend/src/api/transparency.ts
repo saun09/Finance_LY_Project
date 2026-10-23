@@ -16,6 +16,7 @@ import type {
  * actually answered a user's questions. */
 export const TRANSPARENCY_DECISION_TYPES = [
   'risk_profile',
+  'risk_profile_ml',
   'allocation',
   'debt_leak_engine',
   'personalization',

@@ -4,6 +4,7 @@ from app.models.onboarding import EmploymentType, IncomeStability, InsuranceType
 from app.models.suggestion_event import SuggestionEvent
 from app.services.financial_position import ExpenseFrequency
 from app.services.onboarding import add_emi, add_expense_item, add_insurance_policy, upsert_profile
+from app.services.risk_profile_ml import FEATURE_ORDER_REDUCED, MODEL_VERSION_REDUCED
 from app.services.risk_profile_service import ProfileNotFoundError, compute_and_log_risk_tier
 
 USER = "risk-user-1"
@@ -17,6 +18,9 @@ AGGRESSIVE_ANSWERS = {
     "sure_gain_tradeoff": "chance_10pct_50000",
     "friend_description": "real_gambler",
 }
+
+# Just the 4 "main" quick-mode questions, from AGGRESSIVE_ANSWERS.
+AGGRESSIVE_ANSWERS_QUICK = {qid: AGGRESSIVE_ANSWERS[qid] for qid in FEATURE_ORDER_REDUCED}
 
 
 def test_compute_and_log_risk_tier_requires_existing_profile(session):
@@ -141,3 +145,62 @@ def test_insurance_adequacy_feeds_from_module2_life_policies(session):
     # counted is only the LIFE policy (50,00,000_00), health is excluded
     assert result.capped is True
     assert result.binding_constraints == ("insurance_adequacy",)
+
+
+# --- quick mode (4 of 7 answers, ML-estimated stated tier) -----------------
+
+
+def test_quick_mode_with_exactly_the_4_required_answers_succeeds(session):
+    _setup_core_scenario(session)
+
+    result = compute_and_log_risk_tier(session, USER, AGGRESSIVE_ANSWERS_QUICK)
+
+    assert result.estimation_method == MODEL_VERSION_REDUCED
+    assert 1 <= result.stated_tier <= 5
+    # same capacity ceiling as the full-answers version of this scenario
+    # (capacity never depends on the questionnaire) -- still caps the tier.
+    assert result.capacity_ceiling == 2
+    assert result.final_tier == min(result.stated_tier, 2)
+
+
+def test_quick_mode_logs_risk_profile_ml_as_authoritative(session):
+    _setup_core_scenario(session)
+    compute_and_log_risk_tier(session, USER, AGGRESSIVE_ANSWERS_QUICK)
+
+    rule_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="risk_profile").one()
+    assert rule_event.suggested_value["estimation_method"] == MODEL_VERSION_REDUCED
+    assert rule_event.suggested_value["stated_score"] == 0  # no weighted-sum formula ran
+
+    ml_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="risk_profile_ml").one()
+    assert ml_event.suggested_value["is_authoritative"] is True
+    assert ml_event.suggested_value["predicted_tier"] == rule_event.suggested_value["stated_tier"]
+
+
+def test_six_of_seven_answers_is_rejected_not_silently_treated_as_quick_mode(session):
+    _setup_core_scenario(session)
+    incomplete = dict(AGGRESSIVE_ANSWERS)
+    del incomplete["goal"]
+
+    with pytest.raises(ValueError, match="goal"):
+        compute_and_log_risk_tier(session, USER, incomplete)
+
+
+def test_four_answers_that_are_not_the_required_set_is_rejected(session):
+    _setup_core_scenario(session)
+    # 4 answers, but not FEATURE_ORDER_REDUCED -- not a valid quick-mode
+    # submission (the reduced model wasn't trained on these features).
+    wrong_four = {
+        "horizon": AGGRESSIVE_ANSWERS["horizon"],
+        "drawdown_reaction": AGGRESSIVE_ANSWERS["drawdown_reaction"],
+        "experience": AGGRESSIVE_ANSWERS["experience"],
+        "goal": AGGRESSIVE_ANSWERS["goal"],
+    }
+    with pytest.raises(ValueError):
+        compute_and_log_risk_tier(session, USER, wrong_four)
+
+
+def test_full_seven_answers_still_uses_deterministic_scoring(session):
+    _setup_core_scenario(session)
+    result = compute_and_log_risk_tier(session, USER, AGGRESSIVE_ANSWERS)
+    assert result.estimation_method == "deterministic"
+    assert result.stated_tier == 5

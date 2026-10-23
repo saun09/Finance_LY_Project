@@ -8,14 +8,20 @@ suggestion has gone stale/ignored). Snapshot-producing jobs call
 `log_monthly_snapshot` once per user per month.
 """
 
+import json
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
 from app.models.user_monthly_snapshot import UserMonthlySnapshot
+
+#: Marks an outcome field the caller did not pass, as distinct from an
+#: explicit None ("set this to null"). See record_suggestion_outcome.
+_UNSET: Any = object()
 
 
 def log_suggestion_event(
@@ -26,6 +32,7 @@ def log_suggestion_event(
     suggested_value: dict,
     tier: str | None = None,
     offset: int | None = None,
+    offset_pct_points: Decimal | None = None,
     chosen_value: dict | None = None,
     delta: dict | None = None,
     action_taken: ActionTaken | None = None,
@@ -48,6 +55,7 @@ def log_suggestion_event(
         suggested_value=suggested_value,
         tier=tier,
         offset=offset,
+        offset_pct_points=offset_pct_points,
         chosen_value=chosen_value,
         delta=delta,
         action_taken=action_taken,
@@ -67,27 +75,88 @@ def log_suggestion_event(
     return event
 
 
+def _json_normalized(value: Any) -> Any:
+    """What `value` looks like after a round trip through a JSON column
+    (tuples become lists, etc.), so a freshly built suggested_value can be
+    compared with one read back from the database."""
+    return json.loads(json.dumps(value))
+
+
+def log_suggestion_event_if_changed(
+    session: Session,
+    *,
+    user_id: str,
+    module_source: str,
+    suggested_value: dict,
+    compare_market_context: bool = False,
+    **kwargs: Any,
+) -> tuple[SuggestionEvent, bool]:
+    """Log a suggestion only if it differs from what the user was last shown.
+
+    Screens recompute their suggestion on every load. Logging each load
+    would fill the event log with identical rows, so the "one row per
+    suggestion shown" table would really be "one row per page view". This
+    reuses the user's latest event for this module_source when its
+    suggested_value is identical and nobody has responded to it yet. Once
+    the user responds, the next load gets a fresh row, because a new
+    response needs its own event to attach to.
+
+    `compare_market_context=True` also requires market_context to match,
+    for a module whose explanation can change while its headline value
+    does not (Module 7's trace weights).
+
+    Returns (event, created).
+    """
+    latest = get_user_event_history(session, user_id, module_source=module_source, limit=1)
+    if (
+        latest
+        and latest[0].action_taken is None
+        and latest[0].suggested_value == _json_normalized(suggested_value)
+        and (
+            not compare_market_context
+            or latest[0].market_context == _json_normalized(kwargs.get("market_context") or {})
+        )
+    ):
+        return latest[0], False
+
+    event = log_suggestion_event(
+        session, user_id=user_id, module_source=module_source, suggested_value=suggested_value, **kwargs
+    )
+    return event, True
+
+
 def record_suggestion_outcome(
     session: Session,
     *,
     event_id: str,
-    action_taken: ActionTaken,
-    chosen_value: dict | None = None,
-    delta: dict | None = None,
-    reason_code: str | None = None,
-    funded: bool | None = None,
+    action_taken: ActionTaken | None = _UNSET,
+    chosen_value: dict | None = _UNSET,
+    delta: dict | None = _UNSET,
+    reason_code: str | None = _UNSET,
+    funded: bool | None = _UNSET,
     commit: bool = True,
 ) -> SuggestionEvent:
-    """Update a previously logged event once the user has acted on it."""
+    """Update a previously logged event once the user has acted on it.
+
+    Only the fields actually passed are written. A later, partial update
+    (marking an earlier choice as funded, or contesting a decision from
+    the transparency screen) must not wipe a chosen_value the user
+    recorded earlier -- that row is training data.
+    """
     event = session.get(SuggestionEvent, event_id)
     if event is None:
         raise ValueError(f"no suggestion_event with event_id={event_id!r}")
 
-    event.action_taken = action_taken
-    event.chosen_value = chosen_value
-    event.delta = delta
-    event.reason_code = reason_code
-    event.funded = funded
+    if action_taken is not _UNSET:
+        event.action_taken = action_taken
+    if chosen_value is not _UNSET:
+        event.chosen_value = chosen_value
+    if delta is not _UNSET:
+        event.delta = delta
+    if reason_code is not _UNSET:
+        event.reason_code = reason_code
+    if funded is not _UNSET:
+        event.funded = funded
 
     if commit:
         session.commit()

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
 import { FONT, RADIUS, SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
+import { formatRupeeInputDisplay } from '../utils/currency';
 import { Text } from './Text';
 
 interface Props {
@@ -16,6 +17,18 @@ interface Props {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   multiline?: boolean;
   secureTextEntry?: boolean;
+  /** Displays `value` with Indian comma grouping while the plain digit
+   * string is still what's passed to `onChangeText` (commas are stripped
+   * back out on every keystroke) -- so every existing caller's parsing
+   * (rupeeInputToPaise, which already strips commas defensively) is
+   * unaffected. Only meaningful for a whole-rupee amount field. */
+  formatAsCurrency?: boolean;
+  /** Highlights the border (and, while focused, a soft tinted background)
+   * in the accent color instead of the plain neutral border -- opt-in so
+   * ordinary onboarding/profile forms keep their current look; a single
+   * "command input" style field (e.g. Rumour verification's search box)
+   * opts in instead. */
+  focusGlow?: boolean;
 }
 
 /** The one text-input primitive every onboarding form uses -- labeled,
@@ -33,8 +46,14 @@ export function TextField({
   autoCapitalize = 'sentences',
   multiline = false,
   secureTextEntry = false,
+  formatAsCurrency = false,
+  focusGlow = false,
 }: Props) {
   const { colors } = useAppTheme();
+  const [focused, setFocused] = useState(false);
+  const displayValue = formatAsCurrency ? formatRupeeInputDisplay(value) : value;
+  const handleChangeText = (text: string) => onChangeText(formatAsCurrency ? text.replace(/\D/g, '') : text);
+  const glowing = focusGlow && focused;
 
   return (
     <View style={styles.container}>
@@ -45,7 +64,11 @@ export function TextField({
         style={[
           styles.inputRow,
           multiline && styles.inputRowMultiline,
-          { backgroundColor: colors.paper, borderColor: error ? colors.danger : colors.border },
+          {
+            backgroundColor: glowing ? colors.petrolSoft : colors.paper,
+            borderColor: error ? colors.danger : glowing ? colors.petrol : colors.border,
+            borderWidth: glowing ? StyleSheet.hairlineWidth * 2.5 : StyleSheet.hairlineWidth * 1.5,
+          },
         ]}
       >
         {prefix ? (
@@ -54,8 +77,8 @@ export function TextField({
           </Text>
         ) : null}
         <TextInput
-          value={value}
-          onChangeText={onChangeText}
+          value={displayValue}
+          onChangeText={handleChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.inkFaint}
           keyboardType={keyboardType}
@@ -63,6 +86,8 @@ export function TextField({
           multiline={multiline}
           secureTextEntry={secureTextEntry}
           textAlignVertical={multiline ? 'top' : 'center'}
+          onFocus={focusGlow ? () => setFocused(true) : undefined}
+          onBlur={focusGlow ? () => setFocused(false) : undefined}
           style={[
             styles.input,
             multiline && styles.inputMultiline,
