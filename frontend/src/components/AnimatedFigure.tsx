@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated } from 'react-native';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import type { TYPE } from '../theme/tokens';
+import { fitFigureStyle } from './fitFigure';
 import { Text } from './Text';
 
 interface Props {
@@ -22,11 +23,15 @@ interface Props {
  * deps are `target`/`duration`/`reducedMotion` only, so a parent
  * re-render with the same target never restarts it. Reduce-motion skips
  * straight to the final value and full opacity/scale -- the number is
- * still always correct, just not animated getting there. */
+ * still always correct, just not animated getting there.
+ *
+ * The figure shrinks to fit the width it's given (see fitFigureStyle),
+ * sized off the *final* text so the count-up never jitters in size. */
 export function AnimatedFigure({ target, formatter, duration = 900, variant = 'figureLarge', tone, style }: Props) {
   const countAnim = useRef(new Animated.Value(0)).current;
   const entrance = useRef(new Animated.Value(0)).current;
   const [display, setDisplay] = useState(0);
+  const [width, setWidth] = useState(0);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -52,14 +57,17 @@ export function AnimatedFigure({ target, formatter, duration = 900, variant = 'f
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, duration, reducedMotion]);
 
+  const fitStyle = fitFigureStyle(formatter(target), width, variant, style as never);
+
   return (
     <Animated.View
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       style={{
         opacity: entrance,
         transform: [{ scale: entrance.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }],
       }}
     >
-      <Text variant={variant} tone={tone} numberOfLines={1} style={style}>
+      <Text variant={variant} tone={tone} numberOfLines={1} style={[style, fitStyle]}>
         {formatter(display)}
       </Text>
     </Animated.View>

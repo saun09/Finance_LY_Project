@@ -88,7 +88,7 @@ export function ExpensesScreen() {
         step={2}
         total={7}
         title="What do you spend monthly?"
-        subtitle="Add each recurring expense one at a time — rent, groceries, subscriptions, EMIs are tracked separately."
+        subtitle="Add each recurring expense one at a time — rent, groceries, utilities, subscriptions. Loan EMIs go in the next step."
         info={{
           title: 'Why we ask this',
           description:
@@ -135,7 +135,7 @@ export function ExpensesScreen() {
         <ChoiceGroup label="Frequency" options={FREQUENCY_OPTIONS} value={frequency} onChange={setFrequency} />
         <Toggle
           label="Essential"
-          description="Can't be cut without real hardship (rent, groceries, EMIs)."
+          description="Can't be cut without real hardship (rent, groceries, utilities)."
           value={isEssential}
           onChange={setIsEssential}
         />
