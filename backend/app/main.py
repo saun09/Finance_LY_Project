@@ -6,6 +6,7 @@ from app.api.routes_auth import router as auth_router
 from app.api.routes_debt_leak import router as debt_leak_router
 from app.api.routes_events import router as events_router
 from app.api.routes_gamification import router as gamification_router
+from app.api.routes_nudge import router as nudge_router
 from app.api.routes_onboarding import router as onboarding_router
 from app.api.routes_personalization import router as personalization_router
 from app.api.routes_risk_profile import config_router as risk_profile_config_router
@@ -38,6 +39,7 @@ app.include_router(personalization_router)
 app.include_router(transparency_router)
 app.include_router(gamification_router)
 app.include_router(rumour_verification_router)
+app.include_router(nudge_router)
 
 
 @app.get("/health")

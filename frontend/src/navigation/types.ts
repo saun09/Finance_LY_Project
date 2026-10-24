@@ -51,6 +51,8 @@ export type ProfileStackParamList = {
   InsuranceManage: undefined;
   HoldingsManage: undefined;
   Settings: undefined;
+  YourCalls: undefined;
+  CallDetail: { conversationId: string };
 };
 
 export type MainTabParamList = {

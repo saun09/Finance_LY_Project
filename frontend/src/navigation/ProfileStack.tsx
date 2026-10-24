@@ -6,6 +6,8 @@ import { DebtManageScreen } from '../screens/profile/DebtManageScreen';
 import { InsuranceManageScreen } from '../screens/profile/InsuranceManageScreen';
 import { HoldingsManageScreen } from '../screens/profile/HoldingsManageScreen';
 import { SettingsScreen } from '../screens/profile/SettingsScreen';
+import { YourCallsScreen } from '../screens/profile/YourCallsScreen';
+import { CallDetailScreen } from '../screens/profile/CallDetailScreen';
 import type { ProfileStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
@@ -19,6 +21,8 @@ export function ProfileStack() {
       <Stack.Screen name="InsuranceManage" component={InsuranceManageScreen} />
       <Stack.Screen name="HoldingsManage" component={HoldingsManageScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="YourCalls" component={YourCallsScreen} />
+      <Stack.Screen name="CallDetail" component={CallDetailScreen} />
     </Stack.Navigator>
   );
 }

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NudgeAssistantProvider } from './src/components/NudgeAssistant';
 import { queryClient } from './src/api/queryClient';
 import { SplashScreen } from './src/components/SplashScreen';
 import { DemoUserProvider } from './src/context/DemoUserContext';
@@ -52,7 +53,9 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <DemoUserProvider>
             <OnboardingStatusProvider>
-              <AppShell />
+              <NudgeAssistantProvider>
+                <AppShell />
+              </NudgeAssistantProvider>
             </OnboardingStatusProvider>
           </DemoUserProvider>
         </QueryClientProvider>

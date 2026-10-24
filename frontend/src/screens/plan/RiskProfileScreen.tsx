@@ -10,6 +10,7 @@ import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { NudgeEntryButton } from '../../components/NudgeAssistant';
 import { ProgressBar } from '../../components/ProgressBar';
 import { Reveal } from '../../components/Reveal';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -116,6 +117,15 @@ export function RiskProfileScreen() {
           What you're comfortable with, checked against what your finances currently support.
         </Text>
       </View>
+
+      <NudgeEntryButton
+        surface="risk-profile"
+        details={
+          data
+            ? `Risk profile: final tier ${data.final_tier} of 5; stated preference tier ${data.stated_tier} of 5; financial capacity ceiling tier ${data.capacity_ceiling} of 5.`
+            : undefined
+        }
+      />
 
       {isPending ? (
         <>

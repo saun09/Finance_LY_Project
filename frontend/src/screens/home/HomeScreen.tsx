@@ -15,6 +15,7 @@ import { InfoTooltip } from '../../components/InfoTooltip';
 import { LineChart } from '../../components/LineChart';
 import { MenuList } from '../../components/MenuList';
 import { MetricCard } from '../../components/MetricCard';
+import { NudgeEntryButton } from '../../components/NudgeAssistant';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
 import { Skeleton, SkeletonCard } from '../../components/Skeleton';
@@ -80,6 +81,7 @@ export function HomeScreen() {
     return (
       <ScreenContainer>
         <Text variant="h1">Overview</Text>
+        <NudgeEntryButton surface="home" />
         <SkeletonCard />
         <SkeletonCard />
       </ScreenContainer>
@@ -90,6 +92,7 @@ export function HomeScreen() {
     return (
       <ScreenContainer onRefresh={() => position.refetch()} refreshing={position.isRefetching}>
         <Text variant="h1">Overview</Text>
+        <NudgeEntryButton surface="home" />
         <ErrorState message={position.error.message} onRetry={() => position.refetch()} />
       </ScreenContainer>
     );
@@ -149,6 +152,8 @@ export function HomeScreen() {
           <AvatarBadge initials={initialsFrom(profile.data?.full_name, username)} size={40} />
         </Pressable>
       </View>
+
+      <NudgeEntryButton surface="home" />
 
       <Card raised style={styles.heroCard}>
         <SectionHeader

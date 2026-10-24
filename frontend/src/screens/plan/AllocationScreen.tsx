@@ -16,6 +16,7 @@ import { DonutChart } from '../../components/DonutChart';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { InlineError } from '../../components/InlineError';
+import { NudgeEntryButton } from '../../components/NudgeAssistant';
 import { Reveal } from '../../components/Reveal';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
@@ -298,6 +299,14 @@ export function AllocationScreen() {
           Your recommended allocation
         </Text>
       </View>
+
+      <NudgeEntryButton
+        surface="allocation"
+        details={`Target allocation for tier ${data!.final_tier} of 5: ${ASSET_CLASSES.map(
+          (assetClass) =>
+            `${ASSET_CLASS_LABEL[assetClass]} ${Number(data!.target_pct[assetClass] ?? '0').toFixed(0)}%`,
+        ).join(', ')}.`}
+      />
 
       <Reveal index={0}>
         <MethodologyDisclosure finalTier={data!.final_tier} boundsPct={data!.target_bounds_pct} />

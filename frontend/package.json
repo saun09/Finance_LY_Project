@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@config-plugins/react-native-webrtc": "^15.0.2",
+    "@elevenlabs/react": "^1.19.1",
+    "@elevenlabs/react-native": "^1.2.32",
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
     "@expo/metro-runtime": "~57.0.15",
     "@expo/vector-icons": "^15.0.2",
+    "@livekit/react-native": "^2.12.0",
+    "@livekit/react-native-expo-plugin": "^1.1.0",
+    "@livekit/react-native-webrtc": "^144.2.0",
     "@lottiefiles/dotlottie-react": "^0.13.5",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-vector-icons/ionicons": "^13.1.4",
@@ -17,9 +23,11 @@
     "@tanstack/react-query": "^5.102.8",
     "axios": "^1.20.0",
     "expo": "~57.0.19",
+    "expo-dev-client": "~57.0.20",
     "expo-font": "~57.0.3",
     "expo-linear-gradient": "~57.0.1",
     "expo-status-bar": "~57.0.1",
+    "livekit-client": "^2.23.0",
     "lottie-react-native": "~7.3.8",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -48,6 +56,9 @@
   },
   "private": true,
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^\\.\\.\\/\\.\\.\\/components\\/NudgeAssistant$": "<rootDir>/test-mocks/NudgeAssistant.tsx"
+    }
   }
 }

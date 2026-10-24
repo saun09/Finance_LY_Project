@@ -487,7 +487,12 @@ uvicorn app.main:app --reload
 # Frontend, in a second terminal
 cd frontend
 npm install
-npx expo start
+# Choose one: web preview (voice calls are mobile-only) or native development build
+npx expo start --web
+# Instead, build/install the Android development app (iOS requires macOS + Xcode):
+# npx expo run:android
+# npx expo run:ios
+# After the first native build, start its bundler with: npx expo start --dev-client
 
 # Research component
 cd modules/rumour_verification
@@ -498,6 +503,12 @@ python demo.py "Paste an explicitly supplied rumour here" --date 2025-02-11 --fu
 
 Tests use SQLite, so a local PostgreSQL server is not required for automated
 testing.
+
+The Nudge voice assistant uses ElevenLabs with LiveKit/WebRTC and therefore
+requires an Android or iOS development build; it does not run in Expo Go.
+Microphone permission is requested when a voice conversation starts. The
+agent ID is configured in `frontend/src/components/NudgeAssistant.native.tsx`;
+no ElevenLabs API key is included in the mobile app.
 
 ---
 

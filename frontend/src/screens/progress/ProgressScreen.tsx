@@ -25,6 +25,7 @@ import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { IconChip } from '../../components/IconChip';
+import { NudgeEntryButton } from '../../components/NudgeAssistant';
 import { ReasoningTree } from '../../components/ReasoningTree';
 import { Reveal } from '../../components/Reveal';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -1117,6 +1118,8 @@ export function ProgressScreen() {
         </Text>
         <Text variant="display">Progress</Text>
       </View>
+
+      <NudgeEntryButton surface="progress" />
 
       {educationQuery.data ? (
         <ProgressDeck

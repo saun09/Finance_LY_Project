@@ -7,6 +7,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { LineChart } from '../../components/LineChart';
 import { MenuList } from '../../components/MenuList';
+import { NudgeEntryButton } from '../../components/NudgeAssistant';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SectionHeader } from '../../components/SectionHeader';
 import { Skeleton } from '../../components/Skeleton';
@@ -61,6 +62,8 @@ export function InsightsScreen() {
         </Text>
         <Text variant="display">Beyond the numbers</Text>
       </View>
+
+      <NudgeEntryButton surface="insights" />
 
       {position.data ? (
         <MetricCard
