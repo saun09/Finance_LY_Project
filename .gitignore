@@ -14,3 +14,7 @@ build/
 .coverage
 htmlcov/
 .DS_Store
+
+# Office lock files and local archives
+~$*
+backend/app.zip

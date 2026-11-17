@@ -14,9 +14,10 @@ should still be kept.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.crypto import EncryptedString
 from app.db import Base
 
 
@@ -51,6 +52,8 @@ class NudgeMessage(Base):
         String(36), ForeignKey("nudge_conversation.id"), index=True, nullable=False
     )
     role: Mapped[str] = mapped_column(String(16), nullable=False)  # "user" | "agent"
-    text: Mapped[str] = mapped_column(Text, nullable=False)
+    # encrypted at rest like the other sensitive columns: transcripts can
+    # repeat the user's income, loans and holdings out loud
+    text: Mapped[str] = mapped_column(EncryptedString, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)

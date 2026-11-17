@@ -22,6 +22,18 @@ def runtime_versions() -> dict[str, str]:
     }
 
 
+def _versions_compatible(name: str, recorded: str | None, current: str) -> bool:
+    """numpy/scikit-learn/joblib must match exactly (they define the pickle
+    format and are pinned in requirements.txt). Python only needs the same
+    major.minor: patch releases don't change pickling, and hosts such as
+    Render pick their own patch version."""
+    if recorded is None:
+        return False
+    if name == "python":
+        return recorded.split(".")[:2] == current.split(".")[:2]
+    return recorded == current
+
+
 def load_versioned_model(
     model_path: Path,
     *,
@@ -43,7 +55,7 @@ def load_versioned_model(
     mismatches = {
         name: (recorded_versions.get(name), current)
         for name, current in current_versions.items()
-        if recorded_versions.get(name) != current
+        if not _versions_compatible(name, recorded_versions.get(name), current)
     }
     if mismatches:
         detail = ", ".join(
