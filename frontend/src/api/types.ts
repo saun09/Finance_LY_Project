@@ -670,6 +670,29 @@ export interface RumourVerificationJobOut {
   error: string | null;
 }
 
+export interface WorkflowEvidenceOut {
+  source: string;
+  title: string | null;
+  published_at: string | null;
+  stance: string | null;
+  key_fact: string | null;
+}
+
+/** The n8n workflow's own verdict (e.g. SUPPORTED / REFUTED). Its evidence
+ * is company announcements and news, not exchange filings, so it can't be
+ * expressed through `status` / `matched_filing`. */
+export interface WorkflowVerdictOut {
+  verdict: string | null;
+  confidence: number | null;
+  claim_type: string | null;
+  summary: string | null;
+  reasoning: string | null;
+  temporal_analysis: string | null;
+  caveats: string[];
+  official_sources_checked: number;
+  news_evidence: WorkflowEvidenceOut[];
+}
+
 export interface RumourVerificationOut {
   query_text: string;
   rumour_date: string | null;
@@ -685,6 +708,8 @@ export interface RumourVerificationOut {
    * LocalRumourVerificationOut for the path that can explain eliminations. */
   engine: string;
   framing_label: string;
+  /** Set for n8n results (null on jobs stored before it existed). */
+  workflow?: WorkflowVerdictOut | null;
 }
 
 // ---- Module 1: event log ----

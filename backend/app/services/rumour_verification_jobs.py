@@ -17,6 +17,7 @@ from app.services.rumour_verification_bridge import (
     parse_n8n_result,
     start_verification,
     verification_result_to_suggested_value,
+    workflow_verdict,
 )
 from app.services.transparency import THIRD_PARTY_OUTPUT_LABEL
 
@@ -161,6 +162,7 @@ def complete_job_from_callback(session: Session, *, job_id: str, token: str | No
         "logged_event_id": logged_event_id,
         "engine": N8N_ENGINE_NAME,
         "framing_label": THIRD_PARTY_OUTPUT_LABEL,
+        "workflow": workflow_verdict(result),
     }
     _finish(session, job, status=JOB_COMPLETED, result=payload)
     return job

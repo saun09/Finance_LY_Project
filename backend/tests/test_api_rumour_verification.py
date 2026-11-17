@@ -232,3 +232,50 @@ def test_missing_webhook_url_surfaces_as_a_clean_502(client, monkeypatch):
     resp = client.post(f"/users/{USER}/rumour-verification", json={"rumour_text": ADANI_RUMOUR})
     assert resp.status_code == 502
     assert "not configured" in resp.json()["detail"]
+
+
+# The real workflow's output: a verdict over company announcements and news,
+# whose evidence items are articles (title + date), not exchange filings.
+WORKFLOW_PAYLOAD = {
+    "verdict": "SUPPORTED",
+    "confidence": 0.95,
+    "claim": "Nvidia CEO resigned.",
+    "company": "Nvidia",
+    "ticker": "NVDA",
+    "claim_type": "Resignation",
+    "summary": "The claim that Nvidia's CEO resigned is supported by official evidence.",
+    "temporal_analysis": "The announcement was published before the rumour date.",
+    "reasoning": "Nvidia's newsroom confirms the CEO's resignation.",
+    "caveats": [],
+    "official_evidence": [
+        {"source": "Company Communications (search)", "title": "NVIDIA Announces CEO Transition", "publishedAt": "Thu, 12 Nov 2026 13:56:53 GMT"},
+        {"source": "Company Communications (search)", "title": "A Message to Our Company", "publishedAt": "Sun, 08 Nov 2026 21:11:58 GMT"},
+    ],
+    "news_evidence": [
+        {"source": "General (search)", "publishedAt": "Thu, 12 Nov 2026 22:37:44 GMT", "stance": "supports", "keyFact": "PBS reports that Jensen Huang resigned as Nvidia's CEO."},
+        {"source": "General (search)"},  # nothing to show -- dropped
+    ],
+    "userId": "",
+}
+
+
+def test_workflow_verdict_is_returned_even_without_an_exchange_filing(client, n8n_calls):
+    job = _start(client, rumour="Nvidia CEO resigned")
+    _callback(client, n8n_calls[0], [WORKFLOW_PAYLOAD])
+
+    result = _poll(client, job["job_id"])["result"]
+    assert result["matched_filing"] is None  # still never fabricated
+    workflow = result["workflow"]
+    assert workflow["verdict"] == "SUPPORTED"
+    assert workflow["confidence"] == 0.95
+    assert workflow["summary"].startswith("The claim that Nvidia")
+    assert workflow["official_sources_checked"] == 2
+    assert workflow["news_evidence"] == [
+        {
+            "source": "General (search)",
+            "title": None,
+            "published_at": "Thu, 12 Nov 2026 22:37:44 GMT",
+            "stance": "supports",
+            "key_fact": "PBS reports that Jensen Huang resigned as Nvidia's CEO.",
+        }
+    ]

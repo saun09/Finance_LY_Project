@@ -20,6 +20,29 @@ class MatchedFilingOut(BaseModel):
     determination: str | None
 
 
+class WorkflowEvidenceOut(BaseModel):
+    source: str
+    title: str | None = None
+    published_at: str | None = None
+    stance: str | None = None
+    key_fact: str | None = None
+
+
+class WorkflowVerdictOut(BaseModel):
+    """The n8n workflow's own verdict (e.g. SUPPORTED / REFUTED), which the
+    exchange-filing fields can't express. See rumour_verification_bridge.workflow_verdict."""
+
+    verdict: str | None = None
+    confidence: float | None = None
+    claim_type: str | None = None
+    summary: str | None = None
+    reasoning: str | None = None
+    temporal_analysis: str | None = None
+    caveats: list[str] = []
+    official_sources_checked: int = 0
+    news_evidence: list[WorkflowEvidenceOut] = []
+
+
 class RumourVerificationOut(BaseModel):
     query_text: str
     rumour_date: date | None
@@ -35,6 +58,8 @@ class RumourVerificationOut(BaseModel):
     #: "local_constrained_retrieval" can produce an elimination trace.
     engine: str
     framing_label: str
+    #: Set for n8n results; null for jobs stored before it existed.
+    workflow: WorkflowVerdictOut | None = None
 
 
 class RumourVerificationJobOut(BaseModel):

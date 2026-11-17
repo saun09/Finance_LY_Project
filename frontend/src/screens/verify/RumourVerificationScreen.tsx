@@ -5,7 +5,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { rumourVerificationApi } from '../../api/rumourVerification';
-import type { LocalRumourVerificationOut, RumourVerificationOut, RumourStatus } from '../../api/types';
+import type {
+  LocalRumourVerificationOut,
+  RumourStatus,
+  RumourVerificationOut,
+  WorkflowVerdictOut,
+} from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { IconChip } from '../../components/IconChip';
@@ -519,8 +524,108 @@ function ExplanationCard({ explanation }: { explanation: LocalRumourVerification
   );
 }
 
+function workflowVerdictFor(verdict: string | null): Verdict {
+  switch (verdict) {
+    case 'SUPPORTED':
+    case 'CONFIRMED':
+    case 'TRUE':
+      return { label: 'SUPPORTED BY EVIDENCE', tone: 'positive', icon: 'checkmark-circle' };
+    case 'REFUTED':
+    case 'CONTRADICTED':
+    case 'DENIED':
+    case 'FALSE':
+      return { label: 'CONTRADICTED BY EVIDENCE', tone: 'danger', icon: 'close-circle' };
+    case null:
+      return { label: 'NO VERDICT', tone: 'neutral', icon: 'information-circle-outline' };
+    default:
+      // UNVERIFIED, INSUFFICIENT_EVIDENCE, MIXED, ... -- shown as the workflow said it
+      return { label: verdict.replace(/_/g, ' '), tone: 'warning', icon: 'help-circle-outline' };
+  }
+}
+
+function WorkflowResultCard({ result, workflow }: { result: RumourVerificationOut; workflow: WorkflowVerdictOut }) {
+  const { colors } = useAppTheme();
+  const notes = [workflow.reasoning, workflow.temporal_analysis, ...workflow.caveats].filter(
+    (n): n is string => !!n,
+  );
+
+  return (
+    <Card>
+      <View style={styles.resultHeader}>
+        <SectionHeader title={result.query_text} />
+        <VerdictBanner verdict={workflowVerdictFor(workflow.verdict)} />
+      </View>
+
+      {workflow.summary ? (
+        <Text variant="body" tone="muted" style={styles.spaced}>
+          {workflow.summary}
+        </Text>
+      ) : null}
+
+      <View style={styles.metricRow}>
+        <Text variant="caption" tone="muted">
+          Confidence
+        </Text>
+        <Text variant="figure">{workflow.confidence != null ? `${Math.round(workflow.confidence * 100)}%` : '—'}</Text>
+      </View>
+      {workflow.claim_type ? (
+        <View style={styles.metricRow}>
+          <Text variant="caption" tone="muted">
+            Claim type
+          </Text>
+          <Text variant="figure">{workflow.claim_type}</Text>
+        </View>
+      ) : null}
+      <View style={styles.metricRow}>
+        <Text variant="caption" tone="muted">
+          Company sources checked
+        </Text>
+        <Text variant="figure">{workflow.official_sources_checked}</Text>
+      </View>
+
+      {workflow.news_evidence.length > 0 ? (
+        <View style={styles.reasonsList}>
+          <Text variant="caption" tone="muted">
+            NEWS EVIDENCE
+          </Text>
+          {workflow.news_evidence.map((item, i) => (
+            <Text key={i} variant="caption" tone="faint" style={styles.reasonItem}>
+              • {item.key_fact ?? item.title}
+              {item.stance ? ` (${item.stance})` : ''}
+              {item.published_at ? ` — ${item.published_at}` : ''}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+
+      {notes.length > 0 ? (
+        <Card style={{ backgroundColor: colors.paperSunken, borderColor: colors.border, marginTop: SPACE.sm }}>
+          <Text variant="caption" tone="muted">
+            WHAT THE EXTERNAL WORKFLOW REPORTED
+          </Text>
+          <Text variant="caption" tone="faint">
+            This is the workflow's own written rationale, not an exchange-filing match. For a checkable
+            filing-level trace, use Exchange Filings mode above.
+          </Text>
+          <View style={styles.reasonsList}>
+            {notes.map((note, i) => (
+              <Text key={i} variant="caption" tone="faint" style={styles.reasonItem}>
+                • {note}
+              </Text>
+            ))}
+          </View>
+        </Card>
+      ) : null}
+    </Card>
+  );
+}
+
 function ResultCard({ result }: { result: RumourVerificationOut }) {
   const { colors } = useAppTheme();
+
+  if (result.workflow) {
+    return <WorkflowResultCard result={result} workflow={result.workflow} />;
+  }
 
   if (!result.matched_filing) {
     return (

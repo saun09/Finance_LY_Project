@@ -51,6 +51,8 @@ class N8NVerificationResult:
         temporal_analysis: str,
         reasoning: str,
         caveats: list[str],
+        summary: str = "",
+        claim_type: str = "",
     ):
         self.query_text = query_text
         self.rumour_date = rumour_date
@@ -63,6 +65,8 @@ class N8NVerificationResult:
         self.temporal_analysis = temporal_analysis
         self.reasoning = reasoning
         self.caveats = caveats
+        self.summary = summary
+        self.claim_type = claim_type
 
 
 def start_verification(
@@ -152,7 +156,51 @@ def parse_n8n_result(
         temporal_analysis=data.get("temporal_analysis") or "",
         reasoning=data.get("reasoning") or "",
         caveats=[c for c in caveats if isinstance(c, str)],
+        summary=_text(data.get("summary")),
+        claim_type=_text(data.get("claim_type")),
     )
+
+
+def _text(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def workflow_verdict(result: N8NVerificationResult) -> dict:
+    """The workflow's own verdict, for display. The exchange-filing fields
+    (`status`, `matched_filing`) can't carry it: the workflow judges a claim
+    against company announcements and news, and its evidence items name an
+    article (title + date), not an exchange filing with an id -- so mapping
+    it onto `matched_filing` would always come out empty and read as "no
+    match" even when the workflow found strong support."""
+    news = []
+    for item in result.news_evidence:
+        if not isinstance(item, dict):
+            continue
+        key_fact = _text(item.get("keyFact") or item.get("key_fact"))
+        title = _text(item.get("title"))
+        if not key_fact and not title:
+            continue
+        news.append(
+            {
+                "source": _text(item.get("source")),
+                "title": title or None,
+                "published_at": _text(item.get("publishedAt") or item.get("published_at")) or None,
+                "stance": _text(item.get("stance")) or None,
+                "key_fact": key_fact or None,
+            }
+        )
+    verdict = result.verdict.strip().upper() if isinstance(result.verdict, str) and result.verdict.strip() else None
+    return {
+        "verdict": verdict,
+        "confidence": result.confidence,
+        "claim_type": result.claim_type or None,
+        "summary": result.summary or None,
+        "reasoning": result.reasoning or None,
+        "temporal_analysis": result.temporal_analysis or None,
+        "caveats": result.caveats,
+        "official_sources_checked": len(result.official_evidence),
+        "news_evidence": news,
+    }
 
 
 def _extract_matched_filing(result: N8NVerificationResult) -> dict | None:
