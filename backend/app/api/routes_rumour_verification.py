@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_session
 from app.schemas.rumour_verification import (
     LocalRumourVerificationOut,
     RumourVerificationIn,
-    RumourVerificationOut,
+    RumourVerificationJobOut,
 )
 from app.services.rumour_local_engine import (
     ENGINE_NAME as LOCAL_ENGINE_NAME,
@@ -15,12 +15,14 @@ from app.services.rumour_local_engine import (
     run_local_verification,
     verification_result_to_suggested_value as local_result_to_suggested_value,
 )
-from app.services.rumour_verification_bridge import (
-    N8N_ENGINE_NAME,
-    N8NTimeoutError,
-    log_verification_event,
-    run_verification,
-    verification_result_to_suggested_value,
+from app.services.rumour_verification_bridge import N8N_ENGINE_NAME, N8NTimeoutError
+from app.services.rumour_verification_jobs import (
+    CallbackRejectedError,
+    JobNotFoundError,
+    PublicUrlNotConfiguredError,
+    complete_job_from_callback,
+    create_and_start_job,
+    get_job,
 )
 from app.services.transparency import (
     LOCAL_ENGINE_CLAIM_NOTE,
@@ -29,6 +31,12 @@ from app.services.transparency import (
 )
 
 router = APIRouter(prefix="/users/{user_id}/rumour-verification", tags=["rumour_verification"])
+# n8n's callback has no user in its path -- the per-job token identifies it.
+callback_router = APIRouter(prefix="/rumour-verification", tags=["rumour_verification"])
+
+
+def _job_out(job) -> RumourVerificationJobOut:
+    return RumourVerificationJobOut(job_id=job.id, status=job.status, result=job.result, error=job.error)
 
 
 @router.get("/engines", response_model=dict)
@@ -61,52 +69,66 @@ def get_available_engines():
     }
 
 
-@router.post("", response_model=RumourVerificationOut)
+@router.post("", response_model=RumourVerificationJobOut, status_code=202)
 def post_verify_rumour(
     user_id: str,
     body: RumourVerificationIn,
     log_event: bool = Query(True, description="Log this verification as an auditable suggestion_event"),
     session: Session = Depends(get_session),
 ):
-    """Calls the n8n Module 5 workflow (see rumour_verification_bridge.py)
-    and, by default, logs the result as a suggestion_event purely for
-    auditability -- never touching action_taken/chosen_value/funded, since
-    a verification result isn't something a user accepts/edits/rejects the
-    way a suggestion is.
+    """Start the n8n Module 5 workflow and return a job to poll.
 
-    The response carries `engine` and `framing_label` so the client cannot
+    The workflow takes minutes and n8n Cloud cuts requests at ~100s, so the
+    verdict can't come back on this request: n8n POSTs it to the callback
+    below, and GET /jobs/{job_id} reports it. Once complete, the result is
+    (by default) logged as a suggestion_event purely for auditability.
+
+    The result carries `engine` and `framing_label` so the client cannot
     present this workflow's self-reported prose as the project's
     explainability claim; for that, use `/explain` below.
     """
     try:
-        result = run_verification(
-            body.rumour_text, rumour_date=body.rumour_date, company_name=body.company_name, evaluated_at=body.evaluated_at,
+        job = create_and_start_job(
+            session,
+            user_id=user_id,
+            rumour_text=body.rumour_text,
+            rumour_date=body.rumour_date,
+            company_name=body.company_name,
+            evaluated_at=body.evaluated_at,
+            log_event=log_event,
         )
+    except PublicUrlNotConfiguredError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except N8NTimeoutError as exc:
         raise HTTPException(status_code=504, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return _job_out(job)
 
-    suggested_value = verification_result_to_suggested_value(result)
 
-    logged_event_id = None
-    if log_event:
-        event = log_verification_event(session, user_id, result)
-        logged_event_id = event.event_id
+@router.get("/jobs/{job_id}", response_model=RumourVerificationJobOut)
+def get_verify_rumour_job(user_id: str, job_id: str, session: Session = Depends(get_session)):
+    try:
+        return _job_out(get_job(session, user_id=user_id, job_id=job_id))
+    except JobNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    return RumourVerificationOut(
-        query_text=result.query_text,
-        rumour_date=result.rumour_date,
-        status=suggested_value["status"],
-        matched_score=suggested_value["matched_score"],
-        matched_filing=suggested_value["matched_filing"],
-        candidates_considered=suggested_value["candidates_considered"],
-        candidates_passing=suggested_value["candidates_passing"],
-        top_candidate_reasons=suggested_value["top_candidate_reasons"],
-        logged_event_id=logged_event_id,
-        engine=N8N_ENGINE_NAME,
-        framing_label=THIRD_PARTY_OUTPUT_LABEL,
-    )
+
+@callback_router.post("/jobs/{job_id}/result")
+def post_verify_rumour_result(
+    job_id: str,
+    data: dict | list = Body(...),
+    x_callback_token: str | None = Header(None),
+    session: Session = Depends(get_session),
+):
+    """Called by the n8n workflow's last node with its final JSON (or
+    `{"error": "..."}` from an error branch), plus the job's token in the
+    X-Callback-Token header."""
+    try:
+        job = complete_job_from_callback(session, job_id=job_id, token=x_callback_token, data=data)
+    except CallbackRejectedError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return {"ok": True, "status": job.status}
 
 
 @router.post("/explain", response_model=LocalRumourVerificationOut)

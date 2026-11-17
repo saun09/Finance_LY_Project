@@ -12,6 +12,7 @@ from app.api.routes_onboarding import router as onboarding_router
 from app.api.routes_personalization import router as personalization_router
 from app.api.routes_risk_profile import config_router as risk_profile_config_router
 from app.api.routes_risk_profile import router as risk_profile_router
+from app.api.routes_rumour_verification import callback_router as rumour_verification_callback_router
 from app.api.routes_rumour_verification import router as rumour_verification_router
 from app.api.routes_transparency import router as transparency_router
 from app.config import CORS_ORIGIN_REGEX, CORS_ORIGINS, FORCE_HTTPS
@@ -57,6 +58,7 @@ app.include_router(personalization_router)
 app.include_router(transparency_router)
 app.include_router(gamification_router)
 app.include_router(rumour_verification_router)
+app.include_router(rumour_verification_callback_router)
 app.include_router(nudge_router)
 
 

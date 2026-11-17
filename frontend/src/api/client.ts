@@ -49,6 +49,7 @@ function detailToMessage(detail: ApiErrorBody['detail'] | undefined): string | n
 }
 
 export function toApiError(error: unknown): ApiError {
+  if (error instanceof ApiError) return error;
   if (axios.isAxiosError(error)) {
     const err = error as AxiosError<ApiErrorBody>;
     if (err.code === 'ECONNABORTED') {

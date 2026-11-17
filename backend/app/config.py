@@ -27,3 +27,10 @@ CORS_ORIGIN_REGEX = os.environ.get(
 # plain-HTTP requests are redirected to HTTPS and responses carry HSTS so
 # browsers refuse to downgrade. Off locally, where uvicorn serves plain HTTP.
 FORCE_HTTPS = os.environ.get("FORCE_HTTPS", "").lower() in {"1", "true", "yes"}
+
+# This backend's own public https URL, used to build the callback URL the
+# n8n rumour workflow POSTs its result to (see rumour_verification_job.py).
+# Render sets RENDER_EXTERNAL_URL automatically, so nothing to configure
+# there; locally it's unset and the broader workflow reports it can't run,
+# since n8n Cloud can't reach 127.0.0.1.
+PUBLIC_BASE_URL = (os.environ.get("PUBLIC_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL") or "").rstrip("/")

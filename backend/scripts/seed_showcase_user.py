@@ -302,6 +302,9 @@ def main() -> None:
             resp = client.post(f"{u}/rumour-verification", json=RUMOUR)
         if resp.is_error:
             print(f"skipped -- neither engine is available ({resp.status_code}: {resp.text[:120]})")
+        elif resp.status_code == 202:
+            # the n8n path is async: its result is logged when n8n calls back
+            print(f"n8n job {resp.json()['job_id']} started; it is logged once the workflow reports back")
         else:
             body = resp.json()
             print(f"{body['engine']}: {body['status']}")

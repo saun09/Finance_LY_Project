@@ -661,6 +661,15 @@ export interface MatchedFilingOut {
   determination: string | null;
 }
 
+/** An async run of the n8n workflow: poll until `completed` (then
+ * `result` is set) or `failed` (then `error` says why). */
+export interface RumourVerificationJobOut {
+  job_id: string;
+  status: 'pending' | 'completed' | 'failed';
+  result: RumourVerificationOut | null;
+  error: string | null;
+}
+
 export interface RumourVerificationOut {
   query_text: string;
   rumour_date: string | null;

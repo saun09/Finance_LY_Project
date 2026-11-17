@@ -12,6 +12,7 @@ from app.models.onboarding import (
     UserProfile,
 )
 from app.models.nudge import NudgeConversation, NudgeMessage
+from app.models.rumour_verification_job import RumourVerificationJob
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
 from app.models.user_monthly_snapshot import UserMonthlySnapshot
 
@@ -32,4 +33,5 @@ __all__ = [
     "ExpenseSourceDecisionRecord",
     "NudgeConversation",
     "NudgeMessage",
+    "RumourVerificationJob",
 ]

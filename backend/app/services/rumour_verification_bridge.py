@@ -25,16 +25,14 @@ N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 #: Module 5 engines apart. See rumour_local_engine.py for the other one.
 N8N_ENGINE_NAME = "n8n_llm_workflow"
 
-#: How long to wait on the n8n workflow. It runs a live web search plus
-#: several LLM agents per request; runs of 4-5 minutes have been observed,
-#: so this must comfortably exceed that. Keep it below the frontend's own
-#: timeout in rumourVerification.ts so the backend reports first.
-N8N_TIMEOUT_SECONDS = 330.0
+#: How long to wait for n8n to *accept* a run. The workflow itself takes
+#: minutes and reports back via callback (see rumour_verification_job.py);
+#: its Webhook node responds immediately, so this only covers the hand-off.
+N8N_START_TIMEOUT_SECONDS = 30.0
 
 
 class N8NTimeoutError(RuntimeError):
-    """n8n didn't answer within N8N_TIMEOUT_SECONDS. Its own run may still
-    finish -- the result just has nobody waiting for it any more."""
+    """n8n didn't accept the run within N8N_START_TIMEOUT_SECONDS."""
 
 
 class N8NVerificationResult:
@@ -67,68 +65,60 @@ class N8NVerificationResult:
         self.caveats = caveats
 
 
-def run_verification(
+def start_verification(
     rumour_text: str,
+    *,
+    job_id: str,
+    callback_url: str,
+    callback_token: str,
     rumour_date: date | None = None,
     company_name: str | None = None,
     evaluated_at: datetime | None = None,
-) -> N8NVerificationResult:
+) -> None:
+    """Hand a rumour to the n8n workflow and return once n8n has accepted
+    it. The verdict arrives later: the workflow's last node POSTs its
+    output to `callback_url` with `X-Callback-Token: <callback_token>`.
 
+    Raises RuntimeError (N8NTimeoutError for a timeout) if n8n can't be
+    reached or refuses the run."""
     if not N8N_WEBHOOK_URL:
-        raise RuntimeError(
-            "N8N_WEBHOOK_URL is not configured."
-        )
+        raise RuntimeError("N8N_WEBHOOK_URL is not configured.")
 
-    # Your existing n8n workflow expects these names.
+    # The workflow's existing fields, plus what it needs to report back.
     payload = {
         "rumour": rumour_text,
         "company": company_name or "",
         "ticker": company_name or "",
-        "rumour_date": (
-            rumour_date.isoformat()
-            if rumour_date
-            else ""
-        ),
-        "evaluated_at": (
-            evaluated_at.isoformat()
-            if evaluated_at
-            else ""
-        ),
+        "rumour_date": rumour_date.isoformat() if rumour_date else "",
+        "evaluated_at": evaluated_at.isoformat() if evaluated_at else "",
+        "job_id": job_id,
+        "callback_url": callback_url,
+        "callback_token": callback_token,
     }
 
     try:
-        response = httpx.post(
-            N8N_WEBHOOK_URL,
-            json=payload,
-            timeout=N8N_TIMEOUT_SECONDS,
-        )
-
+        response = httpx.post(N8N_WEBHOOK_URL, json=payload, timeout=N8N_START_TIMEOUT_SECONDS)
         response.raise_for_status()
-
-        data = response.json()
-
     except httpx.TimeoutException as exc:
-        raise N8NTimeoutError(
-            f"The broader workflow didn't finish within {int(N8N_TIMEOUT_SECONDS // 60)} minutes. "
-            "Try again, or use Exchange Filings mode for a faster answer."
-        ) from exc
-
+        raise N8NTimeoutError("The broader workflow didn't respond. Try again shortly.") from exc
     except httpx.HTTPStatusError as exc:
+        # n8n Cloud's error pages are full HTML documents -- only the status
+        # is useful to a user.
         raise RuntimeError(
-            f"n8n returned HTTP {exc.response.status_code}: "
-            f"{exc.response.text[:500]}"
+            f"The broader workflow refused the request (HTTP {exc.response.status_code}). Try again shortly."
         ) from exc
-
     except httpx.RequestError as exc:
-        raise RuntimeError(
-            f"Could not connect to n8n: {exc}"
-        ) from exc
+        raise RuntimeError(f"Could not connect to the broader workflow: {exc}") from exc
 
-    except ValueError as exc:
-        raise RuntimeError(
-            "n8n returned invalid JSON."
-        ) from exc
 
+def parse_n8n_result(
+    data: Any,
+    *,
+    rumour_text: str,
+    rumour_date: date | None = None,
+    company_name: str | None = None,
+) -> N8NVerificationResult:
+    """Normalize the workflow's final JSON (what its callback POSTs)."""
     if not isinstance(data, dict):
         raise RuntimeError(
             f"n8n returned a malformed response (expected a JSON object, got {type(data).__name__})."
@@ -146,6 +136,10 @@ def run_verification(
     if confidence is not None and not isinstance(confidence, (int, float)):
         confidence = None
 
+    caveats = data.get("caveats")
+    if not isinstance(caveats, list):
+        caveats = []
+
     return N8NVerificationResult(
         query_text=data.get("claim") or rumour_text,
         rumour_date=rumour_date,
@@ -157,7 +151,7 @@ def run_verification(
         news_evidence=news_evidence,
         temporal_analysis=data.get("temporal_analysis") or "",
         reasoning=data.get("reasoning") or "",
-        caveats=data.get("caveats") or [],
+        caveats=[c for c in caveats if isinstance(c, str)],
     )
 
 

@@ -7,7 +7,8 @@ from app.models.suggestion_event import SuggestionEvent
 from app.services import rumour_verification_bridge
 from app.services.rumour_verification_bridge import (
     log_verification_event,
-    run_verification,
+    parse_n8n_result,
+    start_verification,
     verification_result_to_suggested_value,
 )
 
@@ -51,7 +52,7 @@ NO_MATCH_PAYLOAD = {
 }
 
 
-def _fake_post(json_body: dict, status_code: int = 200):
+def _fake_post(json_body=None, status_code: int = 200):
     def post(url, json=None, timeout=None):
         return httpx.Response(status_code, json=json_body, request=httpx.Request("POST", url))
 
@@ -63,28 +64,28 @@ def _configured_webhook_url(monkeypatch):
     monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", FAKE_URL)
 
 
-def test_run_verification_calls_n8n_and_maps_a_real_match(monkeypatch):
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+def _start(**overrides):
+    kwargs = dict(
+        job_id="job-1",
+        callback_url="https://api.example.com/rumour-verification/jobs/job-1/result",
+        callback_token="tok",
+    )
+    kwargs.update(overrides)
+    start_verification("Adani Group is going to acquire a stake in Paytm.", **kwargs)
 
-    result = run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11), company_name="Adani")
 
-    assert result.verdict == "denied"
-    assert result.confidence == 0.92
-    assert result.official_evidence[0]["filing_id"] == "F001"
+# --- start_verification: hand-off to n8n ------------------------------------
 
 
-def test_run_verification_sends_the_translated_payload(monkeypatch):
+def test_start_sends_the_workflow_fields_plus_callback_details(monkeypatch):
     captured = {}
 
     def post(url, json=None, timeout=None):
-        captured["url"] = url
-        captured["json"] = json
-        captured["timeout"] = timeout
-        return httpx.Response(200, json=MATCHED_PAYLOAD, request=httpx.Request("POST", url))
+        captured.update(url=url, json=json, timeout=timeout)
+        return httpx.Response(200, text="Workflow was started", request=httpx.Request("POST", url))
 
     monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
-
-    run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11), company_name="Adani")
+    _start(rumour_date=date(2025, 2, 11), company_name="Adani")
 
     assert captured["url"] == FAKE_URL
     assert captured["json"] == {
@@ -93,92 +94,87 @@ def test_run_verification_sends_the_translated_payload(monkeypatch):
         "ticker": "Adani",
         "rumour_date": "2025-02-11",
         "evaluated_at": "",
+        "job_id": "job-1",
+        "callback_url": "https://api.example.com/rumour-verification/jobs/job-1/result",
+        "callback_token": "tok",
     }
+    # only the hand-off is awaited -- well under n8n Cloud's ~100s cut-off
+    assert captured["timeout"] < 100
 
 
-def test_run_verification_with_no_match_returns_none_gracefully(monkeypatch):
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(NO_MATCH_PAYLOAD))
-
-    result = run_verification("Some completely unrelated company launched a new snack brand", rumour_date=date(2026, 1, 1))
-    assert result.official_evidence == []
-    assert result.verdict is None
+def test_start_ignores_whatever_n8n_acknowledges_with(monkeypatch):
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post({"message": "Workflow was started"}))
+    _start()  # no exception, nothing parsed
 
 
-def test_run_verification_raises_when_webhook_url_missing(monkeypatch):
+def test_start_raises_when_webhook_url_missing(monkeypatch):
     monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", None)
     with pytest.raises(RuntimeError, match="not configured"):
-        run_verification("anything")
+        _start()
 
 
-def test_run_verification_wraps_timeout_cleanly(monkeypatch):
+def test_start_wraps_timeout_cleanly(monkeypatch):
     def post(url, json=None, timeout=None):
         raise httpx.TimeoutException("timed out")
 
     monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
-    with pytest.raises(rumour_verification_bridge.N8NTimeoutError, match="didn't finish within"):
-        run_verification("anything")
+    with pytest.raises(rumour_verification_bridge.N8NTimeoutError):
+        _start()
 
 
-def test_n8n_timeout_comfortably_exceeds_observed_run_times(monkeypatch):
-    # Runs of ~4m42s have been observed; the old 110s limit failed them.
-    seen = {}
-
-    def post(url, json=None, timeout=None):
-        seen["timeout"] = timeout
-        raise httpx.TimeoutException("timed out")
-
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
-    monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", FAKE_URL)
-    with pytest.raises(RuntimeError):
-        run_verification("anything")
-    assert seen["timeout"] >= 300
-
-
-def test_run_verification_wraps_connection_errors_cleanly(monkeypatch):
+def test_start_wraps_connection_errors_cleanly(monkeypatch):
     def post(url, json=None, timeout=None):
         raise httpx.ConnectError("connection refused")
 
     monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
     with pytest.raises(RuntimeError, match="Could not connect"):
-        run_verification("anything")
+        _start()
 
 
-def test_run_verification_wraps_non_2xx_response_cleanly(monkeypatch):
+def test_start_reports_non_2xx_without_dumping_the_html_page(monkeypatch):
     def post(url, json=None, timeout=None):
-        return httpx.Response(500, text="internal error", request=httpx.Request("POST", url))
+        return httpx.Response(524, text="<!DOCTYPE html><html>...</html>", request=httpx.Request("POST", url))
 
     monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
-    with pytest.raises(RuntimeError, match="HTTP 500"):
-        run_verification("anything")
+    with pytest.raises(RuntimeError, match="HTTP 524") as exc_info:
+        _start()
+    assert "<html" not in str(exc_info.value)
 
 
-def test_run_verification_wraps_invalid_json_cleanly(monkeypatch):
-    def post(url, json=None, timeout=None):
-        return httpx.Response(200, content=b"not json", request=httpx.Request("POST", url))
-
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
-    with pytest.raises(RuntimeError, match="invalid JSON"):
-        run_verification("anything")
+# --- parse_n8n_result: the callback body ------------------------------------
 
 
-def test_run_verification_rejects_non_object_json_cleanly(monkeypatch):
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(["not", "an", "object"]))
+def test_parse_maps_a_real_match():
+    result = parse_n8n_result(MATCHED_PAYLOAD, rumour_text="x", rumour_date=date(2025, 2, 11), company_name="Adani")
+    assert result.verdict == "denied"
+    assert result.confidence == 0.92
+    assert result.official_evidence[0]["filing_id"] == "F001"
+    assert result.rumour_date == date(2025, 2, 11)
+
+
+def test_parse_no_match_returns_empty_gracefully():
+    result = parse_n8n_result(NO_MATCH_PAYLOAD, rumour_text="x")
+    assert result.official_evidence == []
+    assert result.verdict is None
+
+
+def test_parse_rejects_non_object_json_cleanly():
     with pytest.raises(RuntimeError, match="malformed response"):
-        run_verification("anything")
+        parse_n8n_result(["not", "an", "object"], rumour_text="x")
 
 
-def test_malformed_confidence_type_is_dropped_not_crashed(monkeypatch):
-    bad_payload = dict(MATCHED_PAYLOAD, confidence="high")
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(bad_payload))
-
-    result = run_verification("anything")
+def test_malformed_confidence_type_is_dropped_not_crashed():
+    result = parse_n8n_result(dict(MATCHED_PAYLOAD, confidence="high"), rumour_text="x")
     assert result.confidence is None
 
 
-def test_suggested_value_shape_is_json_safe(monkeypatch):
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
+def test_parse_falls_back_to_the_submitted_text_when_claim_is_missing():
+    payload = {k: v for k, v in MATCHED_PAYLOAD.items() if k != "claim"}
+    assert parse_n8n_result(payload, rumour_text="what the user typed").query_text == "what the user typed"
 
-    result = run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11))
+
+def test_suggested_value_shape_is_json_safe():
+    result = parse_n8n_result(MATCHED_PAYLOAD, rumour_text="Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11))
     value = verification_result_to_suggested_value(result)
 
     assert value["matched_filing"]["filing_id"] == "F001"
@@ -190,30 +186,24 @@ def test_suggested_value_shape_is_json_safe(monkeypatch):
     assert value["candidates_passing"] == 1
 
 
-def test_suggested_value_for_no_match_has_null_filing(monkeypatch):
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(NO_MATCH_PAYLOAD))
-
-    result = run_verification("Some completely unrelated company launched a new snack brand", rumour_date=date(2026, 1, 1))
+def test_suggested_value_for_no_match_has_null_filing():
+    result = parse_n8n_result(NO_MATCH_PAYLOAD, rumour_text="Some completely unrelated company launched a new snack brand", rumour_date=date(2026, 1, 1))
     value = verification_result_to_suggested_value(result)
     assert value["matched_filing"] is None
     assert value["top_candidate_reasons"] == []
 
 
-def test_incomplete_evidence_never_fabricates_a_matched_filing(monkeypatch):
+def test_incomplete_evidence_never_fabricates_a_matched_filing():
     # official_evidence is non-empty, but missing filing_id/date/authority --
     # this must still resolve to a null matched_filing, not a half-invented one.
     incomplete_payload = dict(MATCHED_PAYLOAD, official_evidence=[{"company_name": "Adani Enterprises"}])
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(incomplete_payload))
-
-    result = run_verification("anything")
+    result = parse_n8n_result(incomplete_payload, rumour_text="anything")
     value = verification_result_to_suggested_value(result)
     assert value["matched_filing"] is None
 
 
-def test_log_verification_event_writes_a_suggestion_event_for_auditability_only(session, monkeypatch):
-    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", _fake_post(MATCHED_PAYLOAD))
-
-    result = run_verification("Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11))
+def test_log_verification_event_writes_a_suggestion_event_for_auditability_only(session):
+    result = parse_n8n_result(MATCHED_PAYLOAD, rumour_text="Adani Group is going to acquire a stake in Paytm.", rumour_date=date(2025, 2, 11))
     event = log_verification_event(session, USER, result)
 
     assert event.module_source == "rumour_verification"

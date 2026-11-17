@@ -35,6 +35,7 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "auth_user",
         "nudge_conversation",
         "nudge_message",
+        "rumour_verification_job",
     } <= tables
 
     event_columns = {c["name"] for c in inspector.get_columns("suggestion_event")}

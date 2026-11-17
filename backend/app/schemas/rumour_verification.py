@@ -37,6 +37,17 @@ class RumourVerificationOut(BaseModel):
     framing_label: str
 
 
+class RumourVerificationJobOut(BaseModel):
+    """An async run of the n8n workflow (see models/rumour_verification_job.py).
+    Poll until `status` is "completed" (then `result` is set) or "failed"
+    (then `error` says why)."""
+
+    job_id: str
+    status: str
+    result: RumourVerificationOut | None = None
+    error: str | None = None
+
+
 class CandidateExplanationOut(BaseModel):
     """One candidate filing the local retriever considered -- including the
     ones it rejected, which is the half that makes this an explanation."""
