@@ -1,0 +1,121 @@
+dataset,threshold_name,threshold_field,base_threshold,perturbation,baseline_cap_rate,scenario_cap_rate,cap_rate_change_percentage_points,moves_cap_rate
+scenario cohort,emergency_buffer_months,buffer_months_bands,1.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,1.0,0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,2.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,2.0,0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,4.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,4.0,0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,6.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,emergency_buffer_months,buffer_months_bands,6.0,0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.2,-0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.2,0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.3,-0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.3,0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.4,-0.1,0.3,0.4368,13.680000000000003,True
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.4,0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.5,-0.1,0.3,0.3,0.0,False
+scenario cohort,emi_to_income_ratio,emi_to_income_bands,0.5,0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,0.25,-0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,0.25,0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,0.5,-0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,0.5,0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,0.75,-0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,0.75,0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,1.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,insurance_coverage_ratio,insurance_coverage_bands,1.0,0.1,0.3,0.3,0.0,False
+scenario cohort,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,0.1,0.3,0.3,0.0,False
+scenario cohort,irregular_income_ceiling,irregular_income_ceiling,3.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,irregular_income_ceiling,irregular_income_ceiling,3.0,0.1,0.3,0.3,0.0,False
+scenario cohort,regular_income_ceiling,regular_income_ceiling,5.0,-0.1,0.3,0.3,0.0,False
+scenario cohort,regular_income_ceiling,regular_income_ceiling,5.0,0.1,0.3,0.3,0.0,False
+low_fragility,emergency_buffer_months,buffer_months_bands,1.0,-0.1,0.5374,0.5366,-0.08000000000000229,True
+low_fragility,emergency_buffer_months,buffer_months_bands,1.0,0.1,0.5374,0.5385,0.10999999999999899,True
+low_fragility,emergency_buffer_months,buffer_months_bands,2.0,-0.1,0.5374,0.5352,-0.21999999999999797,True
+low_fragility,emergency_buffer_months,buffer_months_bands,2.0,0.1,0.5374,0.5397,0.22999999999999687,True
+low_fragility,emergency_buffer_months,buffer_months_bands,4.0,-0.1,0.5374,0.5334,-0.40000000000000036,True
+low_fragility,emergency_buffer_months,buffer_months_bands,4.0,0.1,0.5374,0.5409,0.35000000000000586,True
+low_fragility,emergency_buffer_months,buffer_months_bands,6.0,-0.1,0.5374,0.5329,-0.44999999999999485,True
+low_fragility,emergency_buffer_months,buffer_months_bands,6.0,0.1,0.5374,0.5397,0.22999999999999687,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.2,-0.1,0.5374,0.5377,0.029999999999996696,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.2,0.1,0.5374,0.537,-0.039999999999995595,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.3,-0.1,0.5374,0.5394,0.20000000000000018,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.3,0.1,0.5374,0.5359,-0.14999999999999458,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.4,-0.1,0.5374,0.5438,0.6399999999999961,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.4,0.1,0.5374,0.5316,-0.5800000000000027,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.5,-0.1,0.5374,0.5456,0.8199999999999985,True
+low_fragility,emi_to_income_ratio,emi_to_income_bands,0.5,0.1,0.5374,0.5279,-0.9499999999999953,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.25,-0.1,0.5374,0.5346,-0.28000000000000247,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.25,0.1,0.5374,0.5402,0.28000000000000247,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.5,-0.1,0.5374,0.534,-0.33999999999999586,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.5,0.1,0.5374,0.5407,0.32999999999999696,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.75,-0.1,0.5374,0.5357,-0.17000000000000348,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.75,0.1,0.5374,0.5393,0.19000000000000128,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,1.0,-0.1,0.5374,0.5372,-0.019999999999997797,True
+low_fragility,insurance_coverage_ratio,insurance_coverage_bands,1.0,0.1,0.5374,0.5381,0.07000000000000339,True
+low_fragility,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,-0.1,0.5374,0.5293,-0.8099999999999996,True
+low_fragility,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,0.1,0.5374,0.5461,0.8700000000000041,True
+low_fragility,irregular_income_ceiling,irregular_income_ceiling,3.0,-0.1,0.5374,0.5581,2.070000000000005,True
+low_fragility,irregular_income_ceiling,irregular_income_ceiling,3.0,0.1,0.5374,0.5265,-1.090000000000002,True
+low_fragility,regular_income_ceiling,regular_income_ceiling,5.0,-0.1,0.5374,0.5466,0.9199999999999986,True
+low_fragility,regular_income_ceiling,regular_income_ceiling,5.0,0.1,0.5374,0.5374,0.0,False
+baseline,emergency_buffer_months,buffer_months_bands,1.0,-0.1,0.6101,0.6081,-0.20000000000000018,True
+baseline,emergency_buffer_months,buffer_months_bands,1.0,0.1,0.6101,0.6118,0.17000000000000348,True
+baseline,emergency_buffer_months,buffer_months_bands,2.0,-0.1,0.6101,0.608,-0.20999999999999908,True
+baseline,emergency_buffer_months,buffer_months_bands,2.0,0.1,0.6101,0.6135,0.34000000000000696,True
+baseline,emergency_buffer_months,buffer_months_bands,4.0,-0.1,0.6101,0.6071,-0.30000000000000027,True
+baseline,emergency_buffer_months,buffer_months_bands,4.0,0.1,0.6101,0.6121,0.20000000000000018,True
+baseline,emergency_buffer_months,buffer_months_bands,6.0,-0.1,0.6101,0.6089,-0.11999999999999789,True
+baseline,emergency_buffer_months,buffer_months_bands,6.0,0.1,0.6101,0.6113,0.11999999999999789,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.2,-0.1,0.6101,0.6102,0.009999999999998899,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.2,0.1,0.6101,0.6098,-0.029999999999996696,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.3,-0.1,0.6101,0.6109,0.08000000000000229,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.3,0.1,0.6101,0.609,-0.10999999999999899,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.4,-0.1,0.6101,0.6152,0.5099999999999993,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.4,0.1,0.6101,0.6065,-0.35999999999999366,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.5,-0.1,0.6101,0.6178,0.770000000000004,True
+baseline,emi_to_income_ratio,emi_to_income_bands,0.5,0.1,0.6101,0.6014,-0.869999999999993,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,0.25,-0.1,0.6101,0.6078,-0.22999999999999687,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,0.25,0.1,0.6101,0.6123,0.21999999999999797,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,0.5,-0.1,0.6101,0.6074,-0.26999999999999247,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,0.5,0.1,0.6101,0.6126,0.2500000000000058,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,0.75,-0.1,0.6101,0.6093,-0.08000000000000229,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,0.75,0.1,0.6101,0.6109,0.08000000000000229,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,1.0,-0.1,0.6101,0.61,-0.009999999999998899,True
+baseline,insurance_coverage_ratio,insurance_coverage_bands,1.0,0.1,0.6101,0.6106,0.050000000000005596,True
+baseline,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,-0.1,0.6101,0.6042,-0.5900000000000016,True
+baseline,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,0.1,0.6101,0.6161,0.6000000000000005,True
+baseline,irregular_income_ceiling,irregular_income_ceiling,3.0,-0.1,0.6101,0.6364,2.629999999999999,True
+baseline,irregular_income_ceiling,irregular_income_ceiling,3.0,0.1,0.6101,0.5991,-1.100000000000001,True
+baseline,regular_income_ceiling,regular_income_ceiling,5.0,-0.1,0.6101,0.6133,0.31999999999999806,True
+baseline,regular_income_ceiling,regular_income_ceiling,5.0,0.1,0.6101,0.6101,0.0,False
+high_fragility,emergency_buffer_months,buffer_months_bands,1.0,-0.1,0.6727,0.6703,-0.23999999999999577,True
+high_fragility,emergency_buffer_months,buffer_months_bands,1.0,0.1,0.6727,0.6752,0.2500000000000058,True
+high_fragility,emergency_buffer_months,buffer_months_bands,2.0,-0.1,0.6727,0.6701,-0.25999999999999357,True
+high_fragility,emergency_buffer_months,buffer_months_bands,2.0,0.1,0.6727,0.6757,0.30000000000000027,True
+high_fragility,emergency_buffer_months,buffer_months_bands,4.0,-0.1,0.6727,0.6712,-0.14999999999999458,True
+high_fragility,emergency_buffer_months,buffer_months_bands,4.0,0.1,0.6727,0.6735,0.08000000000000229,True
+high_fragility,emergency_buffer_months,buffer_months_bands,6.0,-0.1,0.6727,0.6721,-0.05999999999999339,True
+high_fragility,emergency_buffer_months,buffer_months_bands,6.0,0.1,0.6727,0.673,0.030000000000007798,True
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.2,-0.1,0.6727,0.6727,0.0,False
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.2,0.1,0.6727,0.6727,0.0,False
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.3,-0.1,0.6727,0.6735,0.08000000000000229,True
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.3,0.1,0.6727,0.6723,-0.039999999999995595,True
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.4,-0.1,0.6727,0.6759,0.31999999999999806,True
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.4,0.1,0.6727,0.6699,-0.27999999999999137,True
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.5,-0.1,0.6727,0.6795,0.6800000000000028,True
+high_fragility,emi_to_income_ratio,emi_to_income_bands,0.5,0.1,0.6727,0.6667,-0.6000000000000005,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.25,-0.1,0.6727,0.671,-0.16999999999999238,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.25,0.1,0.6727,0.6748,0.20999999999999908,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.5,-0.1,0.6727,0.6705,-0.21999999999999797,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.5,0.1,0.6727,0.6743,0.16000000000000458,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.75,-0.1,0.6727,0.6724,-0.029999999999996696,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,0.75,0.1,0.6727,0.6728,0.009999999999998899,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,1.0,-0.1,0.6727,0.6726,-0.009999999999998899,True
+high_fragility,insurance_coverage_ratio,insurance_coverage_bands,1.0,0.1,0.6727,0.6727,0.0,False
+high_fragility,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,-0.1,0.6727,0.6684,-0.42999999999999705,True
+high_fragility,required_life_cover_income_multiple,required_life_cover_income_multiple,10.0,0.1,0.6727,0.6765,0.38000000000000256,True
+high_fragility,irregular_income_ceiling,irregular_income_ceiling,3.0,-0.1,0.6727,0.6995,2.6800000000000046,True
+high_fragility,irregular_income_ceiling,irregular_income_ceiling,3.0,0.1,0.6727,0.6658,-0.6900000000000017,True
+high_fragility,regular_income_ceiling,regular_income_ceiling,5.0,-0.1,0.6727,0.6733,0.060000000000004494,True
+high_fragility,regular_income_ceiling,regular_income_ceiling,5.0,0.1,0.6727,0.6727,0.0,False

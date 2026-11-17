@@ -311,6 +311,9 @@ class TraceResult:
     claim_note: str | None = None
     contested: bool = False
     contest_reason_code: str | None = None
+    evidence_ids: tuple[str, ...] = ()
+    legacy_event: bool = False
+    schema_version: str | None = None
 
 
 @dataclass(frozen=True)
@@ -403,10 +406,15 @@ def _risk_capacity_section(v: dict, m: dict) -> dict:
 
 def _risk_outcome_section(v: dict, m: dict) -> dict:
     return {
+        "stated_tier": v["stated_tier"],
         "final_tier": v["final_tier"],
         "capped": v["capped"],
         "binding_constraints": v["binding_constraints"],
         "unlock_conditions": v["unlock_conditions"],
+        "joint_unlock_plan": v.get("joint_unlock_plan"),
+        "achievable_tier": v.get("achievable_tier"),
+        "blocking_constraints": v.get("blocking_constraints"),
+        "unlock_plan_version": v.get("unlock_plan_version"),
     }
 
 
@@ -793,6 +801,17 @@ def _risk_outcome_summary(v: dict, m: dict) -> str:
     if not v["capped"]:
         return "You're not being held back by anything — your plan follows your own answers."
     blockers = L.joined([L.constraint_label(c) for c in (v["binding_constraints"] or [])], empty="your finances")
+    achievable_tier = v.get("achievable_tier")
+    if achievable_tier is not None and achievable_tier < v["stated_tier"]:
+        blocking = L.joined(
+            [L.constraint_label(c) for c in (v.get("blocking_constraints") or [])],
+            empty="a constraint that cannot be changed here",
+        )
+        return (
+            f"We've capped you at {L.tier(v['final_tier'])} because of {blockers}. "
+            f"You can reach {L.tier(achievable_tier)}, but not {L.tier(v['stated_tier'])}, "
+            f"because {blocking} still limits your tier."
+        )
     return f"We've capped you at {L.tier(v['final_tier'])} because of {blockers}. Here's what would lift it."
 
 
@@ -813,18 +832,77 @@ def _risk_outcome_facts(v: dict, m: dict) -> list[Fact]:
                 raw=", ".join(v["binding_constraints"]),
             )
         )
-    for condition in v["unlock_conditions"] or []:
-        facts.append(
-            fact(
-                "To move up a tier",
-                _normalize_currency(condition.get("message", "")),
-                note=(
-                    f"Right now: {_normalize_currency(str(condition.get('current_value')))}. "
-                    f"You need: {_normalize_currency(str(condition.get('target_value')))}."
-                ),
+    if v.get("achievable_tier") is not None:
+        achievable_tier = int(v["achievable_tier"])
+        stated_tier = int(v["stated_tier"])
+        blockers = v.get("blocking_constraints") or []
+        if achievable_tier < stated_tier:
+            facts.append(
+                fact(
+                    "Highest reachable tier",
+                    f"You can reach {L.tier(achievable_tier)}, but not {L.tier(stated_tier)}, "
+                    f"because {L.joined([L.constraint_label(c) for c in blockers], empty='a non-actionable constraint')} "
+                    "still limits your tier.",
+                    raw=achievable_tier,
+                )
             )
-        )
+        plan = v.get("joint_unlock_plan") or []
+        if plan:
+            actions = [
+                _normalize_currency(str(action.get("message", "")))
+                for action in plan
+            ]
+            if len(actions) > 1:
+                message = (
+                    f"To reach {L.tier(achievable_tier)}, you need to do all of the following: "
+                    + " ".join(actions)
+                )
+            else:
+                message = f"To reach {L.tier(achievable_tier)}, you need to: {actions[0]}"
+            facts.append(fact("Joint unlock plan", message))
+    else:
+        for condition in v["unlock_conditions"] or []:
+            facts.append(
+                fact(
+                    "To move up a tier",
+                    _normalize_currency(condition.get("message", "")),
+                    note=(
+                        f"Right now: {_normalize_currency(str(condition.get('current_value')))}. "
+                        f"You need: {_normalize_currency(str(condition.get('target_value')))}."
+                    ),
+                )
+            )
+    evidence_ids = _event_evidence_ids(v)
+    if evidence_ids:
+        from app.evidence.registry import evidence_entries_by_id
+
+        entries = evidence_entries_by_id()
+        for evidence_id in evidence_ids:
+            entry = entries.get(evidence_id)
+            if entry is None:
+                facts.append(
+                    fact(
+                        f"Rule {evidence_id}",
+                        "basis: unavailable, source: TO_FILL",
+                        note="This event references an evidence entry that is not present in the registry.",
+                    )
+                )
+                continue
+            facts.append(
+                fact(
+                    f"Rule {evidence_id}",
+                    f"basis: {entry.basis_type.replace('_', ' ')}, source: {entry.source_citation}",
+                    note=entry.human_description,
+                )
+            )
     return facts
+
+
+def _event_evidence_ids(v: dict) -> tuple[str, ...]:
+    evidence_ids = v.get("evidence_ids", [])
+    if not isinstance(evidence_ids, list) or any(not isinstance(value, str) for value in evidence_ids):
+        raise ValueError("suggested_value.evidence_ids must be a list of strings")
+    return tuple(dict.fromkeys(evidence_ids))
 
 
 # --- Module 3b: ML risk-tier prediction (model explanation) ----------------
@@ -1859,6 +1937,9 @@ def build_trace(event: SuggestionEvent, spec: DecisionTypeSpec | None = None) ->
         claim_note=spec.claim_note(v, m) if callable(spec.claim_note) else spec.claim_note,
         contested=_is_contested(event),
         contest_reason_code=event.reason_code if _is_contested(event) else None,
+        evidence_ids=_event_evidence_ids(v),
+        legacy_event=not bool(v.get("schema_version")),
+        schema_version=v.get("schema_version"),
     )
 
 

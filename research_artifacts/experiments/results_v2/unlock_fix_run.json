@@ -1,0 +1,148 @@
+{
+  "config": {
+    "seed": 42,
+    "cohort_path": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\experiments\\results\\cohort.csv",
+    "database_path": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\backend\\dev.db",
+    "results_dir": "C:\\Users\\woebe\\Desktop\\FINAL YEAR PROJECT FINAL\\research_artifacts\\experiments\\results_v2"
+  },
+  "versions": {
+    "Python": "3.13.2",
+    "NumPy": "2.2.5",
+    "SciPy": "1.15.3",
+    "scikit-learn": "1.7.0",
+    "SHAP": "0.53.0"
+  },
+  "cohort_profiles": 5000,
+  "logged_risk_profile_rows": 21,
+  "summary": [
+    {
+      "dataset": "logged_database",
+      "logic": "OLD",
+      "check": "single_action",
+      "binding_group": "uniquely_binding_conditions",
+      "goal": "stated_tier",
+      "conditions": 6,
+      "valid": 1,
+      "failed": 5,
+      "valid_share": 0.16666666666666666
+    },
+    {
+      "dataset": "logged_database",
+      "logic": "OLD",
+      "check": "joint_actions",
+      "binding_group": "all",
+      "goal": "stated_tier",
+      "conditions": 6,
+      "valid": 1,
+      "failed": 5,
+      "valid_share": 0.16666666666666666
+    },
+    {
+      "dataset": "logged_database",
+      "logic": "NEW",
+      "check": "single_action",
+      "binding_group": "uniquely_binding_conditions",
+      "goal": "achievable_tier",
+      "conditions": 6,
+      "valid": 5,
+      "failed": 1,
+      "valid_share": 0.8333333333333334
+    },
+    {
+      "dataset": "logged_database",
+      "logic": "NEW",
+      "check": "joint_plan",
+      "binding_group": "all",
+      "goal": "achievable_tier",
+      "conditions": 6,
+      "valid": 6,
+      "failed": 0,
+      "valid_share": 1.0
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "logic": "OLD",
+      "check": "single_action",
+      "binding_group": "tied_conditions",
+      "goal": "stated_tier",
+      "conditions": 1613,
+      "valid": 0,
+      "failed": 1613,
+      "valid_share": 0.0
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "logic": "OLD",
+      "check": "single_action",
+      "binding_group": "uniquely_binding_conditions",
+      "goal": "stated_tier",
+      "conditions": 842,
+      "valid": 383,
+      "failed": 459,
+      "valid_share": 0.45486935866983375
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "logic": "OLD",
+      "check": "joint_actions",
+      "binding_group": "all",
+      "goal": "stated_tier",
+      "conditions": 1500,
+      "valid": 383,
+      "failed": 1117,
+      "valid_share": 0.25533333333333336
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "logic": "NEW",
+      "check": "single_action",
+      "binding_group": "tied_conditions",
+      "goal": "achievable_tier",
+      "conditions": 1613,
+      "valid": 0,
+      "failed": 1613,
+      "valid_share": 0.0
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "logic": "NEW",
+      "check": "single_action",
+      "binding_group": "uniquely_binding_conditions",
+      "goal": "achievable_tier",
+      "conditions": 842,
+      "valid": 790,
+      "failed": 52,
+      "valid_share": 0.9382422802850356
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "logic": "NEW",
+      "check": "joint_plan",
+      "binding_group": "all",
+      "goal": "achievable_tier",
+      "conditions": 1500,
+      "valid": 1500,
+      "failed": 0,
+      "valid_share": 1.0
+    }
+  ],
+  "tier_revisions": [
+    {
+      "dataset": "logged_database",
+      "profiles": 21,
+      "capped_profiles": 6,
+      "lower_achievable_tier": 0,
+      "share_of_capped_profiles": 0.0,
+      "share_of_all_profiles": 0.0
+    },
+    {
+      "dataset": "synthetic_cohort",
+      "profiles": 5000,
+      "capped_profiles": 1500,
+      "lower_achievable_tier": 739,
+      "share_of_capped_profiles": 0.49266666666666664,
+      "share_of_all_profiles": 0.1478
+    }
+  ],
+  "classified_failure_count": 4865
+}

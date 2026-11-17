@@ -167,33 +167,55 @@ def map_friend(text: str) -> str:
     raise ValueError(f"unrecognized friend-description answer: {text!r}")
 
 
-def load_training_rows() -> list[dict[str, str]]:
+def _load_training_rows_with_source_rows() -> tuple[list[tuple[int, dict[str, str]]], int]:
     wb = openpyxl.load_workbook(XLSX_PATH, read_only=True)
-    ws = wb["Mock Responses"]
-    rows = list(ws.iter_rows(values_only=True))
-    data_rows = rows[1:]
+    try:
+        ws = wb["Mock Responses"]
+        rows = list(ws.iter_rows(values_only=True))
+        data_rows = rows[1:]
 
-    mapped: list[dict[str, str]] = []
-    skipped = 0
-    for row in data_rows:
-        if row[COL_HORIZON] is None:
-            continue
-        try:
-            mapped.append(
-                {
-                    "horizon": map_horizon(row[COL_HORIZON]),
-                    "drawdown_reaction": map_drawdown(row[COL_DRAWDOWN]),
-                    "experience": map_experience(row[COL_EXPERIENCE]),
-                    "goal": map_goal(row[COL_GOAL]),
-                    "windfall_allocation": map_windfall(row[COL_WINDFALL]),
-                    "sure_gain_tradeoff": map_sure_gain(row[COL_SURE_GAIN]),
-                    "friend_description": map_friend(row[COL_FRIEND]),
-                }
-            )
-        except (ValueError, KeyError):
-            skipped += 1
+        mapped: list[tuple[int, dict[str, str]]] = []
+        skipped = 0
+        for excel_row_number, row in enumerate(data_rows, start=2):
+            if row[COL_HORIZON] is None:
+                skipped += 1
+                continue
+            try:
+                mapped.append(
+                    (
+                        excel_row_number,
+                        {
+                            "horizon": map_horizon(row[COL_HORIZON]),
+                            "drawdown_reaction": map_drawdown(row[COL_DRAWDOWN]),
+                            "experience": map_experience(row[COL_EXPERIENCE]),
+                            "goal": map_goal(row[COL_GOAL]),
+                            "windfall_allocation": map_windfall(row[COL_WINDFALL]),
+                            "sure_gain_tradeoff": map_sure_gain(row[COL_SURE_GAIN]),
+                            "friend_description": map_friend(row[COL_FRIEND]),
+                        },
+                    )
+                )
+            except (ValueError, KeyError):
+                skipped += 1
+    finally:
+        wb.close()
+    return mapped, skipped
+
+
+def load_training_rows_with_source_rows() -> list[tuple[int, dict[str, str]]]:
+    """Return canonical mapped answers paired with their 1-based worksheet row.
+
+    The mapping and skip behavior are shared with `load_training_rows`, so
+    research analyses can align additional workbook columns without
+    reimplementing the answer mappings.
+    """
+    mapped, skipped = _load_training_rows_with_source_rows()
     print(f"mapped {len(mapped)} rows, skipped {skipped} unparseable rows")
     return mapped
+
+
+def load_training_rows() -> list[dict[str, str]]:
+    return [answers for _, answers in load_training_rows_with_source_rows()]
 
 
 def main() -> None:

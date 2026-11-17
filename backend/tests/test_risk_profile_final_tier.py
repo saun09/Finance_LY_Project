@@ -130,10 +130,9 @@ def test_core_scenario_unlock_condition_has_the_exact_computed_numbers():
     assert unlock.constraint == "emi_to_income_ratio"
 
     # target ceiling = min(stated_tier=5, 5) = 5 -> band requires ratio < 20%
-    # required max EMI = floor(0.20 * 100,000_00) = 20,000_00
-    # reduction needed = current EMI 45,000_00 - 20,000_00 = 25,000_00 paise = Rs 25,000
+    # The exclusive 20% boundary needs a full-rupee reduction margin.
     assert "20%" in unlock.message
-    assert "Rs 25,000" in unlock.message
+    assert "Rs 25,001" in unlock.message
     assert unlock.current_value == "45.0%"
     assert unlock.target_value == "below 20%"
 

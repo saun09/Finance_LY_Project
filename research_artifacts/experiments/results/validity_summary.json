@@ -1,0 +1,666 @@
+{
+  "provenance": {
+    "reported_source_composition": {
+      "real": 130,
+      "synthetic": 304
+    },
+    "row_level_source_flag_available": false,
+    "attributable_to_real_participants": false,
+    "self_rating_used_as_feature_or_label": false
+  },
+  "versions": {
+    "python": "3.13.2",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit_learn": "1.9.1",
+    "openpyxl": "3.1.5",
+    "matplotlib": "3.11.2",
+    "questionnaire": "v2",
+    "model_file": "backend\\app\\ml_models\\risk_tier_rf_reduced_4items.pkl"
+  },
+  "model_load_warnings": [
+    "Trying to unpickle estimator DecisionTreeClassifier from version 1.7.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:\nhttps://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations",
+    "Trying to unpickle estimator RandomForestClassifier from version 1.7.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:\nhttps://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations"
+  ],
+  "row_accounting": {
+    "worksheet_data_rows": 434,
+    "mapped_rows": 434,
+    "mapped_drop_reasons": {
+      "missing_horizon": 0,
+      "unparseable_mapped_answers": 0
+    },
+    "worksheet_self_rating_counts": {
+      "valid": 434,
+      "missing": 0,
+      "non_numeric": 0,
+      "out_of_range": 0
+    },
+    "mapped_rows_with_valid_self_rating": 434,
+    "self_rating_drop_reasons_on_mapped_rows": {
+      "missing": 0,
+      "non_numeric": 0,
+      "out_of_range": 0
+    },
+    "rating_column_index_zero_based": 15,
+    "rating_column_header": "On a scale of 0 to 10, how willing are you to take financial risks, in general?",
+    "sensitivity_n": 434,
+    "dropped_for_missing_mapped_fields": 0
+  },
+  "correlations": [
+    {
+      "dataset": "main_valid_rating",
+      "measure": "weighted_score",
+      "measure_label": "V2 weighted score",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.8070872272915764,
+      "ci95_low": 0.7652304909252169,
+      "ci95_high": 0.840488238402264,
+      "p_value": 6.636726880693847e-101
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "weighted_score",
+      "measure_label": "V2 weighted score",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6576462660269844,
+      "ci95_low": 0.6165658346388179,
+      "ci95_high": 0.6944802841271109,
+      "p_value": 7.25728602136276e-81
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "stated_tier",
+      "measure_label": "V2 stated tier",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.7668578000486501,
+      "ci95_low": 0.722391853481411,
+      "ci95_high": 0.8074893664134357,
+      "p_value": 3.163671142604867e-85
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "stated_tier",
+      "measure_label": "V2 stated tier",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6658133505339513,
+      "ci95_low": 0.6214454564642808,
+      "ci95_high": 0.7052752232158603,
+      "p_value": 2.7535845523828026e-68
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "reduced_rf_tier",
+      "measure_label": "Reduced 4-item RF predicted tier",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.775770772560382,
+      "ci95_low": 0.7276652306929862,
+      "ci95_high": 0.816702542788488,
+      "p_value": 2.0447711232944815e-88
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "reduced_rf_tier",
+      "measure_label": "Reduced 4-item RF predicted tier",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6798369622839591,
+      "ci95_low": 0.6348862974467306,
+      "ci95_high": 0.7197160585046707,
+      "p_value": 8.965295669539396e-71
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "horizon",
+      "measure_label": "Investment horizon",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.48593335825856365,
+      "ci95_low": 0.40871155494013045,
+      "ci95_high": 0.558867357339933,
+      "p_value": 4.229043102667215e-27
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "horizon",
+      "measure_label": "Investment horizon",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.3938580625290014,
+      "ci95_low": 0.33090842116142016,
+      "ci95_high": 0.45372304777691014,
+      "p_value": 2.1032197298246316e-25
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "drawdown_reaction",
+      "measure_label": "Drawdown reaction",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.6199521237188454,
+      "ci95_low": 0.5511037850606929,
+      "ci95_high": 0.6804362878868657,
+      "p_value": 1.9388578028806132e-47
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "drawdown_reaction",
+      "measure_label": "Drawdown reaction",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.5330315147005444,
+      "ci95_low": 0.47722748517582747,
+      "ci95_high": 0.5854717960035247,
+      "p_value": 3.4412097508384574e-42
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "experience",
+      "measure_label": "Investment experience",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.32413564429279423,
+      "ci95_low": 0.23436183050745393,
+      "ci95_high": 0.40288509050368865,
+      "p_value": 4.48903735647151e-12
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "experience",
+      "measure_label": "Investment experience",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.25961339479061957,
+      "ci95_low": 0.1898045058868039,
+      "ci95_high": 0.3250538048488334,
+      "p_value": 1.043916389806894e-11
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "goal",
+      "measure_label": "Primary goal",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.6123815293619866,
+      "ci95_low": 0.5465608408450479,
+      "ci95_high": 0.6724469352240917,
+      "p_value": 5.054576453248899e-46
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "goal",
+      "measure_label": "Primary goal",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.5099442069586789,
+      "ci95_low": 0.44950412597095785,
+      "ci95_high": 0.5671755398134345,
+      "p_value": 4.063012193331913e-41
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "windfall_allocation",
+      "measure_label": "Windfall allocation",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.7224172255198299,
+      "ci95_low": 0.6737920233687492,
+      "ci95_high": 0.7651784918321771,
+      "p_value": 3.1835760109743907e-71
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "windfall_allocation",
+      "measure_label": "Windfall allocation",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6073358574515192,
+      "ci95_low": 0.5599820054487646,
+      "ci95_high": 0.6501022538373269,
+      "p_value": 4.288966881421699e-58
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "sure_gain_tradeoff",
+      "measure_label": "Sure-gain trade-off",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.5391993369795247,
+      "ci95_low": 0.4671595918508601,
+      "ci95_high": 0.6060800793184244,
+      "p_value": 4.210265793034151e-34
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "sure_gain_tradeoff",
+      "measure_label": "Sure-gain trade-off",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.4377177166045951,
+      "ci95_low": 0.37906199770525106,
+      "ci95_high": 0.4931980945864639,
+      "p_value": 4.441637364093918e-31
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "friend_description",
+      "measure_label": "Friend description",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.686722334663419,
+      "ci95_low": 0.6286507871685405,
+      "ci95_high": 0.7420911577480088,
+      "p_value": 8.09516790597794e-62
+    },
+    {
+      "dataset": "main_valid_rating",
+      "measure": "friend_description",
+      "measure_label": "Friend description",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6021319554667133,
+      "ci95_low": 0.549920536382514,
+      "ci95_high": 0.6493095217817333,
+      "p_value": 5.117153494467451e-52
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "weighted_score",
+      "measure_label": "V2 weighted score",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.8070872272915764,
+      "ci95_low": 0.7633550066143815,
+      "ci95_high": 0.8416108786547563,
+      "p_value": 6.636726880693847e-101
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "weighted_score",
+      "measure_label": "V2 weighted score",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6576462660269844,
+      "ci95_low": 0.6171270228216956,
+      "ci95_high": 0.6948543592661078,
+      "p_value": 7.25728602136276e-81
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "stated_tier",
+      "measure_label": "V2 stated tier",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.7668578000486501,
+      "ci95_low": 0.7205345735895688,
+      "ci95_high": 0.8068591891370727,
+      "p_value": 3.163671142604867e-85
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "stated_tier",
+      "measure_label": "V2 stated tier",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6658133505339513,
+      "ci95_low": 0.6215729278320499,
+      "ci95_high": 0.7076402448897595,
+      "p_value": 2.7535845523828026e-68
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "reduced_rf_tier",
+      "measure_label": "Reduced 4-item RF predicted tier",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.775770772560382,
+      "ci95_low": 0.7297763207888668,
+      "ci95_high": 0.8150561927410981,
+      "p_value": 2.0447711232944815e-88
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "reduced_rf_tier",
+      "measure_label": "Reduced 4-item RF predicted tier",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6798369622839591,
+      "ci95_low": 0.6368261946891252,
+      "ci95_high": 0.7202878015645551,
+      "p_value": 8.965295669539396e-71
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "horizon",
+      "measure_label": "Investment horizon",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.48593335825856365,
+      "ci95_low": 0.40957722395121676,
+      "ci95_high": 0.5608239677833174,
+      "p_value": 4.229043102667215e-27
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "horizon",
+      "measure_label": "Investment horizon",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.3938580625290014,
+      "ci95_low": 0.33284759908927386,
+      "ci95_high": 0.4554192719051944,
+      "p_value": 2.1032197298246316e-25
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "drawdown_reaction",
+      "measure_label": "Drawdown reaction",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.6199521237188454,
+      "ci95_low": 0.5540596742193077,
+      "ci95_high": 0.6765636857075727,
+      "p_value": 1.9388578028806132e-47
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "drawdown_reaction",
+      "measure_label": "Drawdown reaction",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.5330315147005444,
+      "ci95_low": 0.4759546109250039,
+      "ci95_high": 0.5879492264682644,
+      "p_value": 3.4412097508384574e-42
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "experience",
+      "measure_label": "Investment experience",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.32413564429279423,
+      "ci95_low": 0.2370283421867668,
+      "ci95_high": 0.4033328164451419,
+      "p_value": 4.48903735647151e-12
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "experience",
+      "measure_label": "Investment experience",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.25961339479061957,
+      "ci95_low": 0.19121970978481562,
+      "ci95_high": 0.3278674584568494,
+      "p_value": 1.043916389806894e-11
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "goal",
+      "measure_label": "Primary goal",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.6123815293619866,
+      "ci95_low": 0.5445321849996395,
+      "ci95_high": 0.6730169855414997,
+      "p_value": 5.054576453248899e-46
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "goal",
+      "measure_label": "Primary goal",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.5099442069586789,
+      "ci95_low": 0.4542296628311412,
+      "ci95_high": 0.564820498199501,
+      "p_value": 4.063012193331913e-41
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "windfall_allocation",
+      "measure_label": "Windfall allocation",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.7224172255198299,
+      "ci95_low": 0.672579253432937,
+      "ci95_high": 0.7663011450124761,
+      "p_value": 3.1835760109743907e-71
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "windfall_allocation",
+      "measure_label": "Windfall allocation",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6073358574515192,
+      "ci95_low": 0.5622119615777333,
+      "ci95_high": 0.650064763516866,
+      "p_value": 4.288966881421699e-58
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "sure_gain_tradeoff",
+      "measure_label": "Sure-gain trade-off",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.5391993369795247,
+      "ci95_low": 0.46905932626242125,
+      "ci95_high": 0.6042893957273647,
+      "p_value": 4.210265793034151e-34
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "sure_gain_tradeoff",
+      "measure_label": "Sure-gain trade-off",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.4377177166045951,
+      "ci95_low": 0.37741520461829947,
+      "ci95_high": 0.4936633945206689,
+      "p_value": 4.441637364093918e-31
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "friend_description",
+      "measure_label": "Friend description",
+      "method": "spearman",
+      "n": 434,
+      "coefficient": 0.686722334663419,
+      "ci95_low": 0.6313431400737775,
+      "ci95_high": 0.7371497797912162,
+      "p_value": 8.09516790597794e-62
+    },
+    {
+      "dataset": "complete_mapped_fields_sensitivity",
+      "measure": "friend_description",
+      "measure_label": "Friend description",
+      "method": "kendall",
+      "n": 434,
+      "coefficient": 0.6021319554667133,
+      "ci95_low": 0.550562121448724,
+      "ci95_high": 0.6501836824064819,
+      "p_value": 5.117153494467451e-52
+    }
+  ],
+  "item_total_correlations": [
+    {
+      "item": "horizon",
+      "item_label": "Investment horizon",
+      "n": 434,
+      "item_total_pearson": 0.431081502577253,
+      "ci95_low": 0.35547450573213313,
+      "ci95_high": 0.5074826005182127,
+      "p_value": 4.5648186633586455e-21
+    },
+    {
+      "item": "drawdown_reaction",
+      "item_label": "Drawdown reaction",
+      "n": 434,
+      "item_total_pearson": 0.64163021219394,
+      "ci95_low": 0.5780149360878435,
+      "ci95_high": 0.6950576626959929,
+      "p_value": 1.0239914838316238e-51
+    },
+    {
+      "item": "experience",
+      "item_label": "Investment experience",
+      "n": 434,
+      "item_total_pearson": 0.31389176665967355,
+      "ci95_low": 0.23762076671257956,
+      "ci95_high": 0.3931342296346175,
+      "p_value": 2.22909193591886e-11
+    },
+    {
+      "item": "goal",
+      "item_label": "Primary goal",
+      "n": 434,
+      "item_total_pearson": 0.6309022302325881,
+      "ci95_low": 0.5696530350032611,
+      "ci95_high": 0.684937629476983,
+      "p_value": 1.4772820840938616e-49
+    },
+    {
+      "item": "windfall_allocation",
+      "item_label": "Windfall allocation",
+      "n": 434,
+      "item_total_pearson": 0.725888094970255,
+      "ci95_low": 0.6825639909259131,
+      "ci95_high": 0.7641259859361196,
+      "p_value": 3.231007687916349e-72
+    },
+    {
+      "item": "sure_gain_tradeoff",
+      "item_label": "Sure-gain trade-off",
+      "n": 434,
+      "item_total_pearson": 0.5549649964100557,
+      "ci95_low": 0.4804819835641247,
+      "ci95_high": 0.6203579417090055,
+      "p_value": 2.0056509136470185e-36
+    },
+    {
+      "item": "friend_description",
+      "item_label": "Friend description",
+      "n": 434,
+      "item_total_pearson": 0.6836348010555057,
+      "ci95_low": 0.6311488532307351,
+      "ci95_high": 0.7292788953688362,
+      "p_value": 4.552969524563767e-61
+    }
+  ],
+  "internal_consistency": [
+    {
+      "item_set": "Four risk-tolerance items",
+      "n": 434,
+      "items": "windfall_allocation, sure_gain_tradeoff, drawdown_reaction, friend_description",
+      "cronbach_alpha": 0.782726058301286
+    },
+    {
+      "item_set": "All seven items",
+      "n": 434,
+      "items": "horizon, drawdown_reaction, experience, goal, windfall_allocation, sure_gain_tradeoff, friend_description",
+      "cronbach_alpha": 0.8089628159317789
+    },
+    {
+      "item_set": "Three contextual items (reported separately)",
+      "n": 434,
+      "items": "horizon, experience, goal",
+      "cronbach_alpha": 0.43734126008766544
+    }
+  ],
+  "spearman_correlation_matrix": [
+    {
+      "variable": "horizon",
+      "horizon": 1.0,
+      "drawdown_reaction": 0.45297863542854455,
+      "experience": 0.021837391466109773,
+      "goal": 0.3505346033955432,
+      "windfall_allocation": 0.41146681784627104,
+      "sure_gain_tradeoff": 0.33799069287451006,
+      "friend_description": 0.3693337944937426,
+      "self_rating": 0.48593335825856365
+    },
+    {
+      "variable": "drawdown_reaction",
+      "horizon": 0.45297863542854455,
+      "drawdown_reaction": 1.0,
+      "experience": 0.2151051102323104,
+      "goal": 0.4656572346408652,
+      "windfall_allocation": 0.5447188103835818,
+      "sure_gain_tradeoff": 0.43277250346430113,
+      "friend_description": 0.5424502462083735,
+      "self_rating": 0.6199521237188454
+    },
+    {
+      "variable": "experience",
+      "horizon": 0.02183739146610977,
+      "drawdown_reaction": 0.2151051102323104,
+      "experience": 1.0,
+      "goal": 0.2608741276629704,
+      "windfall_allocation": 0.3733550118719895,
+      "sure_gain_tradeoff": 0.2162945221022606,
+      "friend_description": 0.2915383171001537,
+      "self_rating": 0.32413564429279423
+    },
+    {
+      "variable": "goal",
+      "horizon": 0.35053460339554315,
+      "drawdown_reaction": 0.4656572346408653,
+      "experience": 0.2608741276629704,
+      "goal": 0.9999999999999999,
+      "windfall_allocation": 0.5830929666904221,
+      "sure_gain_tradeoff": 0.45661529543850804,
+      "friend_description": 0.5372762778357469,
+      "self_rating": 0.6123815293619866
+    },
+    {
+      "variable": "windfall_allocation",
+      "horizon": 0.411466817846271,
+      "drawdown_reaction": 0.5447188103835818,
+      "experience": 0.37335501187198955,
+      "goal": 0.5830929666904221,
+      "windfall_allocation": 0.9999999999999999,
+      "sure_gain_tradeoff": 0.4716809678553277,
+      "friend_description": 0.6444956567930624,
+      "self_rating": 0.7224172255198299
+    },
+    {
+      "variable": "sure_gain_tradeoff",
+      "horizon": 0.33799069287451,
+      "drawdown_reaction": 0.43277250346430113,
+      "experience": 0.2162945221022606,
+      "goal": 0.45661529543850804,
+      "windfall_allocation": 0.4716809678553277,
+      "sure_gain_tradeoff": 1.0,
+      "friend_description": 0.46580200244407227,
+      "self_rating": 0.5391993369795247
+    },
+    {
+      "variable": "friend_description",
+      "horizon": 0.3693337944937426,
+      "drawdown_reaction": 0.5424502462083733,
+      "experience": 0.2915383171001537,
+      "goal": 0.5372762778357469,
+      "windfall_allocation": 0.6444956567930624,
+      "sure_gain_tradeoff": 0.46580200244407227,
+      "friend_description": 0.9999999999999999,
+      "self_rating": 0.686722334663419
+    },
+    {
+      "variable": "self_rating",
+      "horizon": 0.48593335825856365,
+      "drawdown_reaction": 0.6199521237188456,
+      "experience": 0.32413564429279423,
+      "goal": 0.6123815293619865,
+      "windfall_allocation": 0.72241722551983,
+      "sure_gain_tradeoff": 0.5391993369795248,
+      "friend_description": 0.686722334663419,
+      "self_rating": 1.0
+    }
+  ]
+}

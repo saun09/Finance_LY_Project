@@ -1,0 +1,625 @@
+dataset,scenario_id,comparator,gated_violates_only,comparator_violates_only,discordant_pairs,p_value,holm_p_value,holm_family_size
+scenario cohort,S1_liquidity_3m,willingness_only,0,212,212,3.0385816786431356e-64,1.795801772078093e-61,624
+scenario cohort,S1_liquidity_3m,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.2,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.3,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.4,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.5,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.6,0,54,54,1.1102230246251565e-16,5.395683899678261e-14,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.7,0,99,99,3.1554436208840472e-30,1.7039395552773855e-27,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.8,0,99,99,3.1554436208840472e-30,1.7039395552773855e-27,624
+scenario cohort,S1_liquidity_3m,blend_alpha_0.9,0,212,212,3.0385816786431356e-64,1.795801772078093e-61,624
+scenario cohort,S1_liquidity_3m,blend_alpha_1.0,0,212,212,3.0385816786431356e-64,1.795801772078093e-61,624
+scenario cohort,S1_liquidity_6m,willingness_only,0,273,273,1.3177747429038154e-82,7.933003952280969e-80,624
+scenario cohort,S1_liquidity_6m,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.2,0,57,57,1.3877787807814457e-17,6.869504964868156e-15,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.3,0,57,57,1.3877787807814457e-17,6.869504964868156e-15,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.4,0,81,81,8.271806125530277e-25,4.367513634279986e-22,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.5,0,81,81,8.271806125530277e-25,4.367513634279986e-22,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.6,0,90,90,1.6155871338926322e-27,8.643391166325582e-25,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.7,0,169,169,2.6727647100921956e-51,1.544858002433289e-48,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.8,0,171,171,6.681911775230489e-52,3.868826917858453e-49,624
+scenario cohort,S1_liquidity_6m,blend_alpha_0.9,0,273,273,1.3177747429038154e-82,7.933003952280969e-80,624
+scenario cohort,S1_liquidity_6m,blend_alpha_1.0,0,273,273,1.3177747429038154e-82,7.933003952280969e-80,624
+scenario cohort,S2_total_liquid_3m_20pct,willingness_only,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S2_total_liquid_3m_20pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.2,0,2,2,0.5,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.3,0,2,2,0.5,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.4,0,2,2,0.5,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.5,0,2,2,0.5,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.6,0,2,2,0.5,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.7,0,6,6,0.03125,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.8,0,6,6,0.03125,1.0,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_0.9,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S2_total_liquid_3m_20pct,blend_alpha_1.0,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S2_total_liquid_3m_30pct,willingness_only,0,18,18,7.62939453125e-06,0.00278472900390625,624
+scenario cohort,S2_total_liquid_3m_30pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.2,0,3,3,0.25,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.3,0,3,3,0.25,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.4,0,5,5,0.0625,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.5,0,5,5,0.0625,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.6,0,5,5,0.0625,1.0,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.7,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.8,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_0.9,0,18,18,7.62939453125e-06,0.00278472900390625,624
+scenario cohort,S2_total_liquid_3m_30pct,blend_alpha_1.0,0,18,18,7.62939453125e-06,0.00278472900390625,624
+scenario cohort,S2_total_liquid_3m_40pct,willingness_only,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+scenario cohort,S2_total_liquid_3m_40pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.2,0,8,8,0.0078125,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.3,0,8,8,0.0078125,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.4,0,9,9,0.00390625,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.5,0,9,9,0.00390625,1.0,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.6,0,11,11,0.0009765625,0.302734375,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.7,0,22,22,4.76837158203125e-07,0.00018453598022460938,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.8,0,22,22,4.76837158203125e-07,0.00018453598022460938,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_0.9,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+scenario cohort,S2_total_liquid_3m_40pct,blend_alpha_1.0,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+scenario cohort,S2_total_liquid_6m_20pct,willingness_only,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+scenario cohort,S2_total_liquid_6m_20pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.2,0,8,8,0.0078125,1.0,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.3,0,8,8,0.0078125,1.0,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.4,0,13,13,0.000244140625,0.082275390625,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.5,0,13,13,0.000244140625,0.082275390625,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.6,0,13,13,0.000244140625,0.082275390625,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.7,0,23,23,2.384185791015625e-07,9.34600830078125e-05,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.8,0,23,23,2.384185791015625e-07,9.34600830078125e-05,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_0.9,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+scenario cohort,S2_total_liquid_6m_20pct,blend_alpha_1.0,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+scenario cohort,S2_total_liquid_6m_30pct,willingness_only,0,62,62,4.336808689942018e-19,2.190088388420719e-16,624
+scenario cohort,S2_total_liquid_6m_30pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.2,0,12,12,0.00048828125,0.15869140625,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.3,0,12,12,0.00048828125,0.15869140625,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.4,0,20,20,1.9073486328125e-06,0.0007114410400390625,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.5,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.6,0,23,23,2.384185791015625e-07,9.34600830078125e-05,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.7,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.8,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_0.9,0,62,62,4.336808689942018e-19,2.190088388420719e-16,624
+scenario cohort,S2_total_liquid_6m_30pct,blend_alpha_1.0,0,62,62,4.336808689942018e-19,2.190088388420719e-16,624
+scenario cohort,S2_total_liquid_6m_40pct,willingness_only,0,88,88,6.462348535570529e-27,3.444431769459092e-24,624
+scenario cohort,S2_total_liquid_6m_40pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.2,0,18,18,7.62939453125e-06,0.00278472900390625,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.3,0,18,18,7.62939453125e-06,0.00278472900390625,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.4,0,27,27,1.4901161193847656e-08,6.198883056640625e-06,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.5,0,27,27,1.4901161193847656e-08,6.198883056640625e-06,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.6,0,31,31,9.313225746154785e-10,3.9581209421157837e-07,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.7,0,57,57,1.3877787807814457e-17,6.869504964868156e-15,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.8,0,57,57,1.3877787807814457e-17,6.869504964868156e-15,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_0.9,0,88,88,6.462348535570529e-27,3.444431769459092e-24,624
+scenario cohort,S2_total_liquid_6m_40pct,blend_alpha_1.0,0,88,88,6.462348535570529e-27,3.444431769459092e-24,624
+scenario cohort,S3_earner_death_20pct,willingness_only,0,15,15,6.103515625e-05,0.0211181640625,624
+scenario cohort,S3_earner_death_20pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.2,0,5,5,0.0625,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.3,0,5,5,0.0625,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.4,0,6,6,0.03125,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.5,0,6,6,0.03125,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.6,0,6,6,0.03125,1.0,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.7,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.8,0,10,10,0.001953125,0.5859375,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_0.9,0,15,15,6.103515625e-05,0.0211181640625,624
+scenario cohort,S3_earner_death_20pct,blend_alpha_1.0,0,15,15,6.103515625e-05,0.0211181640625,624
+scenario cohort,S3_earner_death_30pct,willingness_only,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+scenario cohort,S3_earner_death_30pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.2,0,1,1,1.0,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.3,0,1,1,1.0,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.4,0,5,5,0.0625,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.5,0,5,5,0.0625,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.6,0,5,5,0.0625,1.0,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.7,0,17,17,1.52587890625e-05,0.00543212890625,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.8,0,17,17,1.52587890625e-05,0.00543212890625,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_0.9,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+scenario cohort,S3_earner_death_30pct,blend_alpha_1.0,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+scenario cohort,S3_earner_death_40pct,willingness_only,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+scenario cohort,S3_earner_death_40pct,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.2,0,7,7,0.015625,1.0,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.3,0,7,7,0.015625,1.0,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.4,0,13,13,0.000244140625,0.082275390625,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.5,0,13,13,0.000244140625,0.082275390625,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.6,0,13,13,0.000244140625,0.082275390625,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.7,0,20,20,1.9073486328125e-06,0.0007114410400390625,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.8,0,20,20,1.9073486328125e-06,0.0007114410400390625,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_0.9,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+scenario cohort,S3_earner_death_40pct,blend_alpha_1.0,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+scenario cohort,S4_debt_service_shock,willingness_only,0,123,123,1.88079096131566e-37,1.0588853112207166e-34,624
+scenario cohort,S4_debt_service_shock,ability_only,0,0,0,1.0,1.0,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.0,0,0,0,1.0,1.0,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.1,0,0,0,1.0,1.0,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.2,0,12,12,0.00048828125,0.15869140625,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.3,0,12,12,0.00048828125,0.15869140625,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.4,0,19,19,3.814697265625e-06,0.001399993896484375,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.5,0,19,19,3.814697265625e-06,0.001399993896484375,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.6,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.7,0,54,54,1.1102230246251565e-16,5.395683899678261e-14,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.8,0,54,54,1.1102230246251565e-16,5.395683899678261e-14,624
+scenario cohort,S4_debt_service_shock,blend_alpha_0.9,0,123,123,1.88079096131566e-37,1.0588853112207166e-34,624
+scenario cohort,S4_debt_service_shock,blend_alpha_1.0,0,123,123,1.88079096131566e-37,1.0588853112207166e-34,624
+low_fragility,S1_liquidity_3m,willingness_only,0,120,120,1.504632769052528e-36,8.425943506694157e-34,624
+low_fragility,S1_liquidity_3m,ability_only,0,6,6,0.03125,1.0,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.0,0,6,6,0.03125,1.0,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.1,0,6,6,0.03125,1.0,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.2,0,15,15,6.103515625e-05,0.0211181640625,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.3,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.4,0,29,29,3.725290298461914e-09,1.55717134475708e-06,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.5,0,37,37,1.4551915228366852e-11,6.4319465309381485e-09,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.6,0,39,39,3.637978807091713e-12,1.6407284419983625e-09,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.7,0,63,63,2.168404344971009e-19,1.0972125985553305e-16,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.8,0,77,77,1.3234889800848443e-23,6.895377586242039e-21,624
+low_fragility,S1_liquidity_3m,blend_alpha_0.9,0,120,120,1.504632769052528e-36,8.425943506694157e-34,624
+low_fragility,S1_liquidity_3m,blend_alpha_1.0,0,120,120,1.504632769052528e-36,8.425943506694157e-34,624
+low_fragility,S1_liquidity_6m,willingness_only,0,493,493,7.820637090558988e-149,4.809691810693778e-146,624
+low_fragility,S1_liquidity_6m,ability_only,0,44,44,1.1368683772161603e-13,5.218225851422176e-11,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.0,0,44,44,1.1368683772161603e-13,5.218225851422176e-11,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.1,0,44,44,1.1368683772161603e-13,5.218225851422176e-11,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.2,0,104,104,9.860761315262648e-32,5.344532632872355e-29,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.3,0,136,136,2.2958874039497803e-41,1.306359932847425e-38,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.4,0,160,160,1.3684555315672042e-48,7.882303861827096e-46,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.5,0,222,222,2.967364920549937e-67,1.7566800329655628e-64,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.6,0,238,238,4.527839539413356e-72,2.707648044569187e-69,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.7,0,289,289,2.010764683385949e-87,1.2124911040817271e-84,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.8,0,351,351,4.3601508761683463e-106,2.646611581834186e-103,624
+low_fragility,S1_liquidity_6m,blend_alpha_0.9,0,493,493,7.820637090558988e-149,4.809691810693778e-146,624
+low_fragility,S1_liquidity_6m,blend_alpha_1.0,0,493,493,7.820637090558988e-149,4.809691810693778e-146,624
+low_fragility,S2_total_liquid_3m_20pct,willingness_only,0,6,6,0.03125,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.2,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.3,0,3,3,0.25,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.4,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.5,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.6,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.7,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.8,0,5,5,0.0625,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.9,0,6,6,0.03125,1.0,624
+low_fragility,S2_total_liquid_3m_20pct,blend_alpha_1.0,0,6,6,0.03125,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,willingness_only,0,9,9,0.00390625,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.2,0,1,1,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.3,0,3,3,0.25,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.4,0,3,3,0.25,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.5,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.6,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.7,0,4,4,0.125,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.8,0,5,5,0.0625,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.9,0,9,9,0.00390625,1.0,624
+low_fragility,S2_total_liquid_3m_30pct,blend_alpha_1.0,0,9,9,0.00390625,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,willingness_only,0,18,18,7.62939453125e-06,0.00278472900390625,624
+low_fragility,S2_total_liquid_3m_40pct,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.2,0,2,2,0.5,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.3,0,5,5,0.0625,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.4,0,5,5,0.0625,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.5,0,9,9,0.00390625,1.0,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.6,0,10,10,0.001953125,0.5859375,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.7,0,11,11,0.0009765625,0.302734375,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.8,0,14,14,0.0001220703125,0.04150390625,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.9,0,18,18,7.62939453125e-06,0.00278472900390625,624
+low_fragility,S2_total_liquid_3m_40pct,blend_alpha_1.0,0,18,18,7.62939453125e-06,0.00278472900390625,624
+low_fragility,S2_total_liquid_6m_20pct,willingness_only,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+low_fragility,S2_total_liquid_6m_20pct,ability_only,0,3,3,0.25,1.0,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.0,0,3,3,0.25,1.0,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.1,0,3,3,0.25,1.0,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.2,0,11,11,0.0009765625,0.302734375,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.3,0,20,20,1.9073486328125e-06,0.0007114410400390625,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.4,0,22,22,4.76837158203125e-07,0.00018453598022460938,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.5,0,27,27,1.4901161193847656e-08,6.198883056640625e-06,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.6,0,28,28,7.450580596923828e-09,3.1068921089172363e-06,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.7,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.8,0,40,40,1.8189894035458565e-12,8.24002199806273e-10,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.9,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+low_fragility,S2_total_liquid_6m_20pct,blend_alpha_1.0,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+low_fragility,S2_total_liquid_6m_30pct,willingness_only,0,76,76,2.6469779601696886e-23,1.376428539288238e-20,624
+low_fragility,S2_total_liquid_6m_30pct,ability_only,0,10,10,0.001953125,0.5859375,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.0,0,10,10,0.001953125,0.5859375,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.1,0,10,10,0.001953125,0.5859375,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.2,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.3,0,31,31,9.313225746154785e-10,3.9581209421157837e-07,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.4,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.5,0,42,42,4.547473508864641e-13,2.064552973024547e-10,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.6,0,46,46,2.842170943040401e-14,1.3102408047416247e-11,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.7,0,50,50,1.7763568394002505e-15,8.419931418757187e-13,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.8,0,61,61,8.673617379884035e-19,4.345482307321902e-16,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.9,0,76,76,2.6469779601696886e-23,1.376428539288238e-20,624
+low_fragility,S2_total_liquid_6m_30pct,blend_alpha_1.0,0,76,76,2.6469779601696886e-23,1.376428539288238e-20,624
+low_fragility,S2_total_liquid_6m_40pct,willingness_only,0,108,108,6.162975822039155e-33,3.377310750477457e-30,624
+low_fragility,S2_total_liquid_6m_40pct,ability_only,0,8,8,0.0078125,1.0,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.0,0,8,8,0.0078125,1.0,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.1,0,8,8,0.0078125,1.0,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.2,0,23,23,2.384185791015625e-07,9.34600830078125e-05,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.3,0,37,37,1.4551915228366852e-11,6.4319465309381485e-09,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.4,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.5,0,49,49,3.552713678800501e-15,1.6768808563938364e-12,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.6,0,58,58,6.938893903907228e-18,3.4416913763379853e-15,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.7,0,66,66,2.710505431213761e-20,1.3850682753502319e-17,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.8,0,80,80,1.6543612251060553e-24,8.68539643180679e-22,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.9,0,108,108,6.162975822039155e-33,3.377310750477457e-30,624
+low_fragility,S2_total_liquid_6m_40pct,blend_alpha_1.0,0,108,108,6.162975822039155e-33,3.377310750477457e-30,624
+low_fragility,S3_earner_death_20pct,willingness_only,0,6,6,0.03125,1.0,624
+low_fragility,S3_earner_death_20pct,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.2,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.3,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.4,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.5,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.6,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.7,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.8,0,3,3,0.25,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_0.9,0,6,6,0.03125,1.0,624
+low_fragility,S3_earner_death_20pct,blend_alpha_1.0,0,6,6,0.03125,1.0,624
+low_fragility,S3_earner_death_30pct,willingness_only,0,10,10,0.001953125,0.5859375,624
+low_fragility,S3_earner_death_30pct,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.2,0,1,1,1.0,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.3,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.4,0,3,3,0.25,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.5,0,3,3,0.25,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.6,0,3,3,0.25,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.7,0,6,6,0.03125,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.8,0,6,6,0.03125,1.0,624
+low_fragility,S3_earner_death_30pct,blend_alpha_0.9,0,10,10,0.001953125,0.5859375,624
+low_fragility,S3_earner_death_30pct,blend_alpha_1.0,0,10,10,0.001953125,0.5859375,624
+low_fragility,S3_earner_death_40pct,willingness_only,0,13,13,0.000244140625,0.082275390625,624
+low_fragility,S3_earner_death_40pct,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.2,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.3,0,2,2,0.5,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.4,0,5,5,0.0625,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.5,0,6,6,0.03125,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.6,0,7,7,0.015625,1.0,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.7,0,10,10,0.001953125,0.5859375,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.8,0,11,11,0.0009765625,0.302734375,624
+low_fragility,S3_earner_death_40pct,blend_alpha_0.9,0,13,13,0.000244140625,0.082275390625,624
+low_fragility,S3_earner_death_40pct,blend_alpha_1.0,0,13,13,0.000244140625,0.082275390625,624
+low_fragility,S4_debt_service_shock,willingness_only,0,5,5,0.0625,1.0,624
+low_fragility,S4_debt_service_shock,ability_only,0,0,0,1.0,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.0,0,0,0,1.0,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.1,0,0,0,1.0,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.2,0,0,0,1.0,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.3,0,2,2,0.5,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.4,0,3,3,0.25,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.5,0,3,3,0.25,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.6,0,3,3,0.25,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.7,0,3,3,0.25,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.8,0,3,3,0.25,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_0.9,0,5,5,0.0625,1.0,624
+low_fragility,S4_debt_service_shock,blend_alpha_1.0,0,5,5,0.0625,1.0,624
+baseline,S1_liquidity_3m,willingness_only,0,195,195,3.982729777831131e-59,2.3298969200312115e-56,624
+baseline,S1_liquidity_3m,ability_only,0,2,2,0.5,1.0,624
+baseline,S1_liquidity_3m,blend_alpha_0.0,0,2,2,0.5,1.0,624
+baseline,S1_liquidity_3m,blend_alpha_0.1,0,2,2,0.5,1.0,624
+baseline,S1_liquidity_3m,blend_alpha_0.2,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+baseline,S1_liquidity_3m,blend_alpha_0.3,0,39,39,3.637978807091713e-12,1.6407284419983625e-09,624
+baseline,S1_liquidity_3m,blend_alpha_0.4,0,50,50,1.7763568394002505e-15,8.419931418757187e-13,624
+baseline,S1_liquidity_3m,blend_alpha_0.5,0,62,62,4.336808689942018e-19,2.190088388420719e-16,624
+baseline,S1_liquidity_3m,blend_alpha_0.6,0,65,65,5.421010862427522e-20,2.7647155398380363e-17,624
+baseline,S1_liquidity_3m,blend_alpha_0.7,0,102,102,3.944304526105059e-31,2.133868748622837e-28,624
+baseline,S1_liquidity_3m,blend_alpha_0.8,0,115,115,4.81482486096809e-35,2.67222779783729e-32,624
+baseline,S1_liquidity_3m,blend_alpha_0.9,0,195,195,3.982729777831131e-59,2.3298969200312115e-56,624
+baseline,S1_liquidity_3m,blend_alpha_1.0,0,195,195,3.982729777831131e-59,2.3298969200312115e-56,624
+baseline,S1_liquidity_6m,willingness_only,0,703,703,4.7527289157379e-212,2.9514446566732356e-209,624
+baseline,S1_liquidity_6m,ability_only,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+baseline,S1_liquidity_6m,blend_alpha_0.0,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+baseline,S1_liquidity_6m,blend_alpha_0.1,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+baseline,S1_liquidity_6m,blend_alpha_0.2,0,139,139,2.8698592549372254e-42,1.6358197753142185e-39,624
+baseline,S1_liquidity_6m,blend_alpha_0.3,0,202,202,3.111507638930571e-61,1.8233434764133145e-58,624
+baseline,S1_liquidity_6m,blend_alpha_0.4,0,230,230,1.1591269220898192e-69,6.908396455655322e-67,624
+baseline,S1_liquidity_6m,blend_alpha_0.5,0,320,320,9.363352709384397e-97,5.655465036468176e-94,624
+baseline,S1_liquidity_6m,blend_alpha_0.6,0,347,347,6.976241401869354e-105,4.220626048130959e-102,624
+baseline,S1_liquidity_6m,blend_alpha_0.7,0,411,411,3.7818280418450374e-124,2.314478761609163e-121,624
+baseline,S1_liquidity_6m,blend_alpha_0.8,0,494,494,3.910318545279494e-149,2.4087562238921683e-146,624
+baseline,S1_liquidity_6m,blend_alpha_0.9,0,703,703,4.7527289157379e-212,2.9514446566732356e-209,624
+baseline,S1_liquidity_6m,blend_alpha_1.0,0,703,703,4.7527289157379e-212,2.9514446566732356e-209,624
+baseline,S2_total_liquid_3m_20pct,willingness_only,0,16,16,3.0517578125e-05,0.01068115234375,624
+baseline,S2_total_liquid_3m_20pct,ability_only,0,0,0,1.0,1.0,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.2,0,3,3,0.25,1.0,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.3,0,6,6,0.03125,1.0,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.4,0,6,6,0.03125,1.0,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.5,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.6,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.7,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.8,0,14,14,0.0001220703125,0.04150390625,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_0.9,0,16,16,3.0517578125e-05,0.01068115234375,624
+baseline,S2_total_liquid_3m_20pct,blend_alpha_1.0,0,16,16,3.0517578125e-05,0.01068115234375,624
+baseline,S2_total_liquid_3m_30pct,willingness_only,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+baseline,S2_total_liquid_3m_30pct,ability_only,0,0,0,1.0,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.2,0,2,2,0.5,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.3,0,4,4,0.125,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.4,0,4,4,0.125,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.5,0,7,7,0.015625,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.6,0,9,9,0.00390625,1.0,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.7,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.8,0,13,13,0.000244140625,0.082275390625,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_0.9,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+baseline,S2_total_liquid_3m_30pct,blend_alpha_1.0,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+baseline,S2_total_liquid_3m_40pct,willingness_only,0,51,51,8.881784197001252e-16,4.2454928461665986e-13,624
+baseline,S2_total_liquid_3m_40pct,ability_only,0,1,1,1.0,1.0,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.0,0,1,1,1.0,1.0,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.1,0,1,1,1.0,1.0,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.2,0,5,5,0.0625,1.0,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.3,0,9,9,0.00390625,1.0,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.4,0,11,11,0.0009765625,0.302734375,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.5,0,20,20,1.9073486328125e-06,0.0007114410400390625,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.6,0,25,25,5.960464477539063e-08,2.396106719970703e-05,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.7,0,30,30,1.862645149230957e-09,7.860362529754639e-07,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.8,0,37,37,1.4551915228366852e-11,6.4319465309381485e-09,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_0.9,0,51,51,8.881784197001252e-16,4.2454928461665986e-13,624
+baseline,S2_total_liquid_3m_40pct,blend_alpha_1.0,0,51,51,8.881784197001252e-16,4.2454928461665986e-13,624
+baseline,S2_total_liquid_6m_20pct,willingness_only,0,60,60,1.734723475976807e-18,8.656270145124267e-16,624
+baseline,S2_total_liquid_6m_20pct,ability_only,0,2,2,0.5,1.0,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.0,0,2,2,0.5,1.0,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.1,0,2,2,0.5,1.0,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.2,0,10,10,0.001953125,0.5859375,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.3,0,15,15,6.103515625e-05,0.0211181640625,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.4,0,17,17,1.52587890625e-05,0.00543212890625,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.5,0,25,25,5.960464477539063e-08,2.396106719970703e-05,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.6,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.7,0,34,34,1.1641532182693481e-10,5.0873495638370514e-08,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.8,0,37,37,1.4551915228366852e-11,6.4319465309381485e-09,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_0.9,0,60,60,1.734723475976807e-18,8.656270145124267e-16,624
+baseline,S2_total_liquid_6m_20pct,blend_alpha_1.0,0,60,60,1.734723475976807e-18,8.656270145124267e-16,624
+baseline,S2_total_liquid_6m_30pct,willingness_only,0,110,110,1.5407439555097887e-33,8.520314073969131e-31,624
+baseline,S2_total_liquid_6m_30pct,ability_only,0,7,7,0.015625,1.0,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.0,0,7,7,0.015625,1.0,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.1,0,7,7,0.015625,1.0,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.2,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.3,0,33,33,2.3283064365386963e-10,9.96515154838562e-08,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.4,0,40,40,1.8189894035458565e-12,8.24002199806273e-10,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.5,0,55,55,5.551115123125783e-17,2.708944180085382e-14,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.6,0,56,56,2.7755575615628914e-17,1.3572476476042539e-14,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.7,0,70,70,1.6940658945086007e-21,8.690558038829121e-19,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.8,0,80,80,1.6543612251060553e-24,8.68539643180679e-22,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_0.9,0,110,110,1.5407439555097887e-33,8.520314073969131e-31,624
+baseline,S2_total_liquid_6m_30pct,blend_alpha_1.0,0,110,110,1.5407439555097887e-33,8.520314073969131e-31,624
+baseline,S2_total_liquid_6m_40pct,willingness_only,0,172,172,3.3409558876152446e-52,1.9444363265920723e-49,624
+baseline,S2_total_liquid_6m_40pct,ability_only,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.0,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.1,0,12,12,0.00048828125,0.15869140625,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.2,0,44,44,1.1368683772161603e-13,5.218225851422176e-11,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.3,0,57,57,1.3877787807814457e-17,6.869504964868156e-15,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.4,0,67,67,1.3552527156068805e-20,6.938893903907228e-18,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.5,0,88,88,6.462348535570529e-27,3.444431769459092e-24,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.6,0,94,94,1.0097419586828951e-28,5.422314318127147e-26,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.7,0,115,115,4.81482486096809e-35,2.67222779783729e-32,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.8,0,128,128,5.877471754111438e-39,3.314894069318851e-36,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_0.9,0,172,172,3.3409558876152446e-52,1.9444363265920723e-49,624
+baseline,S2_total_liquid_6m_40pct,blend_alpha_1.0,0,172,172,3.3409558876152446e-52,1.9444363265920723e-49,624
+baseline,S3_earner_death_20pct,willingness_only,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_20pct,ability_only,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.2,0,1,1,1.0,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.3,0,1,1,1.0,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.4,0,2,2,0.5,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.5,0,3,3,0.25,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.6,0,4,4,0.125,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.7,0,8,8,0.0078125,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.8,0,8,8,0.0078125,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_0.9,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_20pct,blend_alpha_1.0,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_30pct,willingness_only,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_30pct,ability_only,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.2,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.3,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.4,0,7,7,0.015625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.5,0,7,7,0.015625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.6,0,7,7,0.015625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.7,0,7,7,0.015625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.8,0,7,7,0.015625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_0.9,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_30pct,blend_alpha_1.0,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_40pct,willingness_only,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_40pct,ability_only,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.2,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.3,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.4,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.5,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.6,0,5,5,0.0625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.7,0,7,7,0.015625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.8,0,8,8,0.0078125,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_0.9,0,9,9,0.00390625,1.0,624
+baseline,S3_earner_death_40pct,blend_alpha_1.0,0,9,9,0.00390625,1.0,624
+baseline,S4_debt_service_shock,willingness_only,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+baseline,S4_debt_service_shock,ability_only,0,0,0,1.0,1.0,624
+baseline,S4_debt_service_shock,blend_alpha_0.0,0,0,0,1.0,1.0,624
+baseline,S4_debt_service_shock,blend_alpha_0.1,0,0,0,1.0,1.0,624
+baseline,S4_debt_service_shock,blend_alpha_0.2,0,6,6,0.03125,1.0,624
+baseline,S4_debt_service_shock,blend_alpha_0.3,0,11,11,0.0009765625,0.302734375,624
+baseline,S4_debt_service_shock,blend_alpha_0.4,0,12,12,0.00048828125,0.15869140625,624
+baseline,S4_debt_service_shock,blend_alpha_0.5,0,13,13,0.000244140625,0.082275390625,624
+baseline,S4_debt_service_shock,blend_alpha_0.6,0,14,14,0.0001220703125,0.04150390625,624
+baseline,S4_debt_service_shock,blend_alpha_0.7,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+baseline,S4_debt_service_shock,blend_alpha_0.8,0,27,27,1.4901161193847656e-08,6.198883056640625e-06,624
+baseline,S4_debt_service_shock,blend_alpha_0.9,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+baseline,S4_debt_service_shock,blend_alpha_1.0,0,48,48,7.105427357601002e-15,3.33244543071487e-12,624
+high_fragility,S1_liquidity_3m,willingness_only,0,372,372,2.07908195312898e-112,1.2682399914086777e-109,624
+high_fragility,S1_liquidity_3m,ability_only,0,5,5,0.0625,1.0,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.0,0,5,5,0.0625,1.0,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.1,0,5,5,0.0625,1.0,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.2,0,53,53,2.220446049250313e-16,1.0724754417879012e-13,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.3,0,76,76,2.6469779601696886e-23,1.376428539288238e-20,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.4,0,90,90,1.6155871338926322e-27,8.643391166325582e-25,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.5,0,120,120,1.504632769052528e-36,8.425943506694157e-34,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.6,0,135,135,4.591774807899561e-41,2.6081280908869504e-38,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.7,0,203,203,1.5557538194652854e-61,9.132274920261225e-59,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.8,0,232,232,2.897817305224548e-70,1.729996931219055e-67,624
+high_fragility,S1_liquidity_3m,blend_alpha_0.9,0,372,372,2.07908195312898e-112,1.2682399914086777e-109,624
+high_fragility,S1_liquidity_3m,blend_alpha_1.0,0,372,372,2.07908195312898e-112,1.2682399914086777e-109,624
+high_fragility,S1_liquidity_6m,willingness_only,0,820,820,2.860444667617094e-247,1.7849174725930666e-244,624
+high_fragility,S1_liquidity_6m,ability_only,0,22,22,4.76837158203125e-07,0.00018453598022460938,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.0,0,22,22,4.76837158203125e-07,0.00018453598022460938,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.1,0,22,22,4.76837158203125e-07,0.00018453598022460938,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.2,0,141,141,7.174648137343064e-43,4.096724086422889e-40,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.3,0,210,210,1.2154326714572542e-63,7.146744108168655e-61,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.4,0,251,251,5.527147875260445e-76,3.310761577281006e-73,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.5,0,348,348,3.488120700934677e-105,2.1138011447664143e-102,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.6,0,386,386,1.2689709186578246e-116,7.753412312999308e-114,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.7,0,502,502,1.5274681817498023e-151,9.42447868139628e-149,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.8,0,582,582,1.263492066235061e-175,7.808380969332676e-173,624
+high_fragility,S1_liquidity_6m,blend_alpha_0.9,0,820,820,2.860444667617094e-247,1.7849174725930666e-244,624
+high_fragility,S1_liquidity_6m,blend_alpha_1.0,0,820,820,2.860444667617094e-247,1.7849174725930666e-244,624
+high_fragility,S2_total_liquid_3m_20pct,willingness_only,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+high_fragility,S2_total_liquid_3m_20pct,ability_only,0,0,0,1.0,1.0,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.2,0,3,3,0.25,1.0,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.3,0,9,9,0.00390625,1.0,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.4,0,11,11,0.0009765625,0.302734375,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.5,0,13,13,0.000244140625,0.082275390625,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.6,0,15,15,6.103515625e-05,0.0211181640625,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.7,0,16,16,3.0517578125e-05,0.01068115234375,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.8,0,17,17,1.52587890625e-05,0.00543212890625,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_0.9,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+high_fragility,S2_total_liquid_3m_20pct,blend_alpha_1.0,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+high_fragility,S2_total_liquid_3m_30pct,willingness_only,0,52,52,4.440892098500626e-16,2.1405099914773018e-13,624
+high_fragility,S2_total_liquid_3m_30pct,ability_only,0,0,0,1.0,1.0,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.2,0,10,10,0.001953125,0.5859375,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.3,0,17,17,1.52587890625e-05,0.00543212890625,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.4,0,18,18,7.62939453125e-06,0.00278472900390625,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.5,0,24,24,1.1920928955078125e-07,4.76837158203125e-05,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.6,0,26,26,2.9802322387695312e-08,1.2248754501342773e-05,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.7,0,30,30,1.862645149230957e-09,7.860362529754639e-07,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.8,0,35,35,5.820766091346741e-11,2.5494955480098724e-08,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_0.9,0,52,52,4.440892098500626e-16,2.1405099914773018e-13,624
+high_fragility,S2_total_liquid_3m_30pct,blend_alpha_1.0,0,52,52,4.440892098500626e-16,2.1405099914773018e-13,624
+high_fragility,S2_total_liquid_3m_40pct,willingness_only,0,65,65,5.421010862427522e-20,2.7647155398380363e-17,624
+high_fragility,S2_total_liquid_3m_40pct,ability_only,0,2,2,0.5,1.0,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.0,0,2,2,0.5,1.0,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.1,0,2,2,0.5,1.0,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.2,0,9,9,0.00390625,1.0,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.3,0,21,21,9.5367431640625e-07,0.00036334991455078125,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.4,0,23,23,2.384185791015625e-07,9.34600830078125e-05,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.5,0,30,30,1.862645149230957e-09,7.860362529754639e-07,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.6,0,32,32,4.656612873077393e-10,1.9883736968040466e-07,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.7,0,49,49,3.552713678800501e-15,1.6768808563938364e-12,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.8,0,52,52,4.440892098500626e-16,2.1405099914773018e-13,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_0.9,0,65,65,5.421010862427522e-20,2.7647155398380363e-17,624
+high_fragility,S2_total_liquid_3m_40pct,blend_alpha_1.0,0,65,65,5.421010862427522e-20,2.7647155398380363e-17,624
+high_fragility,S2_total_liquid_6m_20pct,willingness_only,0,105,105,4.930380657631324e-32,2.6870574584090715e-29,624
+high_fragility,S2_total_liquid_6m_20pct,ability_only,0,3,3,0.25,1.0,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.0,0,3,3,0.25,1.0,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.1,0,3,3,0.25,1.0,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.2,0,20,20,1.9073486328125e-06,0.0007114410400390625,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.3,0,31,31,9.313225746154785e-10,3.9581209421157837e-07,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.4,0,38,38,7.275957614183426e-12,3.2669049687683582e-09,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.5,0,51,51,8.881784197001252e-16,4.2454928461665986e-13,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.6,0,55,55,5.551115123125783e-17,2.708944180085382e-14,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.7,0,74,74,1.0587911840678754e-22,5.463362509790237e-20,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.8,0,79,79,3.308722450212111e-24,1.7271531190107218e-21,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_0.9,0,105,105,4.930380657631324e-32,2.6870574584090715e-29,624
+high_fragility,S2_total_liquid_6m_20pct,blend_alpha_1.0,0,105,105,4.930380657631324e-32,2.6870574584090715e-29,624
+high_fragility,S2_total_liquid_6m_30pct,willingness_only,0,156,156,2.1895288505075267e-47,1.2589790890418278e-44,624
+high_fragility,S2_total_liquid_6m_30pct,ability_only,0,5,5,0.0625,1.0,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.0,0,5,5,0.0625,1.0,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.1,0,5,5,0.0625,1.0,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.2,0,30,30,1.862645149230957e-09,7.860362529754639e-07,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.3,0,45,45,5.684341886080802e-14,2.6147972675971687e-11,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.4,0,61,61,8.673617379884035e-19,4.345482307321902e-16,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.5,0,74,74,1.0587911840678754e-22,5.463362509790237e-20,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.6,0,81,81,8.271806125530277e-25,4.367513634279986e-22,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.7,0,97,97,1.262177448353619e-29,6.79051467214247e-27,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.8,0,109,109,3.0814879110195774e-33,1.691736863149748e-30,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_0.9,0,156,156,2.1895288505075267e-47,1.2589790890418278e-44,624
+high_fragility,S2_total_liquid_6m_30pct,blend_alpha_1.0,0,156,156,2.1895288505075267e-47,1.2589790890418278e-44,624
+high_fragility,S2_total_liquid_6m_40pct,willingness_only,0,225,225,3.7092061506874214e-68,2.2069776596590157e-65,624
+high_fragility,S2_total_liquid_6m_40pct,ability_only,0,11,11,0.0009765625,0.302734375,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.0,0,11,11,0.0009765625,0.302734375,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.1,0,11,11,0.0009765625,0.302734375,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.2,0,57,57,1.3877787807814457e-17,6.869504964868156e-15,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.3,0,80,80,1.6543612251060553e-24,8.68539643180679e-22,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.4,0,91,91,8.077935669463161e-28,4.329773518832254e-25,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.5,0,110,110,1.5407439555097887e-33,8.520314073969131e-31,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.6,0,118,118,6.018531076210112e-36,3.346303278372822e-33,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.7,0,150,150,1.401298464324817e-45,8.015427215937954e-43,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.8,0,168,168,5.345529420184391e-51,3.084370475446394e-48,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_0.9,0,225,225,3.7092061506874214e-68,2.2069776596590157e-65,624
+high_fragility,S2_total_liquid_6m_40pct,blend_alpha_1.0,0,225,225,3.7092061506874214e-68,2.2069776596590157e-65,624
+high_fragility,S3_earner_death_20pct,willingness_only,0,4,4,0.125,1.0,624
+high_fragility,S3_earner_death_20pct,ability_only,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.2,0,1,1,1.0,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.3,0,2,2,0.5,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.4,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.5,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.6,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.7,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.8,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_0.9,0,4,4,0.125,1.0,624
+high_fragility,S3_earner_death_20pct,blend_alpha_1.0,0,4,4,0.125,1.0,624
+high_fragility,S3_earner_death_30pct,willingness_only,0,7,7,0.015625,1.0,624
+high_fragility,S3_earner_death_30pct,ability_only,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.2,0,2,2,0.5,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.3,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.4,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.5,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.6,0,3,3,0.25,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.7,0,4,4,0.125,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.8,0,4,4,0.125,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_0.9,0,7,7,0.015625,1.0,624
+high_fragility,S3_earner_death_30pct,blend_alpha_1.0,0,7,7,0.015625,1.0,624
+high_fragility,S3_earner_death_40pct,willingness_only,0,12,12,0.00048828125,0.15869140625,624
+high_fragility,S3_earner_death_40pct,ability_only,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.0,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.1,0,0,0,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.2,0,1,1,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.3,0,1,1,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.4,0,1,1,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.5,0,1,1,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.6,0,1,1,1.0,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.7,0,5,5,0.0625,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.8,0,9,9,0.00390625,1.0,624
+high_fragility,S3_earner_death_40pct,blend_alpha_0.9,0,12,12,0.00048828125,0.15869140625,624
+high_fragility,S3_earner_death_40pct,blend_alpha_1.0,0,12,12,0.00048828125,0.15869140625,624
+high_fragility,S4_debt_service_shock,willingness_only,0,130,130,1.4693679385278594e-39,8.331316211452963e-37,624
+high_fragility,S4_debt_service_shock,ability_only,0,0,0,1.0,1.0,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.0,0,0,0,1.0,1.0,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.1,0,0,0,1.0,1.0,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.2,0,17,17,1.52587890625e-05,0.00543212890625,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.3,0,27,27,1.4901161193847656e-08,6.198883056640625e-06,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.4,0,32,32,4.656612873077393e-10,1.9883736968040466e-07,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.5,0,44,44,1.1368683772161603e-13,5.218225851422176e-11,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.6,0,49,49,3.552713678800501e-15,1.6768808563938364e-12,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.7,0,74,74,1.0587911840678754e-22,5.463362509790237e-20,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.8,0,82,82,4.1359030627651384e-25,2.187892720202758e-22,624
+high_fragility,S4_debt_service_shock,blend_alpha_0.9,0,130,130,1.4693679385278594e-39,8.331316211452963e-37,624
+high_fragility,S4_debt_service_shock,blend_alpha_1.0,0,130,130,1.4693679385278594e-39,8.331316211452963e-37,624

@@ -25,9 +25,10 @@ import numpy as np
 import shap
 
 from app.services.risk_profile_config import Questionnaire
+from app.services.model_artifacts import load_versioned_model
 
-MODEL_PATH = Path(__file__).resolve().parents[1] / "ml_models" / "risk_tier_rf.pkl"
-MODEL_VERSION = "rf_classifier_full_7items_v1"
+MODEL_PATH = Path(__file__).resolve().parents[1] / "ml_models" / "v2" / "risk_tier_rf.pkl"
+MODEL_VERSION = "rf_classifier_full_7items_v2"
 # RandomForestClassifier, not GradientBoostingClassifier: shap.TreeExplainer
 # only supports sklearn's GradientBoostingClassifier for *binary*
 # classification, and this is a 5-class (tier 1-5) problem. RandomForest
@@ -58,8 +59,8 @@ FEATURE_ORDER: tuple[str, ...] = (
 # 434 training rows (Risk_questionnaire_400.xlsx) vs. the full-7 model's
 # higher accuracy -- a real, disclosed trade-off for fewer questions, never
 # presented as equally precise as a full-7 deterministic score.
-MODEL_PATH_REDUCED = Path(__file__).resolve().parents[1] / "ml_models" / "risk_tier_rf_reduced_4items.pkl"
-MODEL_VERSION_REDUCED = "rf_classifier_reduced_4items_v1"
+MODEL_PATH_REDUCED = Path(__file__).resolve().parents[1] / "ml_models" / "v2" / "risk_tier_rf_reduced_4items.pkl"
+MODEL_VERSION_REDUCED = "rf_classifier_reduced_4items_v2"
 FEATURE_ORDER_REDUCED: tuple[str, ...] = (
     "windfall_allocation",
     "friend_description",
@@ -79,6 +80,8 @@ def _load_model(model_path: Path):
     if not model_path.exists():
         raise MLModelUnavailableError(f"model file not found at {model_path}")
     try:
+        if model_path.parent.name == "v2":
+            return load_versioned_model(model_path)
         return joblib.load(model_path)
     except Exception as exc:  # noqa: BLE001 -- any load failure is equally "unavailable"
         raise MLModelUnavailableError(f"failed to load model from {model_path}: {exc}") from exc

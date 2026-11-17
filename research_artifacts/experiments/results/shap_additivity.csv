@@ -1,0 +1,3 @@
+model,n_test,tolerance,mean_absolute_error,mean_error_ci95_low,mean_error_ci95_high,maximum_absolute_error,within_tolerance,within_tolerance_share,share_ci95_low,share_ci95_high
+full_7items,87,1e-05,7.158507739325764e-09,6.294381340425313e-09,8.089906658076597e-09,2.3516866565209682e-08,87,1.0,1.0,1.0
+reduced_4items,87,1e-05,1.3184827286155346e-08,1.2053390176507699e-08,1.4251868670939385e-08,2.3938539150947236e-08,87,1.0,1.0,1.0

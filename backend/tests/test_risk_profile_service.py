@@ -65,7 +65,7 @@ def test_core_scenario_end_to_end_caps_the_tier(session):
     assert "buffer_months" not in result.binding_constraints
 
     unlock = result.unlock_conditions[0]
-    assert "Rs 25,000" in unlock.message
+    assert "Rs 25,001" in unlock.message
     assert "20%" in unlock.message
 
 
@@ -86,6 +86,22 @@ def test_core_scenario_logs_a_suggestion_event_with_binding_constraint(session):
     assert len(event.suggested_value["unlock_conditions"]) == 1
     assert event.suggested_value["unlock_conditions"][0]["constraint"] == "emi_to_income_ratio"
     assert event.suggested_value["answers"] == AGGRESSIVE_ANSWERS
+    assert event.suggested_value["schema_version"] == "risk-profile-event-v1"
+    assert event.suggested_value["quick_path"] is False
+    assert set(event.suggested_value["answered_items"]) == set(AGGRESSIVE_ANSWERS)
+    assert set(event.suggested_value["capacity_inputs"]) == {
+        "buffer_coverage_months",
+        "emi_to_income_ratio",
+        "income_stability",
+        "dependents_count",
+        "total_life_cover_paise",
+        "monthly_income_paise",
+        "cash_balance_paise",
+        "essential_monthly_expense_paise",
+        "total_monthly_emi_paise",
+    }
+    assert event.suggested_value["questionnaire_version"]
+    assert event.suggested_value["rule_table_version"]
 
     assert event.market_context["buffer_coverage_months"] == "2.00"
     assert event.market_context["emi_to_income_ratio"] == "0.4500"
@@ -170,10 +186,20 @@ def test_quick_mode_logs_risk_profile_ml_as_authoritative(session):
     rule_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="risk_profile").one()
     assert rule_event.suggested_value["estimation_method"] == MODEL_VERSION_REDUCED
     assert rule_event.suggested_value["stated_score"] == 0  # no weighted-sum formula ran
+    assert rule_event.suggested_value["schema_version"] == "risk-profile-event-v1"
+    assert rule_event.suggested_value["quick_path"] is True
+    assert set(rule_event.suggested_value["answered_items"]) == set(AGGRESSIVE_ANSWERS_QUICK)
+    assert rule_event.suggested_value["capacity_inputs"]
+    assert rule_event.suggested_value["rule_table_version"]
 
     ml_event = session.query(SuggestionEvent).filter_by(user_id=USER, module_source="risk_profile_ml").one()
     assert ml_event.suggested_value["is_authoritative"] is True
     assert ml_event.suggested_value["predicted_tier"] == rule_event.suggested_value["stated_tier"]
+    assert ml_event.suggested_value["schema_version"] == "risk-profile-ml-event-v1"
+    assert ml_event.suggested_value["quick_path"] is True
+    assert set(ml_event.suggested_value["answered_items"]) == set(AGGRESSIVE_ANSWERS_QUICK)
+    assert ml_event.suggested_value["capacity_inputs"] == rule_event.suggested_value["capacity_inputs"]
+    assert ml_event.suggested_value["rule_table_version"] == rule_event.suggested_value["rule_table_version"]
 
 
 def test_six_of_seven_answers_is_rejected_not_silently_treated_as_quick_mode(session):

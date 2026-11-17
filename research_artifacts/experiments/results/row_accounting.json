@@ -1,0 +1,24 @@
+{
+  "worksheet_data_rows": 434,
+  "mapped_rows": 434,
+  "mapped_drop_reasons": {
+    "missing_horizon": 0,
+    "unparseable_mapped_answers": 0
+  },
+  "worksheet_self_rating_counts": {
+    "valid": 434,
+    "missing": 0,
+    "non_numeric": 0,
+    "out_of_range": 0
+  },
+  "mapped_rows_with_valid_self_rating": 434,
+  "self_rating_drop_reasons_on_mapped_rows": {
+    "missing": 0,
+    "non_numeric": 0,
+    "out_of_range": 0
+  },
+  "rating_column_index_zero_based": 15,
+  "rating_column_header": "On a scale of 0 to 10, how willing are you to take financial risks, in general?",
+  "sensitivity_n": 434,
+  "dropped_for_missing_mapped_fields": 0
+}

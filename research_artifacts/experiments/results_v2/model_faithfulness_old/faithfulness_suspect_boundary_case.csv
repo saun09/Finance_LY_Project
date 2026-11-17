@@ -1,0 +1,2 @@
+monthly_income_rupees,monthly_emi_rupees,requested_reduction_rupees,emi_ratio_before,displayed_instruction,promised_tier,capacity_ceiling_before,emi_ratio_after,capacity_ceiling_after,unlock_valid,upper_band_boundary
+100000,45000,25001,0.45,"Bring your EMI-to-income ratio below 20% - reduce your monthly EMI outflow by Rs 25,001.",5,2,0.19999,5,True,0.2

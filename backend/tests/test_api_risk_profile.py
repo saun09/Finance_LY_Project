@@ -62,7 +62,14 @@ def test_core_scenario_via_api_caps_and_explains(client):
     assert body["final_tier"] == 2
     assert body["capped"] is True
     assert body["binding_constraints"] == ["emi_to_income_ratio"]
-    assert "Rs 25,000" in body["unlock_conditions"][0]["message"]
+    assert "Rs 25,001" in body["unlock_conditions"][0]["message"]
+    assert body["achievable_tier"] == body["stated_tier"]
+    assert {action["constraint"] for action in body["joint_unlock_plan"]} == {
+        "buffer_months",
+        "emi_to_income_ratio",
+    }
+    assert body["blocking_constraints"] == []
+    assert body["unlock_plan_version"] == "joint-v1"
 
     latest = client.get(f"/users/{USER}/risk-profile/latest")
     assert latest.status_code == 200
