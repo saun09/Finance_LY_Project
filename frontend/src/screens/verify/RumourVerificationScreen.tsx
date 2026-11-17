@@ -137,7 +137,7 @@ function VerdictBanner({ verdict }: { verdict: Verdict }) {
 /** A fake-but-honest step sequence: the first two steps advance on a fixed
  * timer (a brief flourish), the last stays "in progress" until the real
  * network response actually arrives -- never claims step 3 finished before
- * it did, which matters most for the broader-workflow mode (up to a 60s
+ * it did, which matters most for the broader-workflow mode (several minutes of
  * real wait per rumourVerificationApi.verify's own timeout comment). */
 function useScanningStep(active: boolean): number {
   const [step, setStep] = useState(0);

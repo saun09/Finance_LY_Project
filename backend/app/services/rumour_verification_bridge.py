@@ -13,17 +13,28 @@ from app.models.suggestion_event import SuggestionEvent
 from app.services.event_log import log_suggestion_event
 
 # `os.getenv` only sees real process environment variables, not .env files --
-# nothing else in the app loads app/.env, so without this N8N_WEBHOOK_URL is
+# app.config loads backend/.env too, but only once it's imported, so without this N8N_WEBHOOK_URL is
 # silently unset regardless of what's in the file. `load_dotenv` never
 # overrides a variable already set in the real environment (e.g. in CI or a
 # test's monkeypatch), so this is a no-op wherever the env var is set another way.
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 
 #: Recorded on every event this bridge logs so Module 9 can tell the two
 #: Module 5 engines apart. See rumour_local_engine.py for the other one.
 N8N_ENGINE_NAME = "n8n_llm_workflow"
+
+#: How long to wait on the n8n workflow. It runs a live web search plus
+#: several LLM agents per request; runs of 4-5 minutes have been observed,
+#: so this must comfortably exceed that. Keep it below the frontend's own
+#: timeout in rumourVerification.ts so the backend reports first.
+N8N_TIMEOUT_SECONDS = 330.0
+
+
+class N8NTimeoutError(RuntimeError):
+    """n8n didn't answer within N8N_TIMEOUT_SECONDS. Its own run may still
+    finish -- the result just has nobody waiting for it any more."""
 
 
 class N8NVerificationResult:
@@ -86,16 +97,10 @@ def run_verification(
     }
 
     try:
-        # This workflow does a live web search plus an LLM pass per
-        # request (see its own `official_evidence` sources), and its
-        # response time varies widely in practice -- observed anywhere
-        # from under a minute to over two. 110s leaves headroom under the
-        # client's own 115s timeout (see rumourVerification.ts) rather
-        # than racing it.
         response = httpx.post(
             N8N_WEBHOOK_URL,
             json=payload,
-            timeout=110.0,
+            timeout=N8N_TIMEOUT_SECONDS,
         )
 
         response.raise_for_status()
@@ -103,8 +108,9 @@ def run_verification(
         data = response.json()
 
     except httpx.TimeoutException as exc:
-        raise RuntimeError(
-            "The n8n rumour-verification workflow timed out."
+        raise N8NTimeoutError(
+            f"The broader workflow didn't finish within {int(N8N_TIMEOUT_SECONDS // 60)} minutes. "
+            "Try again, or use Exchange Filings mode for a faster answer."
         ) from exc
 
     except httpx.HTTPStatusError as exc:

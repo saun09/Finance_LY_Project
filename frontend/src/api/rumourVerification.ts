@@ -33,12 +33,12 @@ export const rumourVerificationApi = {
       .post<RumourVerificationOut>(`/users/${userId}/rumour-verification`, body, {
         params: { log_event: logEvent },
         // This calls out to an LLM-backed n8n workflow that does its own
-        // live web search per request, not a local DB lookup -- response
-        // time varies widely (observed under a minute to over two), and
-        // the backend's own timeout waiting on n8n is 110s (see
-        // rumour_verification_bridge.py), so the client-wide 15s default is
-        // far too short and aborts before the backend even gives up.
-        timeout: 115_000,
+        // live web search per request, not a local DB lookup -- runs of
+        // 4-5 minutes have been observed. The backend waits up to 330s
+        // (N8N_TIMEOUT_SECONDS in rumour_verification_bridge.py); this sits
+        // just above it so the backend's clearer timeout message arrives
+        // first instead of the client aborting on its own.
+        timeout: 345_000,
       })
       .then((r) => r.data),
 

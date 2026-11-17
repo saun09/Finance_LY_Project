@@ -115,8 +115,23 @@ def test_run_verification_wraps_timeout_cleanly(monkeypatch):
         raise httpx.TimeoutException("timed out")
 
     monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
-    with pytest.raises(RuntimeError, match="timed out"):
+    with pytest.raises(rumour_verification_bridge.N8NTimeoutError, match="didn't finish within"):
         run_verification("anything")
+
+
+def test_n8n_timeout_comfortably_exceeds_observed_run_times(monkeypatch):
+    # Runs of ~4m42s have been observed; the old 110s limit failed them.
+    seen = {}
+
+    def post(url, json=None, timeout=None):
+        seen["timeout"] = timeout
+        raise httpx.TimeoutException("timed out")
+
+    monkeypatch.setattr(rumour_verification_bridge.httpx, "post", post)
+    monkeypatch.setattr(rumour_verification_bridge, "N8N_WEBHOOK_URL", FAKE_URL)
+    with pytest.raises(RuntimeError):
+        run_verification("anything")
+    assert seen["timeout"] >= 300
 
 
 def test_run_verification_wraps_connection_errors_cleanly(monkeypatch):

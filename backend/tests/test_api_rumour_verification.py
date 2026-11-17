@@ -128,7 +128,7 @@ def test_repeated_verifications_each_log_their_own_event(client, session, monkey
     assert count == 2
 
 
-def test_n8n_timeout_surfaces_as_a_clean_502(client, monkeypatch):
+def test_n8n_timeout_surfaces_as_a_clean_504(client, monkeypatch):
     def post(url, json=None, timeout=None):
         raise httpx.TimeoutException("timed out")
 
@@ -138,8 +138,8 @@ def test_n8n_timeout_surfaces_as_a_clean_502(client, monkeypatch):
         f"/users/{USER}/rumour-verification",
         json={"rumour_text": ADANI_RUMOUR, "rumour_date": "2025-02-11"},
     )
-    assert resp.status_code == 502
-    assert "timed out" in resp.json()["detail"]
+    assert resp.status_code == 504
+    assert "didn't finish within" in resp.json()["detail"]
 
 
 def test_missing_webhook_url_surfaces_as_a_clean_502(client, monkeypatch):

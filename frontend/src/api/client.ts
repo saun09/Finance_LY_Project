@@ -65,6 +65,10 @@ export function toApiError(error: unknown): ApiError {
     if (status === 404) return new ApiError(detail ?? 'The requested information was not found.', 404);
     if (status === 409) return new ApiError(detail ?? 'This isn’t ready yet — an earlier step needs to be completed first.', 409);
     if (status === 422) return new ApiError(detail ?? 'Some of the information provided was invalid.', 422);
+    // 502/503/504 come from a dependency the backend called (n8n, the local
+    // engine) and carry a specific reason worth showing; a bare 500 is an
+    // unexpected crash, where the detail is internal and not user-facing.
+    if ((status === 502 || status === 503 || status === 504) && detail) return new ApiError(detail, status);
     if (status >= 500) return new ApiError('Something went wrong on the server. Please try again shortly.', status);
     return new ApiError(detail ?? 'Something went wrong.', status);
   }

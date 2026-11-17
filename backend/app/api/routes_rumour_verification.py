@@ -17,6 +17,7 @@ from app.services.rumour_local_engine import (
 )
 from app.services.rumour_verification_bridge import (
     N8N_ENGINE_NAME,
+    N8NTimeoutError,
     log_verification_event,
     run_verification,
     verification_result_to_suggested_value,
@@ -81,6 +82,8 @@ def post_verify_rumour(
         result = run_verification(
             body.rumour_text, rumour_date=body.rumour_date, company_name=body.company_name, evaluated_at=body.evaluated_at,
         )
+    except N8NTimeoutError as exc:
+        raise HTTPException(status_code=504, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
