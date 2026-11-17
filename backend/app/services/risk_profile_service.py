@@ -12,6 +12,7 @@ import logging
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.evidence.registry import evidence_ids_for_binding
 from app.models.onboarding import InsurancePolicy, InsuranceType
 from app.services.event_log import log_suggestion_event
 from app.services.onboarding import ProfileNotFoundError, compute_financial_position, get_profile
@@ -110,6 +111,22 @@ def compute_and_log_risk_tier(
     inputs = gather_capacity_inputs(session, user_id)
     capacity = compute_capacity_ceiling(inputs, rule_table)
     final = compute_final_tier(stated, capacity, inputs, rule_table)
+    evidence_ids = (
+        evidence_ids_for_binding(inputs, capacity, rule_table)
+        if final.capped
+        else []
+    )
+    capacity_inputs_snapshot = {
+        "buffer_coverage_months": str(inputs.buffer_coverage_months),
+        "emi_to_income_ratio": str(inputs.emi_to_income_ratio),
+        "income_stability": inputs.income_stability.value,
+        "dependents_count": inputs.dependents_count,
+        "total_life_cover_paise": inputs.total_life_cover_paise,
+        "monthly_income_paise": inputs.monthly_income_paise,
+        "cash_balance_paise": inputs.cash_balance_paise,
+        "essential_monthly_expense_paise": inputs.essential_monthly_expense_paise,
+        "total_monthly_emi_paise": inputs.total_monthly_emi_paise,
+    }
 
     log_suggestion_event(
         session,
@@ -117,7 +134,11 @@ def compute_and_log_risk_tier(
         module_source="risk_profile",
         tier=str(final.final_tier),
         suggested_value={
+            "schema_version": "risk-profile-event-v1",
             "answers": answers,
+            "quick_path": quick_mode,
+            "answered_items": list(answers),
+            "capacity_inputs": capacity_inputs_snapshot,
             "questionnaire_version": stated.questionnaire_version,
             "stated_score": stated.score,
             "stated_tier": stated.tier,
@@ -129,20 +150,17 @@ def compute_and_log_risk_tier(
             "capped": final.capped,
             "binding_constraints": list(final.binding_constraints),
             "unlock_conditions": [dataclasses.asdict(u) for u in final.unlock_conditions],
+            "joint_unlock_plan": [dataclasses.asdict(action) for action in final.joint_unlock_plan],
+            "achievable_tier": final.achievable_tier,
+            "blocking_constraints": list(final.blocking_constraints),
+            "unlock_plan_version": final.unlock_plan_version,
+            "evidence_ids": evidence_ids,
         },
         # reused as a general "objective inputs at computation time" snapshot,
         # per Module 1's field: JSON context for a later transparency view to
         # explain "why this, then" -- not literal market data here.
         market_context={
-            "buffer_coverage_months": str(inputs.buffer_coverage_months),
-            "emi_to_income_ratio": str(inputs.emi_to_income_ratio),
-            "income_stability": inputs.income_stability.value,
-            "dependents_count": inputs.dependents_count,
-            "total_life_cover_paise": inputs.total_life_cover_paise,
-            "monthly_income_paise": inputs.monthly_income_paise,
-            "cash_balance_paise": inputs.cash_balance_paise,
-            "essential_monthly_expense_paise": inputs.essential_monthly_expense_paise,
-            "total_monthly_emi_paise": inputs.total_monthly_emi_paise,
+            **capacity_inputs_snapshot,
         },
         commit=commit,
     )
@@ -158,13 +176,18 @@ def compute_and_log_risk_tier(
             module_source="risk_profile_ml",
             tier=str(quick_prediction.predicted_tier),
             suggested_value={
+                "schema_version": "risk-profile-ml-event-v1",
                 "model_version": quick_prediction.model_version,
                 "predicted_tier": quick_prediction.predicted_tier,
                 "class_probabilities": quick_prediction.class_probabilities,
                 "feature_contributions": [dataclasses.asdict(c) for c in quick_prediction.feature_contributions],
                 "questionnaire_version": questionnaire.version,
                 "answers": answers,
+                "quick_path": True,
+                "answered_items": list(answers),
+                "capacity_inputs": capacity_inputs_snapshot,
                 "static_final_tier": final.final_tier,
+                "rule_table_version": capacity.rule_table_version,
                 "is_authoritative": True,
             },
             commit=commit,
@@ -186,6 +209,7 @@ def compute_and_log_risk_tier(
             module_source="risk_profile_ml",
             tier=str(ml_result.predicted_tier),
             suggested_value={
+                "schema_version": "risk-profile-ml-event-v1",
                 "model_version": ml_result.model_version,
                 "predicted_tier": ml_result.predicted_tier,
                 "class_probabilities": ml_result.class_probabilities,
@@ -195,6 +219,10 @@ def compute_and_log_risk_tier(
                 # without this module needing its own copy of the labels.
                 "questionnaire_version": questionnaire.version,
                 "answers": answers,
+                "quick_path": False,
+                "answered_items": list(answers),
+                "capacity_inputs": capacity_inputs_snapshot,
+                "rule_table_version": capacity.rule_table_version,
                 # so the trace can say "the rule-based engine agreed/disagreed"
                 "static_final_tier": final.final_tier,
                 "is_authoritative": False,

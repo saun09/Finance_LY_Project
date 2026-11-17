@@ -11,6 +11,7 @@ from app.models.onboarding import (
     InsuranceType,
     UserProfile,
 )
+from app.models.nudge import NudgeConversation, NudgeMessage
 from app.models.suggestion_event import ActionTaken, SuggestionEvent
 from app.models.user_monthly_snapshot import UserMonthlySnapshot
 
@@ -29,4 +30,6 @@ __all__ = [
     "Holding",
     "ExpenseItem",
     "ExpenseSourceDecisionRecord",
+    "NudgeConversation",
+    "NudgeMessage",
 ]

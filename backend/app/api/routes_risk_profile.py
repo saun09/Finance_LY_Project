@@ -47,6 +47,10 @@ def _to_risk_tier_out(result) -> RiskTierOut:
         capped=result.capped,
         binding_constraints=result.binding_constraints,
         unlock_conditions=[u.__dict__ for u in result.unlock_conditions],
+        joint_unlock_plan=[u.__dict__ for u in result.joint_unlock_plan],
+        achievable_tier=result.achievable_tier,
+        blocking_constraints=result.blocking_constraints,
+        unlock_plan_version=result.unlock_plan_version,
         estimation_method=result.estimation_method,
     )
 
@@ -84,5 +88,9 @@ def get_latest_risk_profile(user_id: str, session: Session = Depends(get_session
         capped=v["capped"],
         binding_constraints=tuple(v["binding_constraints"]),
         unlock_conditions=v["unlock_conditions"],
+        joint_unlock_plan=v.get("joint_unlock_plan", ()),
+        achievable_tier=v.get("achievable_tier"),
+        blocking_constraints=tuple(v.get("blocking_constraints", ())),
+        unlock_plan_version=v.get("unlock_plan_version"),
         estimation_method=v.get("estimation_method", "deterministic"),
     )

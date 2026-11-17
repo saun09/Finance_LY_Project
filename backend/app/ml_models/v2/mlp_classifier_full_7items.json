@@ -1,0 +1,135 @@
+{
+  "model": "mlp_full",
+  "artifact": "mlp_classifier_full_7items.pkl",
+  "feature_set": "full_7items",
+  "features_in_order": [
+    "horizon",
+    "drawdown_reaction",
+    "experience",
+    "goal",
+    "windfall_allocation",
+    "sure_gain_tradeoff",
+    "friend_description"
+  ],
+  "versions": {
+    "python": "3.13.2",
+    "numpy": "2.2.5",
+    "scikit_learn": "1.7.0",
+    "joblib": "1.5.1"
+  },
+  "seed": 42,
+  "hyperparameters": {
+    "hidden_layer_sizes": [
+      16,
+      8
+    ],
+    "max_iter": 2000,
+    "random_state": 42
+  },
+  "training_data_sha256": "165bc88de8191ccad7c57ad226c2640b34f99866278cc091ffe602575046e022",
+  "split_sizes": {
+    "train": 347,
+    "test": 87
+  },
+  "metrics": {
+    "accuracy": 0.9425287356321839,
+    "macro_f1": 0.9359994173709927,
+    "confusion_matrix_labels": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "confusion_matrix": [
+      [
+        10,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        25,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        25,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        17,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        5
+      ]
+    ]
+  },
+  "legacy_comparison": {
+    "prediction_agreement_rate": 1.0,
+    "legacy_metrics": {
+      "accuracy": 0.9425287356321839,
+      "macro_f1": 0.9359994173709927,
+      "confusion_matrix_labels": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "confusion_matrix": [
+        [
+          10,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          25,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          25,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          17,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          5
+        ]
+      ]
+    },
+    "accuracy_change": 0.0,
+    "macro_f1_change": 0.0
+  }
+}

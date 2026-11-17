@@ -1,0 +1,104 @@
+# Project Facts
+
+Flat, source-anchored facts for research writing. “Code fact” means the value or behavior is present in the repository; “reported” means it is stated in project materials but is not independently encoded or verified by the application.
+
+- Project title used by the requested documentation: “Ability Before Willingness: An Explainable and Evidence-Aware Personal Finance Decision Support Framework.”
+- The main application consists of an Expo/React Native client and a FastAPI backend; the code is organized under `frontend/` and `backend/`.
+- The repository also contains offline questionnaire model experiments under `research_artifacts/` and an independent rumour-verification prototype under `modules/rumour_verification/`.
+- The default persistence configuration is SQLite; the backend requirements include a PostgreSQL driver.
+- The default final risk tier is the lower of the questionnaire-derived stated tier and the capacity ceiling: `min(stated_tier, capacity_ceiling)`, implemented in `backend/app/services/risk_profile.py`.
+- The capacity ceiling is the minimum tier ceiling among applicable capacity components; insurance is inapplicable when `dependents_count <= 0`.
+- Capacity components are emergency-fund coverage, EMI-to-income ratio, income stability and life-insurance adequacy, configured in `backend/app/services/risk_profile_config.py`.
+- Emergency-fund coverage is liquid cash divided by essential monthly expense, measured in months.
+- Emergency-buffer ceiling bands are `<1 month => tier 1`, `[1,2) => tier 2`, `[2,4) => tier 3`, `[4,6) => tier 4`, and `>=6 => tier 5`.
+- EMI burden is total monthly EMI divided by monthly income.
+- EMI ceiling bands are `>=50% => tier 1`, `[40%,50%) => tier 2`, `[30%,40%) => tier 3`, `[20%,30%) => tier 4`, and `<20% => tier 5`.
+- Income-stability ceiling is tier 3 for `irregular` income and tier 5 for `regular` income.
+- Required life insurance is `monthly_income * 12 * 10`.
+- Life-insurance adequacy is total life cover divided by required cover.
+- Insurance ceiling bands are `<25% => tier 1`, `[25%,50%) => tier 2`, `[50%,75%) => tier 3`, `[75%,100%) => tier 4`, and `>=100% => tier 5`.
+- The repository describes these capacity thresholds as the application's own conservative policy, not as a regulatory or validated financial standard.
+- The EMI unlock explanation reports a Rs 25,000 reduction for the example with Rs 1,00,000 monthly income and Rs 45,000 EMI; exactly that reduction produces a 20% ratio, while the tier-5 band is strictly below 20%. The example README records this boundary mismatch.
+- Monetary values in the backend financial-position implementation are stored in integer paise; ratios use `Decimal`.
+- Questionnaire options map to integer points 1 through 5 in `backend/app/services/risk_profile_config.py`.
+- Stated risk score is the sum of each selected answer's points multiplied by that question's configured weight.
+- Tier assignment uses four ascending score breakpoints; tier 1 is below the first breakpoint, then each breakpoint begins the next tier.
+- Questionnaire V1 is configured with effective date `2026-01-01`, four questions, weights `[3,3,2,2]`, total weight 10, possible score range 10–50 and breakpoints `[18,26,34,42]`.
+- Questionnaire V1 item IDs and weights are `horizon:3`, `drawdown_reaction:3`, `experience:2` and `goal:2`.
+- Questionnaire V2 is configured with effective date `2026-09-04`, seven questions, weights `[3,3,2,2,4,4,2]`, total weight 20, possible score range 20–100 and breakpoints `[36,52,68,84]`.
+- Questionnaire V2 adds `windfall_allocation:4`, `sure_gain_tradeoff:4` and `friend_description:2` to the four V1 items.
+- In the ML data scripts, the seven feature IDs are ordered as `horizon`, `drawdown`, `experience`, `goal`, `windfall`, `sure_gain`, and `friend`; the target is `stated_tier` from the V2 weighted-score formula.
+- The reduced ML feature order is `windfall`, `friend`, `drawdown`, and `sure_gain`; its target is still calculated from all seven questionnaire answers.
+- `compute_stated_tier` has V1 as its Python default argument; `compute_and_log_risk_tier` defaults to V2.
+- The application has distinct deterministic questionnaire and ML prediction/explanation paths; the questionnaire experiment's model target is not an independent participant risk-tolerance measurement.
+- The tracked response workbook is `Risk_questionnaire_400.xlsx`; its worksheet is labeled `Mock Responses`.
+- The workbook contains 434 response rows, according to the project code/materials inspected for this README.
+- The workbook includes a 0–10 self-rated risk-willingness response column on the same 434 rows; the model-training scripts do not use that field as the label or an input feature.
+- Because the workbook has no row-level real/synthetic labels, the self-rated values cannot be isolated for the 130 responses reported as real.
+- Project-owner-reported provenance is 130 real responses and 304 Claude-generated synthetic responses (`434 - 130 = 304`).
+- The workbook/script does not contain a per-row real-versus-synthetic provenance flag, and the synthetic-data generation prompt/script is not present in the repository.
+- Collection method, respondent-level consent evidence, duplicate-entry audit and missing-entry reconciliation beyond the workbook's current row count are not encoded in the repository.
+- The ML split is an 80/20 `train_test_split` with `random_state=42` and `stratify=y`, reconstructed in `backend/scripts/train_risk_tier_reduced_model.py` and `research_artifacts/results/generate_results.py`.
+- The saved model artifacts and manifest report 347 training rows and 87 test rows.
+- The held-out test set is drawn from the 434-row mixed-provenance workbook; the saved evaluation does not report real-only and synthetic-only metrics.
+- The full seven-item features are the same inputs used to compute the formula-derived target.
+- The reduced four-item features are a subset, while the target remains based on all seven answers.
+- The full and reduced model scores are therefore predictions of the application's assigned formula label, not evidence that the models independently validate risk tolerance.
+- The tracked result table is `research_artifacts/results/metrics_summary.csv`; all metric values below are copied from it.
+- Full-feature Random Forest: train accuracy `0.9712`, test accuracy `0.7931`, balanced accuracy `0.8250`, macro F1 `0.8371`, weighted F1 `0.7932`, quadratic weighted kappa `0.9088`, within-one-tier `1.0000`, macro AUC `0.9765`, micro AUC `0.9801`.
+- Full-feature Gradient Boosting: train accuracy `1.0000`, test accuracy `0.8506`, balanced accuracy `0.8421`, macro F1 `0.8328`, weighted F1 `0.8507`, quadratic weighted kappa `0.9365`, within-one-tier `1.0000`, macro AUC `0.9759`, micro AUC `0.9752`.
+- Full-feature MLP: train accuracy `1.0000`, test accuracy `0.9425`, balanced accuracy `0.9564`, macro F1 `0.9360`, weighted F1 `0.9429`, quadratic weighted kappa `0.9763`, within-one-tier `1.0000`, macro AUC `0.9948`, micro AUC `0.9946`.
+- Reduced-feature Random Forest: train accuracy `0.8444`, test accuracy `0.7816`, balanced accuracy `0.7613`, macro F1 `0.7814`, weighted F1 `0.7826`, quadratic weighted kappa `0.9027`, within-one-tier `1.0000`, macro AUC `0.9380`, micro AUC `0.9415`.
+- Reduced-feature Gradient Boosting: train accuracy `0.8444`, test accuracy `0.7471`, balanced accuracy `0.7649`, macro F1 `0.7786`, weighted F1 `0.7488`, quadratic weighted kappa `0.8869`, within-one-tier `1.0000`, macro AUC `0.9490`, micro AUC `0.9513`.
+- Reduced-feature MLP: train accuracy `0.8300`, test accuracy `0.7586`, balanced accuracy `0.7743`, macro F1 `0.7481`, weighted F1 `0.7512`, quadratic weighted kappa `0.8958`, within-one-tier `1.0000`, macro AUC `0.9445`, micro AUC `0.9457`.
+- Full-feature per-prediction SHAP timing in the results CSV is `1.09 ms` for RF, `33.72 ms` for GB and `12.52 ms` for MLP.
+- Reduced-feature per-prediction SHAP timing in the results CSV is `2.81 ms` for RF, `15.57 ms` for GB and `7.07 ms` for MLP.
+- The result table records exact `TreeExplainer` for the RF models and `KernelExplainer` with `shap_exact=False` for GB and MLP.
+- The full-feature test class supports in `classification_reports.txt` are T1=`10`, T2=`26`, T3=`27`, T4=`19`, T5=`5`, for 87 test rows total.
+- The saved production full-feature Random Forest is `backend/app/ml_models/risk_tier_rf.pkl`.
+- The saved production reduced Random Forest is `backend/app/ml_models/risk_tier_rf_reduced_4items.pkl`.
+- Full RF parameters read from the serialized estimator: `n_estimators=300`, `criterion="gini"`, `max_depth=6`, `max_features="sqrt"`, `min_samples_split=2`, `min_samples_leaf=1`, `min_weight_fraction_leaf=0.0`, `max_leaf_nodes=None`, `min_impurity_decrease=0.0`, `bootstrap=True`, `oob_score=False`, `n_jobs=None`, `random_state=42`, `verbose=0`, `warm_start=False`, `class_weight="balanced"`, `ccp_alpha=0.0`, `max_samples=None`, `monotonic_cst=None`.
+- Reduced RF parameters read from the serialized estimator are the same as the full RF except `max_depth=None` and `class_weight=None`.
+- Full and reduced Gradient Boosting parameter values read from the serialized estimators: `loss="log_loss"`, `learning_rate=0.05`, `n_estimators=200`, `subsample=1.0`, `criterion="friedman_mse"`, `min_samples_split=2`, `min_samples_leaf=1`, `min_weight_fraction_leaf=0.0`, `max_depth=3`, `min_impurity_decrease=0.0`, `init=None`, `random_state=42`, `max_features=None`, `max_leaf_nodes=None`, `warm_start=False`, `validation_fraction=0.1`, `n_iter_no_change=None`, `tol=0.0001`, `ccp_alpha=0.0`, `verbose=0`.
+- Full and reduced MLP parameter values read from the serialized estimators: `hidden_layer_sizes=(16,8)`, `activation="relu"`, `solver="adam"`, `alpha=0.0001`, `batch_size="auto"`, `learning_rate="constant"`, `learning_rate_init=0.001`, `power_t=0.5`, `max_iter=2000`, `shuffle=True`, `random_state=42`, `tol=0.0001`, `verbose=False`, `warm_start=False`, `momentum=0.9`, `nesterovs_momentum=True`, `early_stopping=False`, `validation_fraction=0.1`, `beta_1=0.9`, `beta_2=0.999`, `epsilon=1e-08`, `n_iter_no_change=10`, `max_fun=15000`.
+- The MLP artifacts use separately saved `StandardScaler` instances; scaler values are fit from the 347-row training set according to the results-generation code.
+- The exact scikit-learn, SHAP, Python and other environment versions used to create the saved research pickles are not recorded in the repository.
+- The backend dependency declaration specifies `scikit-learn>=1.3`, `shap>=0.44` and `joblib>=1.3`, not exact versions.
+- The rumour corpus has 11 labeled rumours and 35 filing records: 11 real target filings and 24 synthetic distractors, according to `modules/rumour_verification/eval/results.md`.
+- The rumour retrieval evaluation uses all 11 labeled rumours against that 35-record corpus.
+- Baseline TF-IDF rumour retrieval scores are MRR `0.914`, precision@1 `0.909`, precision@3 `0.303`, precision@5 `0.182`, hit-rate@1 `0.909`, hit-rate@3 `0.909`, and hit-rate@5 `0.909`.
+- Constrained rumour retrieval scores are MRR `1.000`, precision@1 `1.000`, precision@3 `0.333`, precision@5 `0.200`, hit-rate@1 `1.000`, hit-rate@3 `1.000`, and hit-rate@5 `1.000`.
+- The correct filing rank strictly improved for 1 of 11 rumours; R005 moved from rank 18 to rank 1, while the other correct filings were rank 1 under both methods.
+- Local rumour retrieval uses TF-IDF with English stop words, n-gram range `(1,2)`, cosine similarity, a default maximum date difference of 45 days, official-source/entity/date constraints and a score floor of `0.08`.
+- Rumour explanation evaluation reports candidate coverage `1.000`, reason coverage `1.000`, non-vacuity `1.000`, winner-justification soundness `1.000` and verdict sufficiency `1.000`.
+- The rumour explanation evaluation records 385 candidate explanations across 11 queries and 385 candidates considered.
+- Entity elimination evaluation records 301 claimed, 371 expected and 301 agreed; precision is `1.000`, recall is `0.811`.
+- Temporal elimination evaluation records 353 claimed, 353 expected and 353 agreed; precision and recall are `1.000`.
+- Source-authority elimination evaluation records 44 claimed, 44 expected and 44 agreed; precision and recall are `1.000`.
+- Score-floor elimination evaluation records 355 claimed, 355 expected and 355 agreed; precision and recall are `1.000`.
+- The rumour evaluation report records 70 entity-check disagreements across R005, R006 and R010 because the entity matcher can no-op when no company is recognized.
+- Rumour explanation metrics describe trace faithfulness on the curated corpus; the report explicitly does not establish human comprehensibility or generalization to a larger filing universe.
+- Nudge's local user-finance retrieval uses `TfidfVectorizer(stop_words="english", ngram_range=(1,2), sublinear_tf=True)`, cosine similarity through `linear_kernel`, and default `k=4`.
+- Nudge's knowledge retrieval includes keyword text per topic and falls back to the overview chunk when no positive-similarity result exists.
+- Nudge session briefing includes nine configured topic categories and can include up to four individual loan chunks.
+- Nudge incorporates at most two prior conversations with up to six lines per conversation; stored prompt text says each line is limited to 300 characters.
+- The hosted ElevenLabs model version, full system prompt and runtime configuration are not in the repository.
+- The external n8n workflow prompt, model/provider version and internal evidence process are not in the repository.
+- The local rumour verifier exposes filing metadata and URLs from its corpus; it does not automatically verify URL reachability.
+- Allocation uses tier-specific asset-class bounds, versioned market assumptions and SciPy SLSQP to maximize the Sharpe-ratio objective within bounds, subject to weights summing to 1.
+- Allocation optimizer options are `maxiter=500` and `ftol=1e-10`; risk-free rate and the allocation input assumptions are configured in `backend/app/services/allocation_config.py`.
+- Allocation optimizer failure triggers a bounded midpoint fallback and records that fallback in the reasoning string.
+- Personalization replays allocation edits using an evidence-weighted EWMA with default `alpha=0.3`, offset clamp `[-10,+10]` equity percentage points and a capacity-tier allocation ceiling.
+- Personalization evidence weights are 1 for funded accept/edit, 0.5 for unfunded or unknown-funded accept/edit, and 0 for rejected or ignored actions.
+- Drift evaluation uses five hand-authored personas; the project materials describe 5/5 recovery as a simulated result, not a result on real user observations.
+- Frontend manifest versions include React `19.2.3`, React Native `0.86.3`, Expo `~57.0.19`, TypeScript `~6.0.3`, Jest `~29.7.0` and Jest Expo `~57.0.5`.
+- The backend and research dependencies are specified as lower bounds in `backend/requirements.txt`; there is no tracked Python lockfile or exact `requires-python` declaration.
+- The repository contains 41 backend test modules, 6 rumour-package test modules and 10 frontend Jest test files, based on tracked test-file enumeration during README preparation.
+- No `.ipynb` notebook was found in the repository during the workspace inventory.
+- The distribution and completeness of the workbook's self-rated risk-willingness values are not summarized in the saved experiment results.
+- The repository does not encode the reported 130-real/304-synthetic status at row level.
+- The questionnaire workbook, code and artifacts do not provide a complete consent record, data collection protocol, duplicate audit, or missingness report.
+- A complete train/fitting script for every full RF, GB and MLP research model is **NOT FOUND IN CODE**; the tracked results script evaluates serialized estimators.
+- No independent risk-tolerance label or external criterion validity result for the 434-row dataset is present.
+- No repository-wide evidence registry or external source validation for questionnaire scoring, capacity thresholds or expected asset returns is present.
+- A paper should report model comparisons as agreement with the hand-specified formula-derived target, and should not call those metrics validation of independent investor risk tolerance.

@@ -1,0 +1,16 @@
+dataset,stratum,binding_component_set,binding_type,profiles,share_of_capped
+synthetic_cohort,all,buffer_months,unique,81,0.054
+synthetic_cohort,all,buffer_months + emi_to_income_ratio,tied,85,0.056666666666666664
+synthetic_cohort,all,buffer_months + emi_to_income_ratio + insurance_adequacy,tied,297,0.198
+synthetic_cohort,all,buffer_months + insurance_adequacy,tied,276,0.184
+synthetic_cohort,all,emi_to_income_ratio,unique,378,0.252
+synthetic_cohort,all,insurance_adequacy,unique,383,0.25533333333333336
+synthetic_cohort,willing_but_unable,buffer_months,unique,81,0.054
+synthetic_cohort,willing_but_unable,buffer_months + emi_to_income_ratio,tied,85,0.056666666666666664
+synthetic_cohort,willing_but_unable,buffer_months + emi_to_income_ratio + insurance_adequacy,tied,297,0.198
+synthetic_cohort,willing_but_unable,buffer_months + insurance_adequacy,tied,276,0.184
+synthetic_cohort,willing_but_unable,emi_to_income_ratio,unique,378,0.252
+synthetic_cohort,willing_but_unable,insurance_adequacy,unique,383,0.25533333333333336
+seed_showcase_user_initial,seed_showcase_user_initial,buffer_months,unique,1,1.0
+seed_showcase_user_after_bonus,seed_showcase_user_after_bonus,insurance_adequacy,unique,1,1.0
+seed_feedback_demo_fl_capped,seed_feedback_demo_fl_capped,buffer_months,unique,1,1.0

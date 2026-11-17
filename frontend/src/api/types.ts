@@ -712,3 +712,48 @@ export interface ApiValidationErrorDetail {
 export interface ApiErrorBody {
   detail: string | ApiValidationErrorDetail[];
 }
+
+// --- Nudge voice assistant (backend/app/api/routes_nudge.py) ---
+
+export type NudgeRole = 'user' | 'agent';
+
+export interface NudgeBriefingOut {
+  briefing: string;
+}
+
+export interface NudgeSearchIn {
+  query: string;
+  top_k?: number;
+  /** the conversation in progress, so its own lines aren't recalled back */
+  conversation_id?: string | null;
+}
+
+export interface NudgeSearchOut {
+  /** plain text, handed straight back to the agent as the tool result */
+  result_text: string;
+  hits: { topic: string; text: string; score: number }[];
+}
+
+export interface NudgeConversationOut {
+  id: string;
+  surface: string;
+  elevenlabs_conversation_id: string | null;
+  started_at: string;
+  ended_at: string | null;
+}
+
+export interface NudgeConversationSummaryOut extends NudgeConversationOut {
+  message_count: number;
+  preview: string | null;
+}
+
+export interface NudgeMessageOut {
+  id: string;
+  role: NudgeRole;
+  text: string;
+  created_at: string;
+}
+
+export interface NudgeConversationDetailOut extends NudgeConversationOut {
+  messages: NudgeMessageOut[];
+}

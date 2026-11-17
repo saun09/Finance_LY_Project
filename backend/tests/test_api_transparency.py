@@ -63,6 +63,8 @@ def test_risk_profile_trace_via_api(client):
     body = resp.json()
     assert body["framing_label"] == "transparent reasoning"
     assert body["gap_detected"] is False
+    assert body["legacy_event"] is False
+    assert body["schema_version"] == "risk-profile-event-v1"
     assert body["reasoning"]["questionnaire"]["answers"] == AGGRESSIVE_ANSWERS
 
 

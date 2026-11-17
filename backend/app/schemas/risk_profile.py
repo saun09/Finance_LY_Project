@@ -41,6 +41,10 @@ class RiskTierOut(BaseModel):
     capped: bool
     binding_constraints: tuple[str, ...]
     unlock_conditions: tuple[UnlockConditionOut, ...]
+    joint_unlock_plan: tuple[UnlockConditionOut, ...] = ()
+    achievable_tier: int | None = None
+    blocking_constraints: tuple[str, ...] = ()
+    unlock_plan_version: str | None = None
     # "deterministic" for a full-7-answer submission; a model version
     # string when stated_tier instead came from the quick-mode (4-answer)
     # ML estimate. Defaulted for old event-log rows recorded before this

@@ -1,0 +1,4 @@
+item_set,n,items,cronbach_alpha
+Four risk-tolerance items,434,"windfall_allocation, sure_gain_tradeoff, drawdown_reaction, friend_description",0.782726058301286
+All seven items,434,"horizon, drawdown_reaction, experience, goal, windfall_allocation, sure_gain_tradeoff, friend_description",0.8089628159317789
+Three contextual items (reported separately),434,"horizon, experience, goal",0.43734126008766544

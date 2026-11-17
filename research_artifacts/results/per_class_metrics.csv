@@ -1,0 +1,31 @@
+model,feature_set,tier,precision,recall,f1,support
+Random Forest ★ production,full_7items,1,1.0,0.8,0.8889,10
+Random Forest ★ production,full_7items,2,0.7931,0.8846,0.8364,26
+Random Forest ★ production,full_7items,3,0.7037,0.7037,0.7037,27
+Random Forest ★ production,full_7items,4,0.7778,0.7368,0.7568,19
+Random Forest ★ production,full_7items,5,1.0,1.0,1.0,5
+Gradient Boosting,full_7items,1,0.9,0.9,0.9,10
+Gradient Boosting,full_7items,2,0.92,0.8846,0.902,26
+Gradient Boosting,full_7items,3,0.8276,0.8889,0.8571,27
+Gradient Boosting,full_7items,4,0.8235,0.7368,0.7778,19
+Gradient Boosting,full_7items,5,0.6667,0.8,0.7273,5
+MLP Neural Net,full_7items,1,0.9091,1.0,0.9524,10
+MLP Neural Net,full_7items,2,1.0,0.9615,0.9804,26
+MLP Neural Net,full_7items,3,0.9615,0.9259,0.9434,27
+MLP Neural Net,full_7items,4,0.8947,0.8947,0.8947,19
+MLP Neural Net,full_7items,5,0.8333,1.0,0.9091,5
+Random Forest ★ production,reduced_4items,1,0.8182,0.9,0.8571,10
+Random Forest ★ production,reduced_4items,2,0.913,0.8077,0.8571,26
+Random Forest ★ production,reduced_4items,3,0.7097,0.8148,0.7586,27
+Random Forest ★ production,reduced_4items,4,0.6842,0.6842,0.6842,19
+Random Forest ★ production,reduced_4items,5,1.0,0.6,0.75,5
+Gradient Boosting,reduced_4items,1,0.8182,0.9,0.8571,10
+Gradient Boosting,reduced_4items,2,0.9048,0.7308,0.8085,26
+Gradient Boosting,reduced_4items,3,0.6286,0.8148,0.7097,27
+Gradient Boosting,reduced_4items,4,0.6875,0.5789,0.6286,19
+Gradient Boosting,reduced_4items,5,1.0,0.8,0.8889,5
+MLP Neural Net,reduced_4items,1,0.875,0.7,0.7778,10
+MLP Neural Net,reduced_4items,2,0.8462,0.8462,0.8462,26
+MLP Neural Net,reduced_4items,3,0.697,0.8519,0.7667,27
+MLP Neural Net,reduced_4items,4,0.75,0.4737,0.5806,19
+MLP Neural Net,reduced_4items,5,0.625,1.0,0.7692,5

@@ -1,0 +1,77 @@
+=== Random Forest ★ production | Full (7 items) ===
+                 precision    recall  f1-score   support
+
+T1 Conservative     1.0000    0.8000    0.8889        10
+             T2     0.7931    0.8846    0.8364        26
+             T3     0.7037    0.7037    0.7037        27
+             T4     0.7778    0.7368    0.7568        19
+  T5 Aggressive     1.0000    1.0000    1.0000         5
+
+       accuracy                         0.7931        87
+      macro avg     0.8549    0.8250    0.8371        87
+   weighted avg     0.7977    0.7931    0.7932        87
+
+=== Gradient Boosting | Full (7 items) ===
+                 precision    recall  f1-score   support
+
+T1 Conservative     0.9000    0.9000    0.9000        10
+             T2     0.9200    0.8846    0.9020        26
+             T3     0.8276    0.8889    0.8571        27
+             T4     0.8235    0.7368    0.7778        19
+  T5 Aggressive     0.6667    0.8000    0.7273         5
+
+       accuracy                         0.8506        87
+      macro avg     0.8276    0.8421    0.8328        87
+   weighted avg     0.8534    0.8506    0.8507        87
+
+=== MLP Neural Net | Full (7 items) ===
+                 precision    recall  f1-score   support
+
+T1 Conservative     0.9091    1.0000    0.9524        10
+             T2     1.0000    0.9615    0.9804        26
+             T3     0.9615    0.9259    0.9434        27
+             T4     0.8947    0.8947    0.8947        19
+  T5 Aggressive     0.8333    1.0000    0.9091         5
+
+       accuracy                         0.9425        87
+      macro avg     0.9197    0.9564    0.9360        87
+   weighted avg     0.9450    0.9425    0.9429        87
+
+=== Random Forest ★ production | Reduced (4 items) ===
+                 precision    recall  f1-score   support
+
+T1 Conservative     0.8182    0.9000    0.8571        10
+             T2     0.9130    0.8077    0.8571        26
+             T3     0.7097    0.8148    0.7586        27
+             T4     0.6842    0.6842    0.6842        19
+  T5 Aggressive     1.0000    0.6000    0.7500         5
+
+       accuracy                         0.7816        87
+      macro avg     0.8250    0.7613    0.7814        87
+   weighted avg     0.7940    0.7816    0.7826        87
+
+=== Gradient Boosting | Reduced (4 items) ===
+                 precision    recall  f1-score   support
+
+T1 Conservative     0.8182    0.9000    0.8571        10
+             T2     0.9048    0.7308    0.8085        26
+             T3     0.6286    0.8148    0.7097        27
+             T4     0.6875    0.5789    0.6286        19
+  T5 Aggressive     1.0000    0.8000    0.8889         5
+
+       accuracy                         0.7471        87
+      macro avg     0.8078    0.7649    0.7786        87
+   weighted avg     0.7671    0.7471    0.7488        87
+
+=== MLP Neural Net | Reduced (4 items) ===
+                 precision    recall  f1-score   support
+
+T1 Conservative     0.8750    0.7000    0.7778        10
+             T2     0.8462    0.8462    0.8462        26
+             T3     0.6970    0.8519    0.7667        27
+             T4     0.7500    0.4737    0.5806        19
+  T5 Aggressive     0.6250    1.0000    0.7692         5
+
+       accuracy                         0.7586        87
+      macro avg     0.7586    0.7743    0.7481        87
+   weighted avg     0.7695    0.7586    0.7512        87

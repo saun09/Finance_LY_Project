@@ -51,6 +51,9 @@ class TraceResultOut(BaseModel):
     claim_note: str | None = None
     contested: bool = False
     contest_reason_code: str | None = None
+    evidence_ids: tuple[str, ...] = ()
+    legacy_event: bool = False
+    schema_version: str | None = None
 
 
 class AvailableDecisionTypesOut(BaseModel):

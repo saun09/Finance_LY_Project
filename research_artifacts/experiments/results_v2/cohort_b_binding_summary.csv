@@ -1,0 +1,5 @@
+dataset,profiles,capped_profiles,cap_rate,unique_binding_profiles,tied_binding_profiles,tier_reduction_counts
+scenario cohort,5000,1500,0.3,842,658,"{'0': 3500, '1': 10, '2': 70, '3': 335, '4': 1085}"
+low_fragility,10000,5374,0.5374,4416,958,"{'0': 4626, '1': 1973, '2': 1741, '3': 1052, '4': 608}"
+baseline,10000,6101,0.6101,4833,1268,"{'0': 3899, '1': 2002, '2': 1927, '3': 1318, '4': 854}"
+high_fragility,10000,6727,0.6727,4858,1869,"{'0': 3273, '1': 2025, '2': 2027, '3': 1519, '4': 1156}"

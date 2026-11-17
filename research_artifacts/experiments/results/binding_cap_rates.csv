@@ -1,0 +1,10 @@
+dataset,stratum,n_profiles,capped_profiles,cap_rate
+synthetic_cohort,all,5000,1500,0.3
+synthetic_cohort,willing_but_unable,1500,1500,1.0
+synthetic_cohort,able_but_unwilling,1500,0,0.0
+synthetic_cohort,aligned,2000,0,0.0
+seed_dummy_user,demo_data,1,0,0.0
+seed_feedback_demo_fl_capped,demo_data,1,1,1.0
+seed_feedback_demo_fl_growth,demo_data,1,0,0.0
+seed_showcase_user_after_bonus,demo_data,1,1,1.0
+seed_showcase_user_initial,demo_data,1,1,1.0

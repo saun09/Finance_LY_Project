@@ -1,0 +1,37 @@
+dataset,stratum,component,component_label,profiles_in_group,capped_profiles,unique_binding_count,unique_binding_share_of_capped,tied_binding_count,tied_binding_share_of_capped,any_binding_count,any_binding_share_of_capped
+synthetic_cohort,all,buffer_months,Emergency buffer,5000,1500,81,0.054,658,0.43866666666666665,739,0.49266666666666664
+synthetic_cohort,all,emi_to_income_ratio,EMI burden,5000,1500,378,0.252,382,0.25466666666666665,760,0.5066666666666667
+synthetic_cohort,all,income_stability,Income stability,5000,1500,0,0.0,0,0.0,0,0.0
+synthetic_cohort,all,insurance_adequacy,Insurance,5000,1500,383,0.25533333333333336,573,0.382,956,0.6373333333333333
+synthetic_cohort,willing_but_unable,buffer_months,Emergency buffer,1500,1500,81,0.054,658,0.43866666666666665,739,0.49266666666666664
+synthetic_cohort,willing_but_unable,emi_to_income_ratio,EMI burden,1500,1500,378,0.252,382,0.25466666666666665,760,0.5066666666666667
+synthetic_cohort,willing_but_unable,income_stability,Income stability,1500,1500,0,0.0,0,0.0,0,0.0
+synthetic_cohort,willing_but_unable,insurance_adequacy,Insurance,1500,1500,383,0.25533333333333336,573,0.382,956,0.6373333333333333
+synthetic_cohort,able_but_unwilling,buffer_months,Emergency buffer,1500,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,able_but_unwilling,emi_to_income_ratio,EMI burden,1500,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,able_but_unwilling,income_stability,Income stability,1500,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,able_but_unwilling,insurance_adequacy,Insurance,1500,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,aligned,buffer_months,Emergency buffer,2000,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,aligned,emi_to_income_ratio,EMI burden,2000,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,aligned,income_stability,Income stability,2000,0,0,0.0,0,0.0,0,0.0
+synthetic_cohort,aligned,insurance_adequacy,Insurance,2000,0,0,0.0,0,0.0,0,0.0
+seed_dummy_user,seed_dummy_user,buffer_months,Emergency buffer,1,0,0,0.0,0,0.0,0,0.0
+seed_dummy_user,seed_dummy_user,emi_to_income_ratio,EMI burden,1,0,0,0.0,0,0.0,0,0.0
+seed_dummy_user,seed_dummy_user,income_stability,Income stability,1,0,0,0.0,0,0.0,0,0.0
+seed_dummy_user,seed_dummy_user,insurance_adequacy,Insurance,1,0,0,0.0,0,0.0,0,0.0
+seed_showcase_user_initial,seed_showcase_user_initial,buffer_months,Emergency buffer,1,1,1,1.0,0,0.0,1,1.0
+seed_showcase_user_initial,seed_showcase_user_initial,emi_to_income_ratio,EMI burden,1,1,0,0.0,0,0.0,0,0.0
+seed_showcase_user_initial,seed_showcase_user_initial,income_stability,Income stability,1,1,0,0.0,0,0.0,0,0.0
+seed_showcase_user_initial,seed_showcase_user_initial,insurance_adequacy,Insurance,1,1,0,0.0,0,0.0,0,0.0
+seed_showcase_user_after_bonus,seed_showcase_user_after_bonus,buffer_months,Emergency buffer,1,1,0,0.0,0,0.0,0,0.0
+seed_showcase_user_after_bonus,seed_showcase_user_after_bonus,emi_to_income_ratio,EMI burden,1,1,0,0.0,0,0.0,0,0.0
+seed_showcase_user_after_bonus,seed_showcase_user_after_bonus,income_stability,Income stability,1,1,0,0.0,0,0.0,0,0.0
+seed_showcase_user_after_bonus,seed_showcase_user_after_bonus,insurance_adequacy,Insurance,1,1,1,1.0,0,0.0,1,1.0
+seed_feedback_demo_fl_growth,seed_feedback_demo_fl_growth,buffer_months,Emergency buffer,1,0,0,0.0,0,0.0,0,0.0
+seed_feedback_demo_fl_growth,seed_feedback_demo_fl_growth,emi_to_income_ratio,EMI burden,1,0,0,0.0,0,0.0,0,0.0
+seed_feedback_demo_fl_growth,seed_feedback_demo_fl_growth,income_stability,Income stability,1,0,0,0.0,0,0.0,0,0.0
+seed_feedback_demo_fl_growth,seed_feedback_demo_fl_growth,insurance_adequacy,Insurance,1,0,0,0.0,0,0.0,0,0.0
+seed_feedback_demo_fl_capped,seed_feedback_demo_fl_capped,buffer_months,Emergency buffer,1,1,1,1.0,0,0.0,1,1.0
+seed_feedback_demo_fl_capped,seed_feedback_demo_fl_capped,emi_to_income_ratio,EMI burden,1,1,0,0.0,0,0.0,0,0.0
+seed_feedback_demo_fl_capped,seed_feedback_demo_fl_capped,income_stability,Income stability,1,1,0,0.0,0,0.0,0,0.0
+seed_feedback_demo_fl_capped,seed_feedback_demo_fl_capped,insurance_adequacy,Insurance,1,1,0,0.0,0,0.0,0,0.0

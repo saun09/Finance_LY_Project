@@ -17,8 +17,8 @@ returns which constraint(s) are binding and the exact, numeric change that
 would lift each one, computed from the same real inputs.
 """
 
-from dataclasses import dataclass
-from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
+from dataclasses import dataclass, replace
+from decimal import ROUND_CEILING, Decimal
 from enum import Enum
 
 from app.services.risk_profile_config import (
@@ -171,6 +171,10 @@ class FinalTierResult:
     # Carried through from StatedTierResult.estimation_method, defaulted
     # the same way (see StatedTierResult).
     estimation_method: str = "deterministic"
+    joint_unlock_plan: tuple[UnlockCondition, ...] = ()
+    achievable_tier: int | None = None
+    blocking_constraints: tuple[str, ...] = ()
+    unlock_plan_version: str | None = None
 
 
 def _indian_grouping(n: int) -> str:
@@ -201,35 +205,80 @@ def _target_ceiling_for(stated_tier: int) -> int:
     return min(stated_tier, 5)
 
 
-def _unlock_buffer(target_ceiling: int, inputs: CapacityInputs, rule_table: CapacityRuleTable) -> UnlockCondition:
+def _rounded_rupees(paise: Decimal) -> int:
+    return int((paise / Decimal(100)).to_integral_value(rounding=ROUND_CEILING))
+
+
+def _assert_component_reaches(
+    inputs: CapacityInputs,
+    constraint: str,
+    target_ceiling: int,
+    rule_table: CapacityRuleTable,
+) -> None:
+    result = compute_capacity_ceiling(inputs, rule_table)
+    component = next(component for component in result.components if component.name == constraint)
+    assert component.ceiling >= target_ceiling, (
+        f"{constraint} unlock action did not reach tier {target_ceiling}: "
+        f"component ceiling is {component.ceiling}"
+    )
+
+
+def _unlock_buffer(
+    target_ceiling: int, inputs: CapacityInputs, rule_table: CapacityRuleTable
+) -> tuple[UnlockCondition, CapacityInputs]:
     target_band = next(b for b in rule_table.buffer_months_bands if b.ceiling == target_ceiling)
     required_months = Decimal(str(target_band.min_value))
-    required_cash_paise = int(
-        (required_months * Decimal(inputs.essential_monthly_expense_paise)).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-    )
+    required_cash_paise = _rounded_rupees(
+        required_months * Decimal(inputs.essential_monthly_expense_paise)
+    ) * 100
     shortfall_paise = max(0, required_cash_paise - inputs.cash_balance_paise)
+    increase_rupees = _rounded_rupees(Decimal(shortfall_paise))
+    updated = replace(
+        inputs,
+        cash_balance_paise=inputs.cash_balance_paise + increase_rupees * 100,
+        buffer_coverage_months=(
+            Decimal(inputs.cash_balance_paise + increase_rupees * 100)
+            / Decimal(inputs.essential_monthly_expense_paise)
+        ),
+    )
+    _assert_component_reaches(updated, "buffer_months", target_ceiling, rule_table)
     return UnlockCondition(
         constraint="buffer_months",
-        message=f"Reach {required_months} months of emergency buffer - you need {_rupees(shortfall_paise)} more in cash savings.",
+        message=f"Reach {required_months} months of emergency buffer - you need Rs {_indian_grouping(increase_rupees)} more in cash savings.",
         current_value=f"{inputs.buffer_coverage_months} months",
         target_value=f"{required_months} months",
-    )
+    ), updated
 
 
-def _unlock_emi(target_ceiling: int, inputs: CapacityInputs, rule_table: CapacityRuleTable) -> UnlockCondition:
+def _unlock_emi(
+    target_ceiling: int, inputs: CapacityInputs, rule_table: CapacityRuleTable
+) -> tuple[UnlockCondition, CapacityInputs]:
     target_band = next(b for b in rule_table.emi_to_income_bands if b.ceiling == target_ceiling)
     required_ratio = Decimal(str(target_band.max_value))
-    required_max_emi_paise = int((required_ratio * Decimal(inputs.monthly_income_paise)).to_integral_value(rounding=ROUND_FLOOR))
-    reduction_paise = max(0, inputs.total_monthly_emi_paise - required_max_emi_paise)
+    required_reduction_rupees = max(
+        0,
+        _rounded_rupees(
+            Decimal(inputs.total_monthly_emi_paise)
+            - required_ratio * Decimal(inputs.monthly_income_paise)
+        )
+        + 1,
+    )
+    updated_emi_paise = max(0, inputs.total_monthly_emi_paise - required_reduction_rupees * 100)
+    updated = replace(
+        inputs,
+        total_monthly_emi_paise=updated_emi_paise,
+        emi_to_income_ratio=Decimal(updated_emi_paise) / Decimal(inputs.monthly_income_paise),
+    )
+    _assert_component_reaches(updated, "emi_to_income_ratio", target_ceiling, rule_table)
     return UnlockCondition(
         constraint="emi_to_income_ratio",
         message=(
             f"Bring your EMI-to-income ratio below {required_ratio * 100:.0f}% - "
-            f"reduce your monthly EMI outflow by {_rupees(reduction_paise)}."
+            f"reduce your monthly EMI outflow by Rs {_indian_grouping(required_reduction_rupees)}."
         ),
         current_value=f"{inputs.emi_to_income_ratio * 100:.1f}%",
         target_value=f"below {required_ratio * 100:.0f}%",
-    )
+    ), updated
 
 
 def _unlock_stability() -> UnlockCondition:
@@ -245,21 +294,28 @@ def _unlock_stability() -> UnlockCondition:
     )
 
 
-def _unlock_insurance(target_ceiling: int, inputs: CapacityInputs, rule_table: CapacityRuleTable) -> UnlockCondition:
+def _unlock_insurance(
+    target_ceiling: int, inputs: CapacityInputs, rule_table: CapacityRuleTable
+) -> tuple[UnlockCondition, CapacityInputs]:
     target_band = next(b for b in rule_table.insurance_coverage_bands if b.ceiling == target_ceiling)
     required_ratio = Decimal(str(target_band.min_value))
     required_cover_base = Decimal(inputs.monthly_income_paise * 12 * rule_table.required_life_cover_income_multiple)
-    required_cover_paise = int((required_ratio * required_cover_base).to_integral_value(rounding=ROUND_CEILING))
+    required_cover_paise = _rounded_rupees(required_ratio * required_cover_base) * 100
     shortfall_paise = max(0, required_cover_paise - inputs.total_life_cover_paise)
+    increase_rupees = _rounded_rupees(Decimal(shortfall_paise))
+    updated = replace(
+        inputs,
+        total_life_cover_paise=inputs.total_life_cover_paise + increase_rupees * 100,
+    )
+    _assert_component_reaches(updated, "insurance_adequacy", target_ceiling, rule_table)
     return UnlockCondition(
         constraint="insurance_adequacy",
-        message=(
-            f"Increase life insurance cover by {_rupees(shortfall_paise)} to reach at least "
-            f"{_rupees(required_cover_paise)} total sum assured for your {inputs.dependents_count} dependent(s)."
-        ),
+        message=(f"Increase life insurance cover by Rs {_indian_grouping(increase_rupees)} to reach at least "
+                 f"Rs {_indian_grouping(required_cover_paise // 100)} total sum assured for your "
+                 f"{inputs.dependents_count} dependent(s)."),
         current_value=_rupees(inputs.total_life_cover_paise),
-        target_value=f"at least {_rupees(required_cover_paise)}",
-    )
+        target_value=f"at least Rs {_indian_grouping(required_cover_paise // 100)}",
+    ), updated
 
 
 _UNLOCK_BUILDERS = {
@@ -287,19 +343,64 @@ def compute_final_tier(
             binding_constraints=(),
             unlock_conditions=(),
             estimation_method=stated.estimation_method,
+            achievable_tier=final_tier,
+            unlock_plan_version="joint-v1",
         )
 
     binding = tuple(
         c.name for c in capacity.components if c.applicable and c.ceiling == capacity.ceiling
     )
     target_ceiling = _target_ceiling_for(stated.tier)
+    component_ceilings = {component.name: component for component in capacity.components}
+    blocking_constraints = tuple(
+        component.name
+        for component in capacity.components
+        if component.applicable
+        and component.name not in _UNLOCK_BUILDERS
+        and component.ceiling < target_ceiling
+    )
+    achievable_tier = min(
+        target_ceiling,
+        min(
+            (
+                component.ceiling
+                for component in capacity.components
+                if component.applicable and component.name not in _UNLOCK_BUILDERS
+            ),
+            default=target_ceiling,
+        ),
+    )
+
+    def build_action(
+        name: str, goal: int, base_inputs: CapacityInputs
+    ) -> tuple[UnlockCondition, CapacityInputs]:
+        if name == "income_stability":
+            raise ValueError("income stability is not a user-changeable unlock action")
+        return _UNLOCK_BUILDERS[name](goal, base_inputs, rule_table)
 
     unlock_conditions = []
     for name in binding:
         if name == "income_stability":
             unlock_conditions.append(_unlock_stability())
-        else:
-            unlock_conditions.append(_UNLOCK_BUILDERS[name](target_ceiling, inputs, rule_table))
+        elif component_ceilings[name].ceiling < achievable_tier:
+            unlock_conditions.append(build_action(name, achievable_tier, inputs)[0])
+
+    joint_unlock_plan = []
+    joint_inputs = inputs
+    for component in capacity.components:
+        if (
+            component.applicable
+            and component.name in _UNLOCK_BUILDERS
+            and component.ceiling < achievable_tier
+        ):
+            action, joint_inputs = build_action(component.name, achievable_tier, joint_inputs)
+            joint_unlock_plan.append(action)
+
+    joint_result = compute_capacity_ceiling(joint_inputs, rule_table)
+    assert joint_result.ceiling >= achievable_tier, (
+        f"joint unlock plan did not reach tier {achievable_tier}: "
+        f"capacity ceiling is {joint_result.ceiling}"
+    )
 
     return FinalTierResult(
         stated_tier=stated.tier,
@@ -309,4 +410,8 @@ def compute_final_tier(
         binding_constraints=binding,
         unlock_conditions=tuple(unlock_conditions),
         estimation_method=stated.estimation_method,
+        joint_unlock_plan=tuple(joint_unlock_plan),
+        achievable_tier=achievable_tier,
+        blocking_constraints=blocking_constraints,
+        unlock_plan_version="joint-v1",
     )

@@ -1,0 +1,5 @@
+dataset,promised_tier,conditions,exclusive_upper_threshold,at_exclusive_threshold,above_exclusive_threshold,at_threshold_share,at_threshold_ci95_low,at_threshold_ci95_high,failed_at_threshold,failed_at_threshold_share,failed_threshold_ci95_low,failed_threshold_ci95_high,at_or_above_exclusive_threshold,at_or_above_threshold_share,at_or_above_ci95_low,at_or_above_ci95_high,failed_at_or_above_threshold,failed_at_or_above_share,failed_at_or_above_ci95_low,failed_at_or_above_ci95_high,failed_total
+logged_database,3,3,0.4,3,0,1.0,1.0,1.0,3,1.0,1.0,1.0,3,1.0,1.0,1.0,3,1.0,1.0,1.0,3
+logged_database,5,1,0.2,1,0,1.0,1.0,1.0,1,1.0,1.0,1.0,1,1.0,1.0,1.0,1,1.0,1.0,1.0,1
+synthetic_cohort,4,140,0.3,0,74,0.0,0.0,0.0,0,nan,nan,nan,74,0.5285714285714286,0.45,0.6071428571428571,74,1.0,1.0,1.0,74
+synthetic_cohort,5,620,0.2,0,308,0.0,0.0,0.0,0,nan,nan,nan,308,0.4967741935483871,0.45806451612903226,0.5370967741935484,308,1.0,1.0,1.0,308

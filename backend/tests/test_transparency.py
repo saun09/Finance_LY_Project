@@ -1,7 +1,7 @@
 import pytest
 
 from app.models.onboarding import EmploymentType, IncomeStability
-from app.models.suggestion_event import ActionTaken
+from app.models.suggestion_event import ActionTaken, SuggestionEvent
 from app.services.allocation_config import CONFIG_VERSION as ALLOCATION_CONFIG_VERSION
 from app.services.allocation_service import compute_and_log_allocation
 from app.services.asset_classification_config import HoldingType
@@ -82,17 +82,55 @@ def test_risk_profile_trace_reconstructs_purely_from_stored_data(session):
     trace = get_trace(session, USER, "risk_profile")
 
     assert trace.gap_detected is False
+    assert trace.legacy_event is False
+    assert trace.schema_version == "risk-profile-event-v1"
     assert trace.framing_label == FRAMING_LABEL
     assert trace.reasoning["questionnaire"]["answers"] == AGGRESSIVE_ANSWERS
     assert trace.reasoning["capacity_layer"]["objective_inputs"]["income_stability"] == "regular"
     assert "tier" in trace.headline.lower()
 
 
+def test_risk_profile_trace_surfaces_binding_rule_evidence(session):
+    upsert_profile(
+        session,
+        user_id=USER,
+        income_paise=100_000_00,
+        income_stability=IncomeStability.REGULAR,
+        employment_type=EmploymentType.SALARIED,
+        dependents_count=0,
+        cash_balance_paise=20_000_00,
+    )
+    add_expense_item(session, user_id=USER, category="Rent", amount_paise=20_000_00, frequency=ExpenseFrequency.MONTHLY, is_essential=True)
+    add_emi(session, user_id=USER, lender="Personal Loan Co", amount_paise=45_000_00, remaining_tenure_months=24, annual_rate_bps=1500)
+    compute_and_log_risk_tier(session, USER, AGGRESSIVE_ANSWERS)
+
+    trace = get_trace(session, USER, "risk_profile")
+
+    assert trace.evidence_ids
+    evidence_facts = [
+        item
+        for section in trace.sections
+        for item in section.facts
+        if item.label.startswith("Rule ev-")
+    ]
+    assert len(evidence_facts) == len(trace.evidence_ids)
+    assert all("basis:" in item.value and "source: TO_FILL" in item.value for item in evidence_facts)
+
+
 def test_risk_profile_ml_trace_full_mode_is_a_secondary_opinion(session):
     _full_onboarding(session)
     trace = get_trace(session, USER, "risk_profile_ml")
+    event = session.query(SuggestionEvent).filter_by(
+        user_id=USER,
+        module_source="risk_profile_ml",
+    ).one()
 
     assert trace.gap_detected is False
+    assert event.suggested_value["schema_version"] == "risk-profile-ml-event-v1"
+    assert event.suggested_value["quick_path"] is False
+    assert set(event.suggested_value["answered_items"]) == set(AGGRESSIVE_ANSWERS)
+    assert event.suggested_value["capacity_inputs"]
+    assert event.suggested_value["rule_table_version"]
     assert trace.framing_label == "model explanation"
     assert "shown alongside" in trace.claim_note
     assert "never instead of" in trace.claim_note

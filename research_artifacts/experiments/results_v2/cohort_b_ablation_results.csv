@@ -1,0 +1,113 @@
+dataset,scenario_id,ablation,comparator,ablated_violation_rate,comparator_violation_rate,paired_rate_difference,n_profiles,ablated_ci95_low,ablated_ci95_high,difference_ci95_low,difference_ci95_high
+scenario cohort,S1_liquidity_3m,no_buffer_component,gated_min,0.017,0.0164,0.0006,5000,0.0136,0.0204,0.0,0.0014
+scenario cohort,S1_liquidity_3m,no_buffer_component,willingness_only,0.017,0.0588,-0.0418,5000,0.0136,0.0204,-0.0474,-0.0364
+scenario cohort,S1_liquidity_3m,no_income_stability,gated_min,0.0164,0.0164,0.0,5000,0.013,0.0198,0.0,0.0
+scenario cohort,S1_liquidity_3m,no_income_stability,willingness_only,0.0164,0.0588,-0.0424,5000,0.013,0.0198,-0.048,-0.037
+scenario cohort,S1_liquidity_6m,no_buffer_component,gated_min,0.118,0.1172,0.0008,5000,0.109,0.1276,0.0002,0.0016
+scenario cohort,S1_liquidity_6m,no_buffer_component,willingness_only,0.118,0.1718,-0.0538,5000,0.109,0.1276,-0.0606,-0.0476
+scenario cohort,S1_liquidity_6m,no_income_stability,gated_min,0.1172,0.1172,0.0,5000,0.108,0.1266,0.0,0.0
+scenario cohort,S1_liquidity_6m,no_income_stability,willingness_only,0.1172,0.1718,-0.0546,5000,0.108,0.1266,-0.06120499999999999,-0.0484
+scenario cohort,S2_total_liquid_3m_20pct,no_buffer_component,gated_min,0.012,0.012,0.0,5000,0.009,0.015,0.0,0.0
+scenario cohort,S2_total_liquid_3m_20pct,no_buffer_component,willingness_only,0.012,0.014,-0.002,5000,0.009,0.015,-0.0032,-0.0008
+scenario cohort,S2_total_liquid_3m_30pct,no_buffer_component,gated_min,0.0124,0.0124,0.0,5000,0.0096,0.0156,0.0,0.0
+scenario cohort,S2_total_liquid_3m_30pct,no_buffer_component,willingness_only,0.0124,0.016,-0.0036,5000,0.0096,0.0156,-0.0054,-0.0022
+scenario cohort,S2_total_liquid_3m_40pct,no_buffer_component,gated_min,0.013,0.0126,0.0004,5000,0.01,0.0164,0.0,0.001
+scenario cohort,S2_total_liquid_3m_40pct,no_buffer_component,willingness_only,0.013,0.0194,-0.0064,5000,0.01,0.0164,-0.0086,-0.0044
+scenario cohort,S2_total_liquid_6m_20pct,no_buffer_component,gated_min,0.0784,0.0784,0.0,5000,0.0714,0.0856,0.0,0.0
+scenario cohort,S2_total_liquid_6m_20pct,no_buffer_component,willingness_only,0.0784,0.086,-0.0076,5000,0.0714,0.0856,-0.0102,-0.0054
+scenario cohort,S2_total_liquid_6m_30pct,no_buffer_component,gated_min,0.0812,0.0808,0.0004,5000,0.0736,0.089,0.0,0.001
+scenario cohort,S2_total_liquid_6m_30pct,no_buffer_component,willingness_only,0.0812,0.0932,-0.012,5000,0.0736,0.089,-0.015,-0.0092
+scenario cohort,S2_total_liquid_6m_40pct,no_buffer_component,gated_min,0.0876,0.0862,0.0014,5000,0.0802,0.0958,0.0004,0.0026
+scenario cohort,S2_total_liquid_6m_40pct,no_buffer_component,willingness_only,0.0876,0.1038,-0.0162,5000,0.0802,0.0958,-0.0198,-0.012795000000000029
+scenario cohort,S3_earner_death_20pct,no_insurance_component,gated_min,0.17784711388455537,0.17606418542455984,0.0017829284599955428,4487,0.16714954312458213,0.18921328281702696,0.0006685981724983285,0.0031201248049922
+scenario cohort,S3_earner_death_20pct,no_insurance_component,willingness_only,0.17784711388455537,0.1794071762870515,-0.0015600624024961,4487,0.16714954312458213,0.18921328281702696,-0.002674392689993314,-0.0004457321149988857
+scenario cohort,S3_earner_death_30pct,no_insurance_component,gated_min,0.17985290840205037,0.17717851571205706,0.002674392689993314,4487,0.16914976599063963,0.19121907733452195,0.001337196344996657,0.0042344550924894135
+scenario cohort,S3_earner_death_30pct,no_insurance_component,willingness_only,0.17985290840205037,0.18185870291954534,-0.0020057945174949856,4487,0.16914976599063963,0.19121907733452195,-0.0033429908624916425,-0.0008914642299977714
+scenario cohort,S3_earner_death_40pct,no_insurance_component,gated_min,0.18074437263204815,0.1774013817695565,0.0033429908624916425,4487,0.17004680187207488,0.19166480944952083,0.0017829284599955428,0.005125919322487185
+scenario cohort,S3_earner_death_40pct,no_insurance_component,willingness_only,0.18074437263204815,0.18275016714954312,-0.0020057945174949856,4487,0.17004680187207488,0.19166480944952083,-0.0033429908624916425,-0.0008914642299977714
+scenario cohort,S4_debt_service_shock,no_emi_component,gated_min,0.0066,0.0066,0.0,5000,0.0046,0.009,0.0,0.0
+scenario cohort,S4_debt_service_shock,no_emi_component,willingness_only,0.0066,0.0312,-0.0246,5000,0.0046,0.009,-0.0288,-0.0204
+low_fragility,S1_liquidity_3m,no_buffer_component,gated_min,0.0123,0.0106,0.0017,10000,0.0102,0.0145,0.001,0.0026
+low_fragility,S1_liquidity_3m,no_buffer_component,willingness_only,0.0123,0.0226,-0.0103,10000,0.0102,0.0145,-0.012302499999999996,-0.0084
+low_fragility,S1_liquidity_3m,no_income_stability,gated_min,0.0106,0.0106,0.0,10000,0.0086,0.0127,0.0,0.0
+low_fragility,S1_liquidity_3m,no_income_stability,willingness_only,0.0106,0.0226,-0.012,10000,0.0086,0.0127,-0.0142,-0.01
+low_fragility,S1_liquidity_6m,no_buffer_component,gated_min,0.113,0.1066,0.0064,10000,0.107,0.11930249999999999,0.0049,0.0081
+low_fragility,S1_liquidity_6m,no_buffer_component,willingness_only,0.113,0.1559,-0.0429,10000,0.107,0.11930249999999999,-0.0467,-0.0391
+low_fragility,S1_liquidity_6m,no_income_stability,gated_min,0.1068,0.1066,0.0002,10000,0.1008975,0.1129,0.0,0.0005
+low_fragility,S1_liquidity_6m,no_income_stability,willingness_only,0.1068,0.1559,-0.0491,10000,0.1008975,0.1129,-0.0534,-0.0452
+low_fragility,S2_total_liquid_3m_20pct,no_buffer_component,gated_min,0.0074,0.0074,0.0,10000,0.0057,0.0091,0.0,0.0
+low_fragility,S2_total_liquid_3m_20pct,no_buffer_component,willingness_only,0.0074,0.008,-0.0006,10000,0.0057,0.0091,-0.0011,-0.0002
+low_fragility,S2_total_liquid_3m_30pct,no_buffer_component,gated_min,0.0079,0.0078,0.0001,10000,0.0062975000000000045,0.0096,0.0,0.0003
+low_fragility,S2_total_liquid_3m_30pct,no_buffer_component,willingness_only,0.0079,0.0087,-0.0008,10000,0.0062975000000000045,0.0096,-0.0014,-0.0003
+low_fragility,S2_total_liquid_3m_40pct,no_buffer_component,gated_min,0.0083,0.008,0.0003,10000,0.0065,0.0102,0.0,0.0007
+low_fragility,S2_total_liquid_3m_40pct,no_buffer_component,willingness_only,0.0083,0.0098,-0.0015,10000,0.0065,0.0102,-0.0023,-0.0008
+low_fragility,S2_total_liquid_6m_20pct,no_buffer_component,gated_min,0.0766,0.0763,0.0003,10000,0.0713,0.0821,0.0,0.0007
+low_fragility,S2_total_liquid_6m_20pct,no_buffer_component,willingness_only,0.0766,0.0811,-0.0045,10000,0.0713,0.0821,-0.0059,-0.0032
+low_fragility,S2_total_liquid_6m_30pct,no_buffer_component,gated_min,0.0808,0.0794,0.0014,10000,0.0755,0.08630249999999999,0.0007,0.0022
+low_fragility,S2_total_liquid_6m_30pct,no_buffer_component,willingness_only,0.0808,0.087,-0.0062,10000,0.0755,0.08630249999999999,-0.0079,-0.0048
+low_fragility,S2_total_liquid_6m_40pct,no_buffer_component,gated_min,0.0849,0.0836,0.0013,10000,0.0793,0.0905,0.0006,0.002
+low_fragility,S2_total_liquid_6m_40pct,no_buffer_component,willingness_only,0.0849,0.0944,-0.0095,10000,0.0793,0.0905,-0.0114,-0.0077
+low_fragility,S3_earner_death_20pct,no_insurance_component,gated_min,0.01782978130658866,0.01741189580721549,0.0004178854993731718,7179,0.014765287644518735,0.021033570135116312,0.0,0.0009750661652040675
+low_fragility,S3_earner_death_20pct,no_insurance_component,willingness_only,0.01782978130658866,0.018247666805961835,-0.0004178854993731718,7179,0.014765287644518735,0.021033570135116312,-0.0009750661652040675,0.0
+low_fragility,S3_earner_death_30pct,no_insurance_component,gated_min,0.017969076473046384,0.017690486140130936,0.0002785903329154478,7179,0.015043877977434183,0.021033570135116312,0.0,0.0006964758322886195
+low_fragility,S3_earner_death_30pct,no_insurance_component,willingness_only,0.017969076473046384,0.019083437804708177,-0.0011143613316617913,7179,0.015043877977434183,0.021033570135116312,-0.001950132330408135,-0.0004178854993731718
+low_fragility,S3_earner_death_40pct,no_insurance_component,gated_min,0.018526257138877282,0.01782978130658866,0.0006964758322886195,7179,0.01560105864326508,0.02159423318010863,0.0001392951664577239,0.001392951664577239
+low_fragility,S3_earner_death_40pct,no_insurance_component,willingness_only,0.018526257138877282,0.01964061847053907,-0.0011143613316617913,7179,0.01560105864326508,0.02159423318010863,-0.001950132330408135,-0.0004178854993731718
+low_fragility,S4_debt_service_shock,no_emi_component,gated_min,0.0016,0.0016,0.0,10000,0.0009,0.0024,0.0,0.0
+low_fragility,S4_debt_service_shock,no_emi_component,willingness_only,0.0016,0.0021,-0.0005,10000,0.0009,0.0024,-0.001,-0.0001
+baseline,S1_liquidity_3m,no_buffer_component,gated_min,0.0254,0.0236,0.0018,10000,0.0225,0.0287,0.001,0.0027
+baseline,S1_liquidity_3m,no_buffer_component,willingness_only,0.0254,0.0431,-0.0177,10000,0.0225,0.0287,-0.0203,-0.015297500000000012
+baseline,S1_liquidity_3m,no_income_stability,gated_min,0.0236,0.0236,0.0,10000,0.0209,0.0266,0.0,0.0
+baseline,S1_liquidity_3m,no_income_stability,willingness_only,0.0236,0.0431,-0.0195,10000,0.0209,0.0266,-0.0222,-0.0169
+baseline,S1_liquidity_6m,no_buffer_component,gated_min,0.1595,0.1497,0.0098,10000,0.1525,0.1668,0.0079,0.0118
+baseline,S1_liquidity_6m,no_buffer_component,willingness_only,0.1595,0.22,-0.0605,10000,0.1525,0.1668,-0.0652,-0.056
+baseline,S1_liquidity_6m,no_income_stability,gated_min,0.1502,0.1497,0.0005,10000,0.1434975,0.1570025,0.0001,0.001
+baseline,S1_liquidity_6m,no_income_stability,willingness_only,0.1502,0.22,-0.0698,10000,0.1434975,0.1570025,-0.0747,-0.0651
+baseline,S2_total_liquid_3m_20pct,no_buffer_component,gated_min,0.0155,0.015,0.0005,10000,0.013,0.017902499999999984,0.0001,0.001
+baseline,S2_total_liquid_3m_20pct,no_buffer_component,willingness_only,0.0155,0.0166,-0.0011,10000,0.013,0.017902499999999984,-0.0018,-0.0005
+baseline,S2_total_liquid_3m_30pct,no_buffer_component,gated_min,0.0166,0.0161,0.0005,10000,0.014,0.019002499999999985,0.0001,0.001
+baseline,S2_total_liquid_3m_30pct,no_buffer_component,willingness_only,0.0166,0.0187,-0.0021,10000,0.014,0.019002499999999985,-0.0031,-0.0013
+baseline,S2_total_liquid_3m_40pct,no_buffer_component,gated_min,0.0175,0.0167,0.0008,10000,0.0149,0.0202,0.0003,0.0014
+baseline,S2_total_liquid_3m_40pct,no_buffer_component,willingness_only,0.0175,0.0218,-0.0043,10000,0.0149,0.0202,-0.0056,-0.0031
+baseline,S2_total_liquid_6m_20pct,no_buffer_component,gated_min,0.1165,0.1158,0.0007,10000,0.1102,0.1228,0.0002,0.0012
+baseline,S2_total_liquid_6m_20pct,no_buffer_component,willingness_only,0.1165,0.1218,-0.0053,10000,0.1102,0.1228,-0.0068,-0.004
+baseline,S2_total_liquid_6m_30pct,no_buffer_component,gated_min,0.12,0.1184,0.0016,10000,0.1139,0.1265,0.0009,0.0024024999999999862
+baseline,S2_total_liquid_6m_30pct,no_buffer_component,willingness_only,0.12,0.1294,-0.0094,10000,0.1139,0.1265,-0.0113,-0.0075
+baseline,S2_total_liquid_6m_40pct,no_buffer_component,gated_min,0.1234,0.1209,0.0025,10000,0.117,0.13,0.0016,0.0035
+baseline,S2_total_liquid_6m_40pct,no_buffer_component,willingness_only,0.1234,0.1381,-0.0147,10000,0.117,0.13,-0.0171,-0.0123
+baseline,S3_earner_death_20pct,no_insurance_component,gated_min,0.018665552305335006,0.01838696197241956,0.0002785903329154478,7179,0.01560105864326508,0.021869341133862654,0.0,0.0006964758322886195
+baseline,S3_earner_death_20pct,no_insurance_component,willingness_only,0.018665552305335006,0.01964061847053907,-0.0009750661652040675,7179,0.01560105864326508,0.021869341133862654,-0.001810837163950411,-0.0004178854993731718
+baseline,S3_earner_death_30pct,no_insurance_component,gated_min,0.0192227329711659,0.01880484747179273,0.0004178854993731718,7179,0.016158239309095976,0.022426521799693552,0.0,0.0009750661652040675
+baseline,S3_earner_death_30pct,no_insurance_component,willingness_only,0.0192227329711659,0.020058503969912243,-0.0008357709987463436,7179,0.016158239309095976,0.022426521799693552,-0.001532246831034963,-0.0002785903329154478
+baseline,S3_earner_death_40pct,no_insurance_component,gated_min,0.019362028137623624,0.019083437804708177,0.0002785903329154478,7179,0.0162975344755537,0.0225692993453127,0.0,0.0006964758322886195
+baseline,S3_earner_death_40pct,no_insurance_component,willingness_only,0.019362028137623624,0.020337094302827693,-0.0009750661652040675,7179,0.0162975344755537,0.0225692993453127,-0.001810837163950411,-0.0002785903329154478
+baseline,S4_debt_service_shock,no_emi_component,gated_min,0.0041,0.0036,0.0005,10000,0.0029,0.0054,0.0001,0.001
+baseline,S4_debt_service_shock,no_emi_component,willingness_only,0.0041,0.0084,-0.0043,10000,0.0029,0.0054,-0.0056,-0.0031
+high_fragility,S1_liquidity_3m,no_buffer_component,gated_min,0.0446,0.0408,0.0038,10000,0.04079750000000001,0.0487,0.0027,0.0051
+high_fragility,S1_liquidity_3m,no_buffer_component,willingness_only,0.0446,0.078,-0.0334,10000,0.04079750000000001,0.0487,-0.0369,-0.029997500000000014
+high_fragility,S1_liquidity_3m,no_income_stability,gated_min,0.0408,0.0408,0.0,10000,0.0372,0.0446,0.0,0.0
+high_fragility,S1_liquidity_3m,no_income_stability,willingness_only,0.0408,0.078,-0.0372,10000,0.0372,0.0446,-0.041,-0.03359750000000001
+high_fragility,S1_liquidity_6m,no_buffer_component,gated_min,0.212,0.2014,0.0106,10000,0.204,0.2198,0.0087,0.0127
+high_fragility,S1_liquidity_6m,no_buffer_component,willingness_only,0.212,0.2834,-0.0714,10000,0.204,0.2198,-0.0763,-0.06639750000000001
+high_fragility,S1_liquidity_6m,no_income_stability,gated_min,0.2018,0.2014,0.0004,10000,0.194,0.20980249999999998,0.0001,0.0008
+high_fragility,S1_liquidity_6m,no_income_stability,willingness_only,0.2018,0.2834,-0.0816,10000,0.194,0.20980249999999998,-0.0869,-0.0762
+high_fragility,S2_total_liquid_3m_20pct,no_buffer_component,gated_min,0.0294,0.0292,0.0002,10000,0.026197500000000006,0.03270249999999999,0.0,0.0005
+high_fragility,S2_total_liquid_3m_20pct,no_buffer_component,willingness_only,0.0294,0.0316,-0.0022,10000,0.026197500000000006,0.03270249999999999,-0.0031,-0.0013
+high_fragility,S2_total_liquid_3m_30pct,no_buffer_component,gated_min,0.0308,0.0302,0.0006,10000,0.027497500000000005,0.0342,0.0002,0.0011
+high_fragility,S2_total_liquid_3m_30pct,no_buffer_component,willingness_only,0.0308,0.0354,-0.0046,10000,0.027497500000000005,0.0342,-0.006,-0.0033
+high_fragility,S2_total_liquid_3m_40pct,no_buffer_component,gated_min,0.0322,0.0314,0.0008,10000,0.0288,0.03580249999999999,0.0003,0.0014
+high_fragility,S2_total_liquid_3m_40pct,no_buffer_component,willingness_only,0.0322,0.0379,-0.0057,10000,0.0288,0.03580249999999999,-0.007202499999999995,-0.0042
+high_fragility,S2_total_liquid_6m_20pct,no_buffer_component,gated_min,0.1565,0.155,0.0015,10000,0.1494,0.1636,0.0008,0.0023
+high_fragility,S2_total_liquid_6m_20pct,no_buffer_component,willingness_only,0.1565,0.1655,-0.009,10000,0.1494,0.1636,-0.0109,-0.007197500000000014
+high_fragility,S2_total_liquid_6m_30pct,no_buffer_component,gated_min,0.1617,0.1598,0.0019,10000,0.1549,0.1689,0.0011,0.0028
+high_fragility,S2_total_liquid_6m_30pct,no_buffer_component,willingness_only,0.1617,0.1754,-0.0137,10000,0.1549,0.1689,-0.0159,-0.0115
+high_fragility,S2_total_liquid_6m_40pct,no_buffer_component,gated_min,0.1677,0.1643,0.0034,10000,0.1604,0.1752,0.0024,0.0046
+high_fragility,S2_total_liquid_6m_40pct,no_buffer_component,willingness_only,0.1677,0.1868,-0.0191,10000,0.1604,0.1752,-0.0217,-0.0164
+high_fragility,S3_earner_death_20pct,no_insurance_component,gated_min,0.019779913636996795,0.01964061847053907,0.0001392951664577239,7179,0.016576124808469147,0.02312299763198217,0.0,0.0004178854993731718
+high_fragility,S3_earner_death_20pct,no_insurance_component,willingness_only,0.019779913636996795,0.020197799136369966,-0.0004178854993731718,7179,0.016576124808469147,0.02312299763198217,-0.0009750661652040675,0.0
+high_fragility,S3_earner_death_30pct,no_insurance_component,gated_min,0.01991920880345452,0.019779913636996795,0.0001392951664577239,7179,0.01671541997492687,0.02312299763198217,0.0,0.0004178854993731718
+high_fragility,S3_earner_death_30pct,no_insurance_component,willingness_only,0.01991920880345452,0.020754979802200865,-0.0008357709987463436,7179,0.01671541997492687,0.02312299763198217,-0.001532246831034963,-0.0002785903329154478
+high_fragility,S3_earner_death_40pct,no_insurance_component,gated_min,0.020197799136369966,0.020058503969912243,0.0001392951664577239,7179,0.016994010307842318,0.023540883131355342,0.0,0.0004178854993731718
+high_fragility,S3_earner_death_40pct,no_insurance_component,willingness_only,0.020197799136369966,0.02173004596740493,-0.001532246831034963,7179,0.016994010307842318,0.023540883131355342,-0.0025073129962390303,-0.0006964758322886195
+high_fragility,S4_debt_service_shock,no_emi_component,gated_min,0.013,0.0117,0.0013,10000,0.0108,0.0153,0.0007,0.002
+high_fragility,S4_debt_service_shock,no_emi_component,willingness_only,0.013,0.0247,-0.0117,10000,0.0108,0.0153,-0.013802499999999995,-0.0096

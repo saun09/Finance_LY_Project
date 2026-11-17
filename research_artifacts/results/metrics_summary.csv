@@ -1,0 +1,7 @@
+model,production,feature_set,train_accuracy,accuracy,balanced_accuracy,macro_f1,weighted_f1,qwk,within_one_tier,macro_auc,micro_auc,shap_method,shap_exact,shap_ms_per_prediction
+Random Forest ★ production,True,full_7items,0.9712,0.7931,0.825,0.8371,0.7932,0.9088,1.0,0.9765,0.9801,TreeExplainer,True,1.09
+Gradient Boosting,False,full_7items,1.0,0.8506,0.8421,0.8328,0.8507,0.9365,1.0,0.9759,0.9752,KernelExplainer,False,33.72
+MLP Neural Net,False,full_7items,1.0,0.9425,0.9564,0.936,0.9429,0.9763,1.0,0.9948,0.9946,KernelExplainer,False,12.52
+Random Forest ★ production,True,reduced_4items,0.8444,0.7816,0.7613,0.7814,0.7826,0.9027,1.0,0.938,0.9415,TreeExplainer,True,2.81
+Gradient Boosting,False,reduced_4items,0.8444,0.7471,0.7649,0.7786,0.7488,0.8869,1.0,0.949,0.9513,KernelExplainer,False,15.57
+MLP Neural Net,False,reduced_4items,0.83,0.7586,0.7743,0.7481,0.7512,0.8958,1.0,0.9445,0.9457,KernelExplainer,False,7.07

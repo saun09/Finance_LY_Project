@@ -123,7 +123,7 @@ const BADGE_ICON: Record<string, IconName> = {
 
 const MILESTONE_CATEGORY_ICON: Record<string, IconName> = {
   buffer: "shield-checkmark-outline",
-  capacity_unlock: "lock-open-outline",
+  capacity_unlock: "trending-up-outline",
   debt: "trending-down-outline",
   subscriptions: "cut-outline",
   consistency: "flame-outline",
@@ -527,18 +527,16 @@ function DeckTabs({
 /* Tab 1: Learning deck                                                       */
 /* -------------------------------------------------------------------------- */
 
-type CardState = "complete" | "current" | "available" | "locked";
+type CardState = "complete" | "current" | "available";
 
 function TopicCard({
   entry,
   state,
-  requiredLevel,
   iconName,
   onPress,
 }: {
   entry: TopicEntry;
   state: CardState;
-  requiredLevel: number;
   iconName: IconName;
   onPress: () => void;
 }) {
@@ -564,45 +562,27 @@ function TopicCard({
       glow: undefined,
       icon: GAME.textMuted,
     },
-    locked: {
-      bg: "rgba(255,255,255,0.03)",
-      border: GAME.line,
-      glow: undefined,
-      icon: GAME.textMuted,
-    },
   }[state];
-  const locked = state === "locked";
 
   return (
     <CollectibleFrame
-      slotStyle={[styles.topicSlot, locked && styles.lockedSlot]}
+      slotStyle={styles.topicSlot}
       background={look.bg}
       borderColor={look.border}
-      borderStyle={locked ? "dashed" : "solid"}
       glowColor={look.glow}
       unlockTick={unlockTick}
       pulse={state === "current"}
-      disabled={locked}
-      label={
-        locked
-          ? `${topic.title}, locked. Finish level ${requiredLevel} first.`
-          : topic.title
-      }
+      label={topic.title}
       onPress={onPress}
     >
       <View style={styles.cardBody}>
         <View style={[styles.cardIcon, { borderColor: look.border }]}>
-          <Ionicons
-            name={locked ? "lock-closed" : iconName}
-            size={22}
-            color={look.icon}
-          />
+          <Ionicons name={iconName} size={22} color={look.icon} />
         </View>
         <GText
           variant="caption"
           style={styles.cardTitle}
           numberOfLines={3}
-          color={locked ? GAME.textMuted : GAME.text}
         >
           {topic.title}
         </GText>
@@ -624,11 +604,6 @@ function TopicCard({
             borderTopWidth: 1,
             borderTopColor: GAME.line,
           },
-          locked && {
-            backgroundColor: "transparent",
-            borderTopWidth: 1,
-            borderTopColor: GAME.line,
-          },
         ]}
       >
         <GText
@@ -641,7 +616,7 @@ function TopicCard({
           numberOfLines={1}
           style={styles.levelPillText}
         >
-          {locked ? `Finish Level ${requiredLevel}` : `LEVEL ${level.level}`}
+          {`LEVEL ${level.level}`}
         </GText>
       </View>
     </CollectibleFrame>
@@ -665,7 +640,6 @@ function LearningDeck({
   const [page, setPage] = useState(() =>
     Math.max(0, Math.floor(nextIdx / PAGE_SIZE)),
   );
-  const currentLevel = nextUp?.level.level ?? 0;
 
   const pageItems = flat.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const placeholders = Math.max(0, PAGE_SIZE - pageItems.length);
@@ -706,15 +680,12 @@ function LearningDeck({
             ? "complete"
             : isCurrent
               ? "current"
-              : entry.level.level > currentLevel
-                ? "locked"
-                : "available";
+              : "available";
           return (
             <TopicCard
               key={entry.topic.topic_id}
               entry={entry}
               state={state}
-              requiredLevel={currentLevel}
               iconName={topicIcon(entry.topic.title, page * PAGE_SIZE + i)}
               onPress={() => onOpenTopic(entry.topic.topic_id)}
             />
@@ -918,17 +889,16 @@ function BadgeTile({
   return (
     <CollectibleFrame
       slotStyle={styles.badgeSlot}
-      background={badge.earned ? "#22201D" : "rgba(255,255,255,0.03)"}
+      background={badge.earned ? "#22201D" : GAME.panelRaised}
       borderColor={
         badge.earned ? GAME.gold : selected ? GAME.terracotta : GAME.line
       }
-      borderStyle={badge.earned ? "solid" : "dashed"}
       unlockTick={unlockTick}
       selected={selected}
-      label={`${badge.title}, ${badge.earned ? "earned" : "locked"}`}
+      label={`${badge.title}, ${badge.earned ? "earned" : "not yet earned"}`}
       onPress={onPress}
     >
-      <View style={[styles.cardBody, !badge.earned && { opacity: 0.5 }]}>
+      <View style={styles.cardBody}>
         <View
           style={[
             styles.cardIcon,
@@ -936,11 +906,7 @@ function BadgeTile({
           ]}
         >
           <Ionicons
-            name={
-              badge.earned
-                ? (BADGE_ICON[badge.badge_id] ?? "ribbon-outline")
-                : "lock-closed"
-            }
+            name={BADGE_ICON[badge.badge_id] ?? "ribbon-outline"}
             size={22}
             color={badge.earned ? GAME.gold : GAME.textMuted}
           />
@@ -1080,7 +1046,7 @@ function TrophyTab({
         <Card>
           <EmptyState
             title="No milestones yet"
-            message="These are awarded automatically as you build your buffer, unlock more capacity, clear debt, or cut a recurring cost — nothing to do here directly."
+            message="These are awarded automatically as you build your buffer, increase capacity, clear debt, or cut a recurring cost — nothing to do here directly."
           />
         </Card>
       ) : (
@@ -1670,8 +1636,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: RADIUS.md - 2,
   },
   levelPillText: { fontSize: 10, textAlign: "center" },
-  lockedSlot: { opacity: 0.6 },
-
   upNext: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,0 +1,11 @@
+dataset,logic,check,binding_group,goal,conditions,valid,failed,valid_share
+logged_database,OLD,single_action,uniquely_binding_conditions,stated_tier,6,1,5,0.16666666666666666
+logged_database,OLD,joint_actions,all,stated_tier,6,1,5,0.16666666666666666
+logged_database,NEW,single_action,uniquely_binding_conditions,achievable_tier,6,5,1,0.8333333333333334
+logged_database,NEW,joint_plan,all,achievable_tier,6,6,0,1.0
+synthetic_cohort,OLD,single_action,tied_conditions,stated_tier,1613,0,1613,0.0
+synthetic_cohort,OLD,single_action,uniquely_binding_conditions,stated_tier,842,383,459,0.45486935866983375
+synthetic_cohort,OLD,joint_actions,all,stated_tier,1500,383,1117,0.25533333333333336
+synthetic_cohort,NEW,single_action,tied_conditions,achievable_tier,1613,0,1613,0.0
+synthetic_cohort,NEW,single_action,uniquely_binding_conditions,achievable_tier,842,790,52,0.9382422802850356
+synthetic_cohort,NEW,joint_plan,all,achievable_tier,1500,1500,0,1.0

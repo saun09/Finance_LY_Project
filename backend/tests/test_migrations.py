@@ -33,6 +33,8 @@ def test_alembic_upgrade_head_creates_expected_schema(tmp_path):
         "expense_item",
         "expense_source_decision",
         "auth_user",
+        "nudge_conversation",
+        "nudge_message",
     } <= tables
 
     event_columns = {c["name"] for c in inspector.get_columns("suggestion_event")}

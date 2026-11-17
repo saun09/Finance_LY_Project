@@ -1,0 +1,7 @@
+dataset,constraint,conditions,valid,failed,valid_share,ci95_low,ci95_high
+logged_database,buffer_months,1,0,1,0.0,0.0,0.0
+logged_database,emi_to_income_ratio,4,0,4,0.0,0.0,0.0
+logged_database,insurance_adequacy,1,1,0,1.0,1.0,1.0
+synthetic_cohort,buffer_months,739,0,739,0.0,0.0,0.0
+synthetic_cohort,emi_to_income_ratio,760,0,760,0.0,0.0,0.0
+synthetic_cohort,insurance_adequacy,956,383,573,0.4006276150627615,0.3682008368200837,0.4320083682008368

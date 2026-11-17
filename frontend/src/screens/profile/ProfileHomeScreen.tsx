@@ -413,6 +413,14 @@ export function ProfileHomeScreen() {
             iconTone: 'terracotta',
           },
           {
+            key: 'calls',
+            title: 'Your calls',
+            subtitle: 'Transcripts of your calls with Nudge',
+            onPress: () => navigation.navigate('YourCalls'),
+            icon: 'call-outline',
+            iconTone: 'terracotta',
+          },
+          {
             key: 'settings',
             title: 'Settings',
             subtitle: 'Account & app preferences',

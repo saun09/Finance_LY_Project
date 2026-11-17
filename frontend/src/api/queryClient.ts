@@ -48,6 +48,8 @@ export const qk = {
   verificationEngines: (userId: string) => ['verification-engines', userId] as const,
   gamificationHistory: (userId: string) => ['gamification-history', userId] as const,
   gamificationEducation: (userId: string) => ['gamification-education', userId] as const,
+  nudgeCalls: (userId: string) => ['nudge-calls', userId] as const,
+  nudgeCall: (userId: string, conversationId: string) => ['nudge-call', userId, conversationId] as const,
 };
 
 /** Every profile-management mutation (add/close an EMI, add a holding,
