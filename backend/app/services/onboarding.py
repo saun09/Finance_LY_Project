@@ -251,6 +251,30 @@ def add_holding(
     return holding
 
 
+class HoldingNotFoundError(ValueError):
+    pass
+
+
+def set_holding_type(
+    session: Session, *, user_id: str, holding_id: str, holding_type: HoldingType, commit: bool = True
+) -> Holding:
+    """Classify (or reclassify) an existing holding. A holding saved as
+    "not sure" blocks Module 4's allocation until it has a type, so this is
+    how a user unblocks it after onboarding. The type only drives asset-class
+    look-through, not net worth or surplus, so no snapshot recompute."""
+    _require_profile(session, user_id)
+    holding = session.get(Holding, holding_id)
+    if holding is None or holding.user_id != user_id:
+        raise HoldingNotFoundError(f"no holding id={holding_id!r} for user_id={user_id!r}")
+
+    holding.holding_type = holding_type
+    session.flush()
+    if commit:
+        session.commit()
+        session.refresh(holding)
+    return holding
+
+
 def list_expense_items(session: Session, user_id: str) -> list[ExpenseItem]:
     """All expense items ever recorded, oldest first, active and removed
     alike (see ExpenseItem's own docstring on why removed rows persist)."""

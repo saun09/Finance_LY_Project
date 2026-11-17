@@ -12,6 +12,7 @@ from app.schemas.onboarding import (
     FinancialPositionOut,
     HoldingIn,
     HoldingOut,
+    HoldingTypeIn,
     InsurancePolicyIn,
     InsurancePolicyOut,
     ProfileIdentityIn,
@@ -22,6 +23,7 @@ from app.schemas.user_monthly_snapshot import UserMonthlySnapshotRead
 from app.services.onboarding import (
     EmiNotFoundError,
     ExpenseItemNotFoundError,
+    HoldingNotFoundError,
     ProfileNotFoundError,
     add_emi,
     add_expense_item,
@@ -38,6 +40,7 @@ from app.services.onboarding import (
     list_insurance_policies,
     record_expense_source_decision,
     remove_expense_item,
+    set_holding_type,
     update_profile_identity,
     upsert_profile,
 )
@@ -48,7 +51,7 @@ router = APIRouter(prefix="/users/{user_id}", tags=["onboarding"])
 def _not_found_as_404(fn, *args, **kwargs):
     try:
         return fn(*args, **kwargs)
-    except (ProfileNotFoundError, EmiNotFoundError, ExpenseItemNotFoundError) as exc:
+    except (ProfileNotFoundError, EmiNotFoundError, ExpenseItemNotFoundError, HoldingNotFoundError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
@@ -98,6 +101,13 @@ def post_holding(user_id: str, body: HoldingIn, session: Session = Depends(get_s
 @router.get("/holdings", response_model=list[HoldingOut])
 def get_holdings(user_id: str, session: Session = Depends(get_session)):
     return _not_found_as_404(list_holdings, session, user_id)
+
+
+@router.put("/holdings/{holding_id}/type", response_model=HoldingOut)
+def put_holding_type(user_id: str, holding_id: str, body: HoldingTypeIn, session: Session = Depends(get_session)):
+    return _not_found_as_404(
+        set_holding_type, session, user_id=user_id, holding_id=holding_id, holding_type=body.holding_type
+    )
 
 
 @router.post("/expenses", response_model=ExpenseItemOut)

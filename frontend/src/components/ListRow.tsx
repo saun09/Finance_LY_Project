@@ -11,23 +11,31 @@ interface Props {
   trailing?: string;
   onRemove?: () => void;
   removing?: boolean;
+  /** Makes the title/subtitle area tappable (e.g. to edit the item). */
+  onPress?: () => void;
 }
 
 /** A compact row for an already-submitted onboarding item (an EMI, a
  * holding, an expense...) with an optional remove action. Used in the
  * "items you've added" list under each onboarding entry form. */
-export function ListRow({ title, subtitle, trailing, onRemove, removing }: Props) {
+export function ListRow({ title, subtitle, trailing, onRemove, removing, onPress }: Props) {
   const { colors } = useAppTheme();
   return (
     <View style={[styles.row, { borderColor: colors.border }]}>
-      <View style={styles.textCol}>
+      <Pressable
+        style={styles.textCol}
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={onPress ? `Edit ${title}` : undefined}
+      >
         <Text variant="bodyMedium">{title}</Text>
         {subtitle ? (
           <Text variant="caption" tone="faint">
             {subtitle}
           </Text>
         ) : null}
-      </View>
+      </Pressable>
       {trailing ? (
         <Text variant="figure" tone="ink">
           {trailing}

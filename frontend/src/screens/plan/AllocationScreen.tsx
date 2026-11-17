@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,7 +32,7 @@ import { useDemoUser } from '../../context/DemoUserContext';
 import { useAppTheme } from '../../theme/ThemeContext';
 import { ASSET_CLASS_COLOR_KEY, SPACE } from '../../theme/tokens';
 import type { Palette } from '../../theme/tokens';
-import type { PlanStackParamList } from '../../navigation/types';
+import type { MainTabParamList, PlanStackParamList } from '../../navigation/types';
 import { formatPaise } from '../../utils/currency';
 import { mixWithEquity } from '../../utils/allocationMix';
 
@@ -82,7 +84,10 @@ const SOFT_KEY: Record<keyof typeof ASSET_CLASS_COLOR_KEY, keyof Palette> = {
   alternatives: 'dangerSoft',
 };
 
-type Nav = NativeStackNavigationProp<PlanStackParamList, 'Allocation'>;
+type Nav = CompositeNavigationProp<
+  NativeStackNavigationProp<PlanStackParamList, 'Allocation'>,
+  BottomTabNavigationProp<MainTabParamList>
+>;
 
 /** Collapsed by default -- an audit trail, not something most people need
  * to read to use the page (same disclosure pattern as Plan's tier legend
@@ -257,17 +262,30 @@ export function AllocationScreen() {
     );
   }
 
+  // 422 = at least one holding was saved as "not sure" (no holding_type);
+  // the backend can't split it into asset classes until it has one.
+  if (error?.status === 422) {
+    return (
+      <ScreenContainer>
+        <Text variant="display">Allocation</Text>
+        <Card>
+          <EmptyState
+            title="Tell us what your holdings are"
+            message="Some of your holdings were saved without a type. Set a type for each one so we can compare what you hold against your target mix."
+            actionLabel="Set holding types"
+            onAction={() => navigation.navigate('ProfileTab', { screen: 'HoldingsManage' })}
+          />
+        </Card>
+        <Button label="Try again" variant="secondary" fullWidth onPress={() => refetch()} />
+      </ScreenContainer>
+    );
+  }
+
   if (error) {
     return (
       <ScreenContainer>
         <Text variant="display">Allocation</Text>
         <ErrorState message={error.message} onRetry={() => refetch()} />
-        {error.status === 422 ? (
-          <Text variant="caption" tone="faint" style={styles.gapNote}>
-            Holdings can currently only be added during onboarding, not edited or reclassified afterward — this
-            will move to your Profile tab in a later update.
-          </Text>
-        ) : null}
       </ScreenContainer>
     );
   }
@@ -697,7 +715,6 @@ const styles = StyleSheet.create({
   comparisonTargetTick: { position: 'absolute', top: 0, bottom: 0, width: 2, marginLeft: -1 },
 
   metricRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SPACE.xs },
-  gapNote: { marginTop: SPACE.md, textAlign: 'center' },
   actions: { gap: SPACE.sm, marginTop: SPACE.sm },
   stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACE.xs, flexWrap: 'wrap' },
   stepperValue: { minWidth: 72, textAlign: 'center' },

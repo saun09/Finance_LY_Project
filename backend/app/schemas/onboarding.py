@@ -76,6 +76,10 @@ class HoldingIn(BaseModel):
     holding_type: HoldingType | None = None
 
 
+class HoldingTypeIn(BaseModel):
+    holding_type: HoldingType
+
+
 class HoldingOut(HoldingIn):
     model_config = ConfigDict(from_attributes=True)
     id: str

@@ -1213,8 +1213,15 @@ function TopicModal({
                 <Button
                   label={topic.completed ? "Done" : "Learn"}
                   variant={topic.completed ? "secondary" : "primary"}
-                  disabled={topic.completed || isPending}
-                  onPress={() => completeItem(topic.topic_id, "lesson")}
+                  // Once the lesson is complete, "Done" closes the sheet --
+                  // it used to be a disabled label, which read as a broken
+                  // button since tapping it did nothing.
+                  disabled={!topic.completed && isPending}
+                  onPress={() =>
+                    topic.completed
+                      ? onClose()
+                      : completeItem(topic.topic_id, "lesson")
+                  }
                   fullWidth
                 />
 

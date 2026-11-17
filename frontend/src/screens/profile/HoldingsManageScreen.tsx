@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { toApiError } from '../../api/client';
 import { onboardingApi } from '../../api/onboarding';
 import { invalidateFinancialData, qk } from '../../api/queryClient';
-import type { HoldingType } from '../../api/types';
+import type { HoldingOut, HoldingType } from '../../api/types';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
@@ -51,6 +51,31 @@ export function HoldingsManageScreen() {
       setFormError(err instanceof Error && err.message === 'validation' ? 'Enter a description and a value.' : toApiError(err).message),
   });
 
+  // Classify an existing holding. A holding saved as "not sure" blocks the
+  // Allocation screen until it has a type, so this is how a user unblocks it.
+  const [editing, setEditing] = useState<HoldingOut | null>(null);
+  const [editType, setEditType] = useState<HoldingType | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const openEdit = (item: HoldingOut) => {
+    setEditing(item);
+    setEditType(item.holding_type);
+    setEditError(null);
+  };
+  const typeMutation = useMutation({
+    mutationFn: async () => {
+      if (!editing || !editType) throw new Error('validation');
+      return onboardingApi.setHoldingType(userId, editing.id, editType);
+    },
+    onSuccess: () => {
+      setEditing(null);
+      queryClient.invalidateQueries({ queryKey: qk.holdings(userId) });
+      invalidateFinancialData(queryClient, userId);
+    },
+    onError: (err) =>
+      setEditError(err instanceof Error && err.message === 'validation' ? 'Pick a type for this holding.' : toApiError(err).message),
+  });
+  const unclassifiedCount = data?.filter((h) => !h.holding_type).length ?? 0;
+
   return (
     <ScreenContainer floatingAction={<FloatingActionButton label="Add holding" onPress={() => setSheetOpen(true)} />}>
       <View>
@@ -70,12 +95,19 @@ export function HoldingsManageScreen() {
         </Card>
       ) : (
         <Card>
+          {unclassifiedCount > 0 ? (
+            <Text variant="caption" tone="warning">
+              {unclassifiedCount === 1 ? '1 holding needs' : `${unclassifiedCount} holdings need`} a type before your
+              target allocation can be worked out. Tap it to set one.
+            </Text>
+          ) : null}
           {data.map((item) => (
             <ListRow
               key={item.id}
               title={item.description}
-              subtitle={item.holding_type ? HOLDING_TYPE_LABEL[item.holding_type] : 'Type not specified'}
+              subtitle={item.holding_type ? HOLDING_TYPE_LABEL[item.holding_type] : 'Type not specified — tap to set'}
               trailing={formatPaise(item.value_paise)}
+              onPress={() => openEdit(item)}
             />
           ))}
         </Card>
@@ -101,6 +133,21 @@ export function HoldingsManageScreen() {
           onPress={() => {
             setFormError(null);
             addMutation.mutate();
+          }}
+        />
+      </FormSheet>
+
+      <FormSheet visible={!!editing} onClose={() => setEditing(null)} title={editing ? editing.description : 'Holding type'}>
+        <HoldingTypePicker value={editType} onChange={setEditType} />
+        {editError ? <InlineError message={editError} /> : null}
+        <Button
+          label="Save type"
+          fullWidth
+          disabled={!editType}
+          loading={typeMutation.isPending}
+          onPress={() => {
+            setEditError(null);
+            typeMutation.mutate();
           }}
         />
       </FormSheet>

@@ -9,6 +9,7 @@ import type {
   FinancialPositionOut,
   HoldingIn,
   HoldingOut,
+  HoldingType,
   InsurancePolicyIn,
   InsurancePolicyOut,
   ProfileIdentityIn,
@@ -42,6 +43,11 @@ export const onboardingApi = {
 
   postHolding: (userId: string, body: HoldingIn) =>
     apiClient.post<HoldingOut>(`/users/${userId}/holdings`, body).then((r) => r.data),
+
+  setHoldingType: (userId: string, holdingId: string, holdingType: HoldingType) =>
+    apiClient
+      .put<HoldingOut>(`/users/${userId}/holdings/${holdingId}/type`, { holding_type: holdingType })
+      .then((r) => r.data),
 
   getHoldings: (userId: string) => apiClient.get<HoldingOut[]>(`/users/${userId}/holdings`).then((r) => r.data),
 

@@ -70,6 +70,43 @@ def test_allocation_with_unclassified_holding_is_422(client):
     assert resp.status_code == 422
 
 
+def test_setting_a_holding_type_afterward_unblocks_allocation(client):
+    client.put(
+        f"/users/{USER}/profile",
+        json={
+            "income_paise": 100_000_00,
+            "income_stability": "regular",
+            "employment_type": "salaried",
+            "dependents_count": 0,
+            "cash_balance_paise": 1_000_000_00,
+        },
+    )
+    holding = client.post(f"/users/{USER}/holdings", json={"description": "Not sure what this is", "value_paise": 1000}).json()
+    client.post(f"/users/{USER}/risk-profile", json={"answers": AGGRESSIVE_ANSWERS})
+    assert client.get(f"/users/{USER}/allocation").status_code == 422
+
+    resp = client.put(f"/users/{USER}/holdings/{holding['id']}/type", json={"holding_type": "fixed_deposit"})
+    assert resp.status_code == 200
+    assert resp.json()["holding_type"] == "fixed_deposit"
+
+    assert client.get(f"/users/{USER}/allocation").status_code == 200
+
+
+def test_setting_type_on_someone_elses_or_unknown_holding_is_404(client):
+    client.put(
+        f"/users/{USER}/profile",
+        json={
+            "income_paise": 100_000_00,
+            "income_stability": "regular",
+            "employment_type": "salaried",
+            "dependents_count": 0,
+            "cash_balance_paise": 1_000_000_00,
+        },
+    )
+    resp = client.put(f"/users/{USER}/holdings/does-not-exist/type", json={"holding_type": "ppf"})
+    assert resp.status_code == 404
+
+
 def test_full_allocation_flow_via_api_shows_look_through(client):
     _onboard(client)
     client.post(f"/users/{USER}/risk-profile", json={"answers": AGGRESSIVE_ANSWERS})
