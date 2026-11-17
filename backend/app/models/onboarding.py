@@ -6,7 +6,8 @@ from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, Strin
 from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db import Base
+from app.crypto import EncryptedInteger, EncryptedString
+from app.db import Base, enum_values
 from app.services.asset_classification_config import HoldingType
 from app.services.expense_source_decision import ExpenseSourceMode
 from app.services.financial_position import ExpenseFrequency
@@ -59,15 +60,15 @@ class UserProfile(Base):
 
     user_id: Mapped[str] = mapped_column(String(36), primary_key=True)
 
-    income_paise: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    income_paise: Mapped[int] = mapped_column(EncryptedInteger, nullable=False, default=0)
     income_stability: Mapped[IncomeStability] = mapped_column(
-        Enum(IncomeStability, name="income_stability_enum"), nullable=False
+        Enum(IncomeStability, name="income_stability_enum", values_callable=enum_values), nullable=False
     )
     employment_type: Mapped[EmploymentType] = mapped_column(
-        Enum(EmploymentType, name="employment_type_enum"), nullable=False
+        Enum(EmploymentType, name="employment_type_enum", values_callable=enum_values), nullable=False
     )
-    dependents_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    cash_balance_paise: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    dependents_count: Mapped[int] = mapped_column(EncryptedInteger, nullable=False, default=0)
+    cash_balance_paise: Mapped[int] = mapped_column(EncryptedInteger, nullable=False, default=0)
 
     # Identity fields -- distinct from the financial fields above: always
     # user-entered and optional (nullable), never defaulted or inferred.
@@ -102,13 +103,13 @@ class EmiEntry(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("user_profile.user_id"), index=True, nullable=False)
 
-    lender: Mapped[str] = mapped_column(String(128), nullable=False)
-    amount_paise: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    remaining_tenure_months: Mapped[int] = mapped_column(Integer, nullable=False)
-    annual_rate_bps: Mapped[int] = mapped_column(Integer, nullable=False)
+    lender: Mapped[str] = mapped_column(EncryptedString, nullable=False)
+    amount_paise: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
+    remaining_tenure_months: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
+    annual_rate_bps: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
     # what the loan is for (home/vehicle/personal/...); nullable so existing
     # rows from before this field existed don't need a backfill value
-    purpose: Mapped[EmiPurpose | None] = mapped_column(Enum(EmiPurpose, name="emi_purpose_enum"), nullable=True)
+    purpose: Mapped[EmiPurpose | None] = mapped_column(Enum(EmiPurpose, name="emi_purpose_enum", values_callable=enum_values), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -120,8 +121,8 @@ class InsurancePolicy(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("user_profile.user_id"), index=True, nullable=False)
 
-    policy_type: Mapped[InsuranceType] = mapped_column(Enum(InsuranceType, name="insurance_type_enum"), nullable=False)
-    sum_assured_paise: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    policy_type: Mapped[InsuranceType] = mapped_column(Enum(InsuranceType, name="insurance_type_enum", values_callable=enum_values), nullable=False)
+    sum_assured_paise: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
 
@@ -140,9 +141,9 @@ class Holding(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("user_profile.user_id"), index=True, nullable=False)
 
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    value_paise: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    holding_type: Mapped[HoldingType | None] = mapped_column(Enum(HoldingType, name="holding_type_enum"), nullable=True)
+    description: Mapped[str] = mapped_column(EncryptedString, nullable=False)
+    value_paise: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
+    holding_type: Mapped[HoldingType | None] = mapped_column(Enum(HoldingType, name="holding_type_enum", values_callable=enum_values), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
 
@@ -158,9 +159,9 @@ class ExpenseItem(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid_str)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("user_profile.user_id"), index=True, nullable=False)
 
-    category: Mapped[str] = mapped_column(String(64), nullable=False)
-    amount_paise: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    frequency: Mapped[ExpenseFrequency] = mapped_column(Enum(ExpenseFrequency, name="expense_frequency_enum"), nullable=False)
+    category: Mapped[str] = mapped_column(EncryptedString, nullable=False)
+    amount_paise: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
+    frequency: Mapped[ExpenseFrequency] = mapped_column(Enum(ExpenseFrequency, name="expense_frequency_enum", values_callable=enum_values), nullable=False)
     is_essential: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=_utcnow)
@@ -177,6 +178,6 @@ class ExpenseSourceDecisionRecord(Base):
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("user_profile.user_id"), primary_key=True)
     onboarding_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     decision: Mapped[ExpenseSourceMode | None] = mapped_column(
-        Enum(ExpenseSourceMode, name="expense_source_mode_enum"), nullable=True
+        Enum(ExpenseSourceMode, name="expense_source_mode_enum", values_callable=enum_values), nullable=True
     )
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

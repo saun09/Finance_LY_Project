@@ -12,6 +12,7 @@ numpy>=1.26
 scipy>=1.11
 python-dotenv>=1.0
 bcrypt>=4.0
+cryptography>=42
 
 # Module 3b (risk_profile_ml): the one place in the app that loads and
 # runs a trained model, rather than pure deterministic logic. See

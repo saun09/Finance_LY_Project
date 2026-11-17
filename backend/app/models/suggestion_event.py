@@ -6,7 +6,8 @@ from decimal import Decimal
 from sqlalchemy import JSON, Boolean, DateTime, Enum, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db import Base
+from app.crypto import EncryptedJSON
+from app.db import Base, enum_values
 
 
 class ActionTaken(str, enum.Enum):
@@ -60,19 +61,19 @@ class SuggestionEvent(Base):
     # Distinct from `offset` above, which is a list position.
     offset_pct_points: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
 
-    suggested_value: Mapped[dict] = mapped_column(JSON, nullable=False)
-    chosen_value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    delta: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    suggested_value: Mapped[dict] = mapped_column(EncryptedJSON, nullable=False)
+    chosen_value: Mapped[dict | None] = mapped_column(EncryptedJSON, nullable=True)
+    delta: Mapped[dict | None] = mapped_column(EncryptedJSON, nullable=True)
 
     action_taken: Mapped[ActionTaken | None] = mapped_column(
-        Enum(ActionTaken, name="action_taken_enum", native_enum=True), nullable=True
+        Enum(ActionTaken, name="action_taken_enum", values_callable=enum_values, native_enum=True), nullable=True
     )
     reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     funded: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     # snapshot of market context (e.g. index levels, reference rates) at
     # event time, so a later transparency view can explain "why this, then"
-    market_context: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    market_context: Mapped[dict] = mapped_column(EncryptedJSON, nullable=False, default=dict)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_utcnow

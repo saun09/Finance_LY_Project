@@ -2,9 +2,10 @@ import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, Date, DateTime, Numeric, String, UniqueConstraint
+from sqlalchemy import Date, DateTime, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.crypto import EncryptedDecimal, EncryptedInteger
 from app.db import Base
 
 
@@ -35,12 +36,12 @@ class UserMonthlySnapshot(Base):
     # first day of the covered calendar month, e.g. 2026-09-01
     month: Mapped[date] = mapped_column(Date, nullable=False, index=True)
 
-    income: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    surplus: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    cash: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    income: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
+    surplus: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
+    cash: Mapped[int] = mapped_column(EncryptedInteger, nullable=False)
 
-    debt_to_income_ratio: Mapped[Decimal] = mapped_column(Numeric(6, 4), nullable=False)
-    buffer_coverage_months: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    debt_to_income_ratio: Mapped[Decimal] = mapped_column(EncryptedDecimal(4), nullable=False)
+    buffer_coverage_months: Mapped[Decimal] = mapped_column(EncryptedDecimal(2), nullable=False)
 
     computed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_utcnow
