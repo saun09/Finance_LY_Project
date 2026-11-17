@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SPACE } from '../theme/tokens';
 import { useAppTheme } from '../theme/ThemeContext';
 import { AnimatedFigure } from './AnimatedFigure';
 import { Card } from './Card';
+import { fitFigureStyle } from './fitFigure';
 import { IconChip } from './IconChip';
 import { InfoTooltip } from './InfoTooltip';
 import { ProgressBar } from './ProgressBar';
@@ -41,16 +42,6 @@ const TONE_ICON: Record<NonNullable<Props['tone']>, string> = {
   neutral: '●',
 };
 
-/** Two metric cards share one row at typical phone widths, which leaves
- * little room for a long rupee figure (crores, negative values) at the
- * default 28px mono size -- it would wrap mid-number instead of shrinking.
- * Step the size down for longer strings rather than letting it wrap. */
-function figureSizeStyle(value: string) {
-  if (value.length > 12) return { fontSize: 18, lineHeight: 22 };
-  if (value.length > 9) return { fontSize: 22, lineHeight: 26 };
-  return undefined;
-}
-
 /** A single financial figure: icon chip, label, big figure, optional
  * helper line and info tooltip. Tone is still shown via both color AND a
  * labeled dot (never color alone), matching Section 31's "do not rely
@@ -60,10 +51,11 @@ export function MetricCard({ label, value, animated, tone = 'neutral', helper, i
   const { colors } = useAppTheme();
   const toneColor = tone === 'neutral' ? colors.inkFaint : colors[tone];
   const chipTone = tone === 'neutral' ? 'petrol' : tone;
-  // Sized off the *final* text, not the mid-animation one, so the count-up
-  // never jitters in font size as digits come in.
-  const finalText = animated ? animated.formatter(animated.target) : value ?? '';
-  const sizeStyle = figureSizeStyle(finalText);
+  // Two cards share a row on a phone, so a long figure (crores, a negative
+  // net worth) is shrunk to the width actually available -- never wrapped
+  // mid-number, never cut off with "…". AnimatedFigure does the same.
+  const [figureWidth, setFigureWidth] = useState(0);
+  const fitStyle = fitFigureStyle(value ?? '', figureWidth, 'figureLarge');
 
   return (
     <Card style={styles.card}>
@@ -78,11 +70,13 @@ export function MetricCard({ label, value, animated, tone = 'neutral', helper, i
         {label.toUpperCase()}
       </Text>
       {animated ? (
-        <AnimatedFigure target={animated.target} formatter={animated.formatter} style={sizeStyle} />
+        <AnimatedFigure target={animated.target} formatter={animated.formatter} />
       ) : (
-        <Text variant="figureLarge" numberOfLines={1} style={sizeStyle}>
-          {value}
-        </Text>
+        <View onLayout={(e) => setFigureWidth(e.nativeEvent.layout.width)}>
+          <Text variant="figureLarge" numberOfLines={1} style={fitStyle}>
+            {value}
+          </Text>
+        </View>
       )}
       {progressFraction !== undefined ? (
         <View style={styles.progressWrap}>

@@ -38,17 +38,9 @@ export function SnapshotScreen() {
 
       <View style={styles.grid}>
         <MetricCard label="Income" value={formatPaise(snapshot.income)} />
-        <MetricCard
-          label="Surplus"
-          value={formatPaise(snapshot.surplus)}
-          tone={snapshot.surplus >= 0 ? 'positive' : 'danger'}
-        />
+        <MetricCard label="Surplus" value={formatPaise(snapshot.surplus)} />
         <MetricCard label="Cash" value={formatPaise(snapshot.cash)} />
-        <MetricCard
-          label="Buffer"
-          value={`${Number(snapshot.buffer_coverage_months).toFixed(1)} mo`}
-          tone={Number(snapshot.buffer_coverage_months) >= 6 ? 'positive' : 'warning'}
-        />
+        <MetricCard label="Buffer" value={`${Number(snapshot.buffer_coverage_months).toFixed(1)} mo`} />
       </View>
 
       <Card>

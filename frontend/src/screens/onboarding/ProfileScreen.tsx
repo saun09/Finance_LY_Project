@@ -72,7 +72,17 @@ export function ProfileScreen() {
 
   const incomeValid = rupeeInputToPaise(incomeInput) !== null;
   const dependentsValid = /^\d+$/.test(dependentsInput.trim());
-  const canContinue = incomeValid && incomeStability !== null && employmentType !== null && dependentsValid;
+  const cashValid = cashInput.trim() === '' || rupeeInputToPaise(cashInput) !== null;
+  // Continue stays pressable and says what's missing instead of silently
+  // dimming -- a disabled button gave no hint which field was blocking it
+  // (the two chip groups have no default, so they were easy to miss).
+  const missingFields = [
+    !incomeValid && 'monthly income',
+    incomeStability === null && 'income stability',
+    employmentType === null && 'employment type',
+    !dependentsValid && 'dependents',
+    !cashValid && 'cash & bank balance',
+  ].filter((f): f is string => Boolean(f));
 
   return (
     <ScreenContainer>
@@ -138,9 +148,12 @@ export function ProfileScreen() {
         <Button
           label="Continue"
           fullWidth
-          disabled={!canContinue}
           loading={mutation.isPending}
           onPress={() => {
+            if (missingFields.length > 0) {
+              setSubmitError(`Please fill in: ${missingFields.join(', ')}.`);
+              return;
+            }
             setSubmitError(null);
             mutation.mutate();
           }}

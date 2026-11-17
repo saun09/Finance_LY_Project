@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, useWindowDimensions, View } from 'react-native';
-import Svg, { Circle, Defs, Path, RadialGradient, Stop} from 'react-native-svg';
+import Svg, { Circle, Path, RadialGradient, Stop } from 'react-native-svg';
 import { Text } from './Text';
 import { DARK_COLOR, SPACE } from '../theme/tokens';
 
@@ -22,6 +22,7 @@ const P1 = { x: 74, y: 132 };
 const P2 = { x: 176, y: 108 };
 const P3 = { x: 250, y: 32 };
 const SAMPLE_COUNT = 24;
+const ARROW_SIZE = 20;
 
 function cubicPoint(t: number) {
   const mt = 1 - t;
@@ -46,9 +47,6 @@ const END_TANGENT_LEN = Math.hypot(P3.x - P2.x, P3.y - P2.y);
 const ARROW_X = P3.x + ((P3.x - P2.x) / END_TANGENT_LEN) * 10;
 const ARROW_Y = P3.y + ((P3.y - P2.y) / END_TANGENT_LEN) * 10;
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
 /** Brand splash shown once per app launch, after fonts are ready and before
  * RootNavigator mounts -- see App.tsx's AppShell for how this is sequenced.
  * Deliberately always dark (not tied to useAppTheme/system scheme): this is
@@ -66,6 +64,15 @@ export function SplashScreen({ onFinish }: Props) {
   const arrow = useRef(new Animated.Value(0)).current;
   const screenFade = useRef(new Animated.Value(1)).current;
   const isMounted = useRef(true);
+  // The stroke + dot are driven from JS state rather than Animated SVG
+  // components: react-native-svg's web renderer can't take Animated nodes as
+  // props (crashes on web), and a tiny SVG re-rendering for ~1s is cheap.
+  const [drawProgress, setDrawProgress] = useState(0);
+
+  useEffect(() => {
+    const id = draw.addListener(({ value }) => setDrawProgress(value));
+    return () => draw.removeListener(id);
+  }, [draw]);
 
   useEffect(() => {
     return () => {
@@ -151,20 +158,20 @@ export function SplashScreen({ onFinish }: Props) {
     [arrow]
   );
 
-  const dashOffset = draw.interpolate({ inputRange: [0, 1], outputRange: [PATH_LENGTH, 0] });
-  const dotX = draw.interpolate({ inputRange: SAMPLE_TS, outputRange: SAMPLE_POINTS.map((p) => p.x) });
-  const dotY = draw.interpolate({ inputRange: SAMPLE_TS, outputRange: SAMPLE_POINTS.map((p) => p.y) });
+  const dashOffset = PATH_LENGTH * (1 - drawProgress);
+  const dot = cubicPoint(drawProgress);
+  // Arrow lives outside the <Svg> (Views can't nest inside it), so convert
+  // its viewBox position to on-screen pixels.
+  const viewScale = illustrationWidth / VIEW_W;
 
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.glow, { opacity: glow }]} pointerEvents="none">
         <Svg width={340} height={340} viewBox="0 0 340 340">
-          
             <RadialGradient id="glow" cx="50%" cy="50%" r="50%">
               <Stop offset="0%" stopColor={DARK_COLOR.terracotta} stopOpacity={0.22} />
               <Stop offset="100%" stopColor={DARK_COLOR.terracotta} stopOpacity={0} />
             </RadialGradient>
-          
           <Circle cx={170} cy={170} r={170} fill="url(#glow)" />
         </Svg>
       </Animated.View>
@@ -177,7 +184,7 @@ export function SplashScreen({ onFinish }: Props) {
 
         <View style={{ width: illustrationWidth, height: illustrationHeight, marginTop: SPACE.xxl }}>
           <Svg width="100%" height="100%" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}>
-            <AnimatedPath
+            <Path
               d={PATH_D}
               stroke={DARK_COLOR.ink}
               strokeOpacity={0.32}
@@ -187,27 +194,32 @@ export function SplashScreen({ onFinish }: Props) {
               strokeDasharray={`${PATH_LENGTH}, ${PATH_LENGTH}`}
               strokeDashoffset={dashOffset}
             />
-            <AnimatedCircle cx={dotX} cy={dotY} r={5} fill={DARK_COLOR.terracotta} />
-            <Animated.View
-              style={[
-                styles.arrowWrap,
-                { left: ARROW_X - 10, top: ARROW_Y - 10, transform: [{ rotate: `${END_ANGLE_DEG}deg` }] },
-              ]}
-            >
-              <Animated.View style={arrowStyle}>
-                <Svg width={20} height={20} viewBox="-10 -10 20 20">
-                  <Path
-                    d="M -6 -6 L 3 0 L -6 6"
-                    stroke={DARK_COLOR.terracotta}
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                </Svg>
-              </Animated.View>
-            </Animated.View>
+            <Circle cx={dot.x} cy={dot.y} r={5} fill={DARK_COLOR.terracotta} />
           </Svg>
+          <View
+            pointerEvents="none"
+            style={[
+              styles.arrowWrap,
+              {
+                left: ARROW_X * viewScale - ARROW_SIZE / 2,
+                top: ARROW_Y * viewScale - ARROW_SIZE / 2,
+                transform: [{ rotate: `${END_ANGLE_DEG}deg` }],
+              },
+            ]}
+          >
+            <Animated.View style={arrowStyle}>
+              <Svg width={ARROW_SIZE} height={ARROW_SIZE} viewBox="-10 -10 20 20">
+                <Path
+                  d="M -6 -6 L 3 0 L -6 6"
+                  stroke={DARK_COLOR.terracotta}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </Svg>
+            </Animated.View>
+          </View>
         </View>
       </Animated.View>
     </View>
@@ -248,7 +260,7 @@ const styles = StyleSheet.create({
   },
   arrowWrap: {
     position: 'absolute',
-    width: 20,
-    height: 20,
+    width: ARROW_SIZE,
+    height: ARROW_SIZE,
   },
 });
